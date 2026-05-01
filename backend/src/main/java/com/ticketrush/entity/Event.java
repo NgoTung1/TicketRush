@@ -39,14 +39,13 @@ public class Event {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id")
     private Category category;
 
     @Column(nullable = false)
     private String title;
 
-    @Column(columnDefinition = "text")
-    private String organizers;
+    private String organizer;
 
     @Column(columnDefinition = "text")
     private String description;
@@ -63,9 +62,11 @@ public class Event {
     @Column(name = "start_time")
     private LocalDateTime startTime;
 
-    @Column(name = "created_at")
+    @org.hibernate.annotations.CreationTimestamp 
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @org.hibernate.annotations.UpdateTimestamp 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
