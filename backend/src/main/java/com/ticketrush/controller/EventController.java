@@ -1,8 +1,8 @@
 package com.ticketrush.controller;
 
-import com.ticketrush.dto.request.EventCreateRequest;
-import com.ticketrush.dto.response.EventCreateResponse; // Đổi import
-import com.ticketrush.service.EventService;
+import com.ticketrush.dto.request.event.EventCreateRequest;
+import com.ticketrush.dto.response.event.EventCreateResponse; // Đổi import
+import com.ticketrush.service.impl.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

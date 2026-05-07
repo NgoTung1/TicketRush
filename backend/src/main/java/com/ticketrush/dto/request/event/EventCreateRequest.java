@@ -1,4 +1,4 @@
-package com.ticketrush.dto.request;
+package com.ticketrush.dto.request.event;
 
 import com.ticketrush.entity.enums.EventStatus;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 public class EventCreateRequest {
     private String title;
-    private UUID categoryId; 
+    private UUID categoryId;
     private String organizer;
     private String description;
     private String address;

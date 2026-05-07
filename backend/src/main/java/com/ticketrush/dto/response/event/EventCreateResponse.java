@@ -1,4 +1,4 @@
-package com.ticketrush.dto.response;
+package com.ticketrush.dto.response.event;
 
 import com.ticketrush.entity.enums.EventStatus;
 import lombok.Builder;

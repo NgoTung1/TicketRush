@@ -1,7 +1,7 @@
-package com.ticketrush.service;
+package com.ticketrush.service.impl;
 
-import com.ticketrush.dto.request.EventCreateRequest;
-import com.ticketrush.dto.response.EventCreateResponse;
+import com.ticketrush.dto.request.event.EventCreateRequest;
+import com.ticketrush.dto.response.event.EventCreateResponse;
 import com.ticketrush.entity.Category;
 import com.ticketrush.entity.Event;
 import com.ticketrush.repository.CategoryRepository;
@@ -16,7 +16,7 @@ import java.util.UUID;
 public class EventService {
 
     private final EventRepository eventRepository;
-    private final CategoryRepository categoryRepository; 
+    private final CategoryRepository categoryRepository;
 
     // 1. Chức năng Tạo sự kiện mới
     public EventCreateResponse createEvent(EventCreateRequest request) { // Đổi kiểu trả về
@@ -31,7 +31,7 @@ public class EventService {
         newEvent.setBannerUrl(request.getBannerUrl());
         newEvent.setStartTime(request.getStartTime());
         newEvent.setStatus(request.getStatus());
-        newEvent.setCategory(category); 
+        newEvent.setCategory(category);
 
         Event savedEvent = eventRepository.save(newEvent);
 
@@ -50,7 +50,7 @@ public class EventService {
         return EventCreateResponse.builder() // Đổi tên class gọi builder()
                 .id(event.getId())
                 .title(event.getTitle())
-                .categoryId(event.getCategory().getId()) 
+                .categoryId(event.getCategory().getId())
                 .organizer(event.getOrganizer())
                 .address(event.getAddress())
                 .bannerUrl(event.getBannerUrl())
