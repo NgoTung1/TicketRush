@@ -1,4 +1,4 @@
-package com.ticketrush.config; // Đổi lại package cho đúng với thư mục của bạn
+package com.ticketrush.config; 
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

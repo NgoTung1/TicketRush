@@ -1,0 +1,163 @@
+### Variables
+@baseUrl = http://localhost:8080
+
+# Chạy theo thứ tự từ trên xuống dưới để test logic tuần tự: Event -> SeatType -> Session -> Zone -> Seat
+
+### ------------------- EVENT CONTROLLER -------------------
+
+### 1. Tạo Event mới
+# @name createEvent
+POST {{baseUrl}}/events
+Content-Type: application/json
+
+{
+  "name": "Live Concert 2026",
+  "description": "The biggest live concert of the year",
+  "location": "My Dinh National Stadium",
+  "status": "DRAFT"
+}
+
+### Lấy ID của event vừa tạo gán vào biến
+@eventId = {{createEvent.response.body.id}}
+
+### 2. Lấy danh sách Events (có phân trang)
+GET {{baseUrl}}/events/events?page=0&size=10
+
+### 3. Lấy chi tiết 1 Event
+GET {{baseUrl}}/events/{{eventId}}
+
+### 4. Cập nhật Event
+PUT {{baseUrl}}/events/update/{{eventId}}
+Content-Type: application/json
+
+{
+  "name": "Live Concert 2026 - Updated",
+  "description": "Updated description",
+  "location": "My Dinh National Stadium",
+  "status": "PUBLISHED"
+}
+
+
+### ------------------- SEAT TYPE CONTROLLER -------------------
+
+### 5. Tạo/Cập nhật Seat Type cho Event
+# @name createSeatType
+POST {{baseUrl}}/events/{{eventId}}/seat-types
+Content-Type: application/json
+
+{
+  "name": "VIP",
+  "price": 1000000,
+  "description": "Ghế gần sân khấu, có nước uống"
+}
+
+### 6. Lấy danh sách Seat Types của Event
+GET {{baseUrl}}/events/{{eventId}}/seat-types
+
+
+### ------------------- EVENT SESSION CONTROLLER -------------------
+
+### 7. Tạo Event Session (Suất diễn)
+# @name createSession
+POST {{baseUrl}}/events/{{eventId}}/sessions
+Content-Type: application/json
+
+{
+  "startTime": "2026-10-15T19:00:00",
+  "endTime": "2026-10-15T22:00:00",
+  "name": "Suất diễn tối thứ 7"
+}
+
+### Lấy ID của session vừa tạo gán vào biến
+@sessionId = {{createSession.response.body.id}}
+
+### 8. Lấy danh sách Sessions của Event
+GET {{baseUrl}}/events/sessions/{{eventId}}
+
+### 9. Cập nhật Event Session
+PUT {{baseUrl}}/sessions/{{sessionId}}
+Content-Type: application/json
+
+{
+  "startTime": "2026-10-15T20:00:00",
+  "endTime": "2026-10-15T23:00:00",
+  "name": "Suất diễn tối thứ 7 (Đã dời giờ)"
+}
+
+
+### ------------------- ZONE CONTROLLER -------------------
+
+### 10. Tạo Zone (Khu vực) cho Session
+# @name createZone
+POST {{baseUrl}}/sessions/{{sessionId}}/zones
+Content-Type: application/json
+
+{
+  "name": "Khu A - VIP",
+  "capacity": 100,
+  "description": "Khu vực VIP sát sân khấu"
+}
+
+### Lấy ID của zone vừa tạo gán vào biến
+@zoneId = {{createZone.response.body.id}}
+
+### 11. Cập nhật Zone
+PUT {{baseUrl}}/zones/{{zoneId}}
+Content-Type: application/json
+
+{
+  "name": "Khu A - VIP (Update)",
+  "capacity": 150,
+  "description": "Khu vực VIP đã mở rộng"
+}
+
+
+### ------------------- SEAT CONTROLLER -------------------
+
+### 12. Auto Generate Ghế cho Zone
+POST {{baseUrl}}/zones/{{zoneId}}/seats/generate
+Content-Type: application/json
+
+{
+  "prefix": "A",
+  "startNumber": 1,
+  "endNumber": 10,
+  "seatTypeId": "Nhập-Seat-Type-ID-Vào-Đây-Nếu-Cần"
+}
+
+### 13. Lấy danh sách Ghế theo Session
+GET {{baseUrl}}/sessions/{{sessionId}}/seats
+
+### Lấy 1 SeatId mẫu từ response trên để test cập nhật (Nhập thủ công vào biến dưới)
+@seatId = YOUR_SEAT_ID_HERE
+
+### 14. Cập nhật 1 Ghế
+PUT {{baseUrl}}/seats/{{seatId}}
+Content-Type: application/json
+
+{
+  "status": "LOCKED",
+  "seatTypeId": "Nhập-Seat-Type-ID-Vào-Đây"
+}
+
+### 15. Cập nhật hàng loạt Ghế (Bulk Update)
+PUT {{baseUrl}}/seats/bulk-update
+Content-Type: application/json
+
+{
+  "seatIds": [
+    "SEAT_ID_1",
+    "SEAT_ID_2"
+  ],
+  "seatTypeId": "NEW_SEAT_TYPE_ID",
+  "status": "AVAILABLE"
+}
+
+
+### ------------------- CLEAN UP (DELETE) -------------------
+
+### Xoá Session
+DELETE {{baseUrl}}/sessions/{{sessionId}}
+
+### Xoá Event
+DELETE {{baseUrl}}/events/{{eventId}}
