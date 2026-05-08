@@ -2,6 +2,8 @@ package com.ticketrush.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -36,9 +38,19 @@ public class Ticket {
     @Column(name = "qr_code", nullable = false)
     private String qrCode;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private com.ticketrush.entity.enums.TicketStatus status;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
+
+    @Column(name = "checked_in_at")
+    private LocalDateTime checkedInAt;
+
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
 }
