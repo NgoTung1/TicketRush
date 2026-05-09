@@ -20,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -33,7 +34,15 @@ public class TicketService {
 
     @Transactional(readOnly = true)
     public List<TicketSummaryResponse> getMyTickets(UUID userId) {
-        List<Ticket> tickets = ticketRepository.findAllByOrderSeat_Order_User_Id(userId);
+        return getMyTickets(userId, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TicketSummaryResponse> getMyTickets(UUID userId, String statusParam) {
+        TicketStatus status = parseTicketStatus(statusParam);
+        List<Ticket> tickets = status == null
+                ? ticketRepository.findAllByOrderSeat_Order_User_Id(userId)
+                : ticketRepository.findAllByOrderSeat_Order_User_IdAndStatus(userId, status);
         List<TicketSummaryResponse> responses = new ArrayList<>();
         for (Ticket ticket : tickets) {
             responses.add(mapToSummary(ticket));
@@ -60,7 +69,6 @@ public class TicketService {
                 .qrCodeImageBase64(qrCodeGenerator.generateBase64Png(ticket.getQrCode(), QR_SIZE))
                 .expiresAt(ticket.getExpiresAt())
                 .checkedInAt(ticket.getCheckedInAt())
-                .canceledAt(ticket.getCanceledAt())
                 .build();
     }
 
@@ -73,9 +81,6 @@ public class TicketService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ticket cannot be cancelled");
         }
 
-        LocalDateTime now = LocalDateTime.now();
-        ticket.setStatus(TicketStatus.CANCELLED);
-        ticket.setCanceledAt(now);
 
         OrderSeat orderSeat = ticket.getOrderSeat();
         Seat seat = orderSeat.getSeat();
@@ -114,6 +119,17 @@ public class TicketService {
                 .build();
     }
 
+    private TicketStatus parseTicketStatus(String statusParam) {
+        if (statusParam == null || statusParam.isBlank()) {
+            return null;
+        }
+        try {
+            return TicketStatus.valueOf(statusParam.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid ticket status: " + statusParam);
+        }
+    }
+
     private TicketSummaryResponse mapToSummary(Ticket ticket) {
         Seat seat = ticket.getOrderSeat().getSeat();
         String eventTitle = seat.getZone().getEventSession().getEvent().getTitle();
@@ -133,4 +149,3 @@ public class TicketService {
         return zoneName + "-R" + row + "-S" + number;
     }
 }
-

@@ -56,7 +56,9 @@ public class Order {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
+
     @OneToMany(mappedBy = "order")
     private List<OrderSeat> orderSeats = new ArrayList<>();
 }
-

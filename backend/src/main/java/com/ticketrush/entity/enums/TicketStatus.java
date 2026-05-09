@@ -2,7 +2,7 @@ package com.ticketrush.entity.enums;
 
 public enum TicketStatus {
     VALID,
-    USED,
-    CANCELLED
+    INVALID,
+    USED
 }
 

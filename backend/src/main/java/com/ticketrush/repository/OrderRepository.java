@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface OrderRepository extends JpaRepository<Order, UUID> {
+	//Toi uu tim kiem
 	@EntityGraph(attributePaths = {
 			"orderSeats",
 			"orderSeats.seat",
@@ -18,8 +19,11 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 			"orderSeats.seat.zone.eventSession",
 			"orderSeats.seat.seatType"
 	})
+
+	//tim dua theo id order correspond voi id user
 	Optional<Order> findByIdAndUser_Id(UUID id, UUID userId);
 
+	//tim don hang dua tren trang thai cua don hang va het han hay chua
 	List<Order> findAllByStatusAndExpiresAtBefore(OrderStatus status, LocalDateTime time);
 }
 

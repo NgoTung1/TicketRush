@@ -39,7 +39,7 @@ public class Ticket {
     private String qrCode;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, name = "status")
     private com.ticketrush.entity.enums.TicketStatus status;
 
     @Column(name = "created_at")
@@ -51,6 +51,5 @@ public class Ticket {
     @Column(name = "checked_in_at")
     private LocalDateTime checkedInAt;
 
-    @Column(name = "canceled_at")
-    private LocalDateTime canceledAt;
+
 }

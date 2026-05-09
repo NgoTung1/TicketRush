@@ -11,6 +11,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 public class OrderCreateRequest {
+    //Request de generate ma QR
     private UUID sessionId;
     private List<UUID> seatIds;
 }
