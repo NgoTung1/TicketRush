@@ -9,9 +9,24 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update 
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
     open-in-view: false # Tắt cảnh báo hiệu suất open-in-view của Spring Data JPA
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_SET_URI}
+supabase:
+  url: ${SUPABASE_API_URL}
+  key: ${SUPABASE_API_KEY}
+  bucket: ticketrush
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.web: DEBUG

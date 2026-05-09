@@ -1,4 +1,5 @@
 package com.ticketrush.service.impl;
+package com.ticketrush.service.impl;
 
 import com.ticketrush.dto.request.event.EventCreateRequest;
 import com.ticketrush.dto.response.event.EventCreateResponse;
@@ -22,7 +23,7 @@ import java.util.UUID;
 public class EventService {
 
     private final EventRepository eventRepository;
-    private final CategoryRepository categoryRepository; 
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public EventCreateResponse createEvent(EventCreateRequest request) { 
@@ -90,7 +91,7 @@ public class EventService {
         return EventCreateResponse.builder() 
                 .id(event.getId())
                 .title(event.getTitle())
-                .categoryId(event.getCategory().getId()) 
+                .categoryId(event.getCategory().getId())
                 .organizer(event.getOrganizer())
                 .address(event.getAddress())
                 .bannerUrl(event.getBannerUrl())
