@@ -25,6 +25,15 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: ${JWT_SET_URI}
+  data:
+    redis:
+      url: ${REDIS_URL}
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
 supabase:
   url: ${SUPABASE_API_URL}
   key: ${SUPABASE_API_KEY}
