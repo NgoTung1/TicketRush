@@ -1,6 +1,8 @@
 package com.ticketrush.entity;
 
 import com.ticketrush.entity.enums.EventSessionStatus;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,6 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.type.SqlTypes;
+
 @Entity
 @Table(name = "event_sessions")
 @Getter
@@ -34,7 +41,7 @@ public class EventSession {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id", nullable = false)
-    private Event event; // noted de sua lai sau
+    private Event event; 
 
     @Column(nullable = false)
     private String name;
@@ -46,10 +53,12 @@ public class EventSession {
     private LocalDateTime endAt;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(nullable = false)
     private EventSessionStatus status;
 
-    @OneToMany(mappedBy = "eventSession")
+    @OneToMany(mappedBy = "eventSession", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Zone> zones = new ArrayList<>();
 }
 
