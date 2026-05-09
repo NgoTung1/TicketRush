@@ -6,6 +6,7 @@ import com.ticketrush.service.impl.ZoneService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -16,6 +17,7 @@ public class ZoneController {
 
     private final ZoneService zoneService;
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("/sessions/zones/{sessionId}")
     public ResponseEntity<ZoneResponse> createZone(
             @PathVariable UUID sessionId,
@@ -23,6 +25,7 @@ public class ZoneController {
         return ResponseEntity.status(HttpStatus.CREATED).body(zoneService.createZone(sessionId, request));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/zones/{zoneId}")
     public ResponseEntity<ZoneResponse> updateZone(
             @PathVariable UUID zoneId,

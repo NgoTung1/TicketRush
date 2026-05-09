@@ -127,6 +127,11 @@ public class SeatService {
         return savedSeats.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteSeatsByZoneId(UUID zoneId) {
+        seatRepository.deleteByZoneId(zoneId);
+    }
+    
     private SeatResponse mapToResponse(Seat seat) {
         return SeatResponse.builder()
                 .id(seat.getId())

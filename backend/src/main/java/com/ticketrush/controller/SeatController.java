@@ -8,6 +8,7 @@ import com.ticketrush.service.impl.SeatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class SeatController {
     }
 
     // Update 1
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/seats/{seatId}")
     public ResponseEntity<SeatResponse> updateSeat(
             @PathVariable UUID seatId,
@@ -42,6 +44,7 @@ public class SeatController {
     }
 
     // Update nhiều
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/seats/bulk-update")
     public ResponseEntity<List<SeatResponse>> updateMultipleSeats(
             @RequestBody SeatBulkUpdateRequest request) {

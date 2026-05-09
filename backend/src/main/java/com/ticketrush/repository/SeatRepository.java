@@ -6,6 +6,7 @@ import jakarta.persistence.LockModeType;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,5 +19,9 @@ public interface SeatRepository extends JpaRepository<Seat, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Seat s WHERE s.id IN :seatIds AND s.status = 'AVAILABLE'")
     List<Seat> findAvailableSeatsForUpdate(@Param("seatIds") List<UUID> seatIds);
+    
+    @Modifying
+    @Query("DELETE FROM Seat s WHERE s.zone.id = :zoneId")
+    void deleteByZoneId(@Param("zoneId") UUID zoneId);
 }
 

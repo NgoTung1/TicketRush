@@ -1,5 +1,6 @@
 package com.ticketrush.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,6 +18,9 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "seat_types")
@@ -42,7 +46,8 @@ public class SeatType {
 
     private String color;
 
-    @OneToMany(mappedBy = "seatType")
+    @OneToMany(mappedBy = "seatType", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Seat> seats = new ArrayList<>();
 }
 

@@ -61,6 +61,16 @@ public class ZoneService {
         return mapToResponse(saved);
     }
 
+    @Transactional
+    public void deleteZone(UUID zoneId) {
+        Zone zone = zoneRepository.findById(zoneId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Zone!"));
+
+        seatService.deleteSeatsByZoneId(zoneId);
+
+        zoneRepository.delete(zone);
+    }
+
     private ZoneResponse mapToResponse(Zone zone) {
         return ZoneResponse.builder()
                 .id(zone.getId())

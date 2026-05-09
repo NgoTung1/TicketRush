@@ -1,5 +1,4 @@
 package com.ticketrush.service.impl;
-package com.ticketrush.service.impl;
 
 import com.ticketrush.dto.request.event.EventCreateRequest;
 import com.ticketrush.dto.response.event.EventCreateResponse;
@@ -9,12 +8,14 @@ import com.ticketrush.entity.Event;
 import com.ticketrush.entity.enums.EventStatus;
 import com.ticketrush.repository.CategoryRepository;
 import com.ticketrush.repository.EventRepository;
+import com.ticketrush.external.storage.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -24,9 +25,11 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
+    private final FileStorageService fileStorageService;
+
 
     @Transactional
-    public EventCreateResponse createEvent(EventCreateRequest request) { 
+    public EventCreateResponse createEvent(EventCreateRequest request, MultipartFile bannerFile) { 
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Category!"));
 
@@ -35,7 +38,10 @@ public class EventService {
         newEvent.setOrganizer(request.getOrganizer());
         newEvent.setDescription(request.getDescription());
         newEvent.setAddress(request.getAddress());
-        newEvent.setBannerUrl(request.getBannerUrl());
+        if (bannerFile != null && !bannerFile.isEmpty()) {
+            String bannerUrl = fileStorageService.uploadFile(bannerFile, "banners");
+            newEvent.setBannerUrl(bannerUrl);
+        }
         newEvent.setStartTime(request.getStartTime());
         newEvent.setStatus(EventStatus.ONGOING); 
         newEvent.setCategory(category); 
@@ -63,7 +69,7 @@ public class EventService {
     }
 
     @Transactional
-    public EventCreateResponse updateEvent(UUID id, EventUpdateRequest request) {
+    public EventCreateResponse updateEvent(UUID id, EventUpdateRequest request, MultipartFile bannerFile) {
         Event existingEvent = eventRepository.findById(id)
               .orElseThrow(() -> new RuntimeException("Không tìm thấy Event!"));
 
@@ -71,7 +77,10 @@ public class EventService {
         if (request.getOrganizer() != null) existingEvent.setOrganizer(request.getOrganizer());
         if (request.getDescription() != null) existingEvent.setDescription(request.getDescription());
         if (request.getAddress() != null)  existingEvent.setAddress(request.getAddress());
-        if (request.getBannerUrl() != null)  existingEvent.setBannerUrl(request.getBannerUrl());
+        if (bannerFile != null && !bannerFile.isEmpty() ) {
+            String bannerUrl = fileStorageService.uploadFile(bannerFile, "banners");
+            existingEvent.setBannerUrl(bannerUrl);
+        }
         if (request.getStartTime() != null)  existingEvent.setStartTime(request.getStartTime());
         if (request.getStatus() != null) existingEvent.setStatus(request.getStatus());
 
