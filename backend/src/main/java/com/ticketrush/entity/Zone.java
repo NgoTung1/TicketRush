@@ -28,6 +28,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Setter
 @NoArgsConstructor
 public class Zone {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -44,9 +45,17 @@ public class Zone {
 
     @Column(name = "cols_count")
     private Integer colsCount;
+    
+    @Column(name = "x_position", columnDefinition = "DECIMAL(10,2) DEFAULT 0")
+    private Double xPosition;
+
+    @Column(name = "y_position", columnDefinition = "DECIMAL(10,2) DEFAULT 0")
+    private Double yPosition;
+
+    @Column(name = "rotation", columnDefinition = "DECIMAL(5,2) DEFAULT 0")
+    private Double rotation;
 
     @OneToMany(mappedBy = "zone", cascade = CascadeType.ALL, orphanRemoval = true)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Seat> seats = new ArrayList<>();
 }
-
