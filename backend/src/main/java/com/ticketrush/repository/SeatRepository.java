@@ -24,6 +24,9 @@ public interface SeatRepository extends JpaRepository<Seat, UUID> {
     @Query("DELETE FROM Seat s WHERE s.zone.id = :zoneId")
     void deleteByZoneId(@Param("zoneId") UUID zoneId);
 
+    @Query("SELECT COUNT(s) FROM Seat s JOIN s.zone z WHERE z.eventSession.id = :sessionId AND s.status = 'AVAILABLE'")
+    long countAvailableSeatsBySessionId(@Param("sessionId") UUID sessionId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Seat s join s.zone z join z.eventSession es join fetch s.seatType " +
             "where es.id = :sessionId and s.id in :seatIds")
