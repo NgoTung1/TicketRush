@@ -129,6 +129,13 @@
   font-style: italic;
   font-display: swap;
 }
+@font-face {
+  font-family: 'Paytone';
+  src: url('./assets/fonts/PaytoneOne-Regular.ttf') format('truetype');
+  font-weight: 0;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ── CSS Custom Properties ────────────────────────────────── */
 :root {
@@ -145,6 +152,10 @@
   --color-search-bg: #2a2a2a;
   --header-height: 56px;
   --sidebar-width: 260px;
+}
+
+.font-paytone {
+  font-family: 'Paytone', sans-serif;
 }
 
 /* ── Global Reset ─────────────────────────────────────────── */

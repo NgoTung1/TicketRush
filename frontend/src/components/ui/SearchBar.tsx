@@ -38,7 +38,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       onSubmit={handleSubmit}
       className={`
         flex items-center
-        bg-[1C1C1C] rounded-sm overflow-hidden
+        bg-[1C1C1C] rounded-[8px] overflow-hidden
         border border-[#7B7B7B] transition-all duration-200
         ${className}
       `}

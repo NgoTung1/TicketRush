@@ -94,7 +94,7 @@ const Header: React.FC = () => {
             id="logo"
             className="flex items-center shrink-0 mr-6 lg:mr-10 group"
           >
-            <span className="text-xl sm:text-2xl font-black tracking-tight">
+            <span className="text-xl sm:text-2xl font-black font-paytone tracking-tight">
               <span className="text-tr-accent group-hover:text-tr-accent-hover transition-colors duration-200">
                 TICKET
               </span>
@@ -224,12 +224,12 @@ const Header: React.FC = () => {
         </nav>
 
         {/* Sidebar Footer – Auth on mobile */}
-        <div className="px-4 py-4 border-t border-tr-border sm:hidden flex flex-col gap-2 bg-[#1C1C1C]">
+        <div className="px-4 py-4 border-t border-tr-border rounded-2xl sm:hidden flex flex-col gap-2 bg-[#1C1C1C]">
           <Button
             as="link"
             to="/dang-nhap"
             variant="outline"
-            className="w-full"
+            className="w-full rounded-xl"
           >
             <User size={16} />
             Đăng nhập
@@ -238,7 +238,7 @@ const Header: React.FC = () => {
             as="link"
             to="/dang-ky"
             variant="primary"
-            className="w-full"
+            className="w-full rounded-xl"
           >
             Đăng ký
           </Button>
