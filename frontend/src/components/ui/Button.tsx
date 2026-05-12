@@ -5,26 +5,19 @@ type ButtonVariant = 'primary' | 'ghost' | 'outline';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonBaseProps {
-  /** Visual style */
   variant?: ButtonVariant;
-  /** Size preset */
   size?: ButtonSize;
-  /** Additional CSS classes */
   className?: string;
-  /** Content */
   children: React.ReactNode;
-  /** HTML id */
   id?: string;
 }
 
 interface ButtonAsButton extends ButtonBaseProps, Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'children' | 'id'> {
-  /** Render as <button> (default) */
   as?: 'button';
   to?: never;
 }
 
 interface ButtonAsLink extends ButtonBaseProps {
-  /** Render as react-router <Link> */
   as: 'link';
   to: string;
 }
@@ -39,13 +32,12 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary: `
-    bg-tr-accent text-white font-semibold
-    hover:bg-tr-accent-hover
+    bg-white text-black font-bold
     active:scale-[0.97]
     shadow-md shadow-tr-accent/20
   `,
   ghost: `
-    text-tr-text-secondary font-medium
+    text-white font-bold
     hover:text-tr-text hover:bg-tr-hover
   `,
   outline: `
@@ -67,7 +59,7 @@ const Button: React.FC<ButtonProps> = (props) => {
 
   const classes = `
     inline-flex items-center justify-center gap-1.5
-    rounded-lg whitespace-nowrap
+    whitespace-nowrap
     transition-all duration-200
     ${SIZE_CLASSES[size]}
     ${VARIANT_CLASSES[variant]}

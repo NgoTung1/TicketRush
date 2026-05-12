@@ -2,17 +2,11 @@ import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 
 interface SearchBarProps {
-  /** Placeholder text */
   placeholder?: string;
-  /** Controlled value */
   value?: string;
-  /** Change handler */
   onChange?: (value: string) => void;
-  /** Submit handler */
   onSubmit?: (value: string) => void;
-  /** Additional CSS classes on the outer wrapper */
   className?: string;
-  /** HTML id */
   id?: string;
 }
 
@@ -27,7 +21,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [internal, setInternal] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
-  // support both controlled & uncontrolled
   const query = value !== undefined ? value : internal;
   const setQuery = (v: string) => {
     if (onChange) onChange(v);
@@ -45,9 +38,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
       onSubmit={handleSubmit}
       className={`
         flex items-center
-        bg-tr-search rounded-lg overflow-hidden
-        border transition-all duration-200
-        ${isFocused ? 'border-tr-accent/50 ring-1 ring-tr-accent/20' : 'border-transparent'}
+        bg-[1C1C1C] rounded-sm overflow-hidden
+        border border-[#7B7B7B] transition-all duration-200
         ${className}
       `}
     >
@@ -62,9 +54,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         className="
-          w-full bg-transparent text-sm text-tr-text
+          w-full bg-transparent text-[14px] text-tr-text
           placeholder-tr-text-muted
-          px-3 py-2 outline-none
+          px-3 py-1 outline-none
         "
       />
     </form>

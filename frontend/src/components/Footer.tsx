@@ -83,7 +83,7 @@ const Footer: React.FC = () => {
             <ul className="space-y-2.5 text-sm text-tr-text-secondary">
               <li>Email: support@ticketrush.vn</li>
               <li>Hotline: 1900 xxxx</li>
-              <li>Địa chỉ: TP. Hồ Chí Minh</li>
+              <li>Địa chỉ: Hà Nội</li>
             </ul>
           </div>
         </div>

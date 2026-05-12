@@ -13,15 +13,15 @@ const router = createBrowserRouter([
       },
       {
         path: 'am-nhac',
-        element: <HomePage />,  // Placeholder – will be replaced with dedicated page
+        element: <HomePage />,  
       },
       {
         path: 'nghe-thuat',
-        element: <HomePage />,  // Placeholder
+        element: <HomePage />, 
       },
       {
         path: 'hoi-thao',
-        element: <HomePage />,  // Placeholder
+        element: <HomePage />,  
       },
     ],
   },
