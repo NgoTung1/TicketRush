@@ -10,11 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.42.0",
+    "@supabase/supabase-js": "^2.105.4",
     "axios": "^1.6.8",
     "lucide-react": "^0.365.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-easy-crop": "^5.5.7",
     "react-router-dom": "^6.22.3",
     "zustand": "^4.5.2"
   },

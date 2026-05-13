@@ -1,6 +1,8 @@
 package com.ticketrush.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -22,7 +24,6 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<?> loginWithEmail(@RequestBody LoginRequest request, HttpServletResponse response) {
-    // Gọi Service để xin Token từ Supabase
     AuthTokens tokens = authService.login(request.email(), request.password());
     setRefreshTokenCookie(response, tokens.refreshToken());
     return ResponseEntity.ok(new TokenResponse(tokens.accessToken(), "Đăng nhập thành công!"));
@@ -77,6 +78,27 @@ public class AuthController {
     clearRefreshTokenCookie(response);
 
     return ResponseEntity.ok("Đăng xuất thành công!");
+  }
+
+  @PostMapping("/refresh")
+  public ResponseEntity<?> refreshToken(
+      @CookieValue(name = "refresh_token", required = false) String refreshToken,
+      HttpServletResponse response) {
+
+    // Nếu trình duyệt gửi lên mà không có Cookie
+    if (refreshToken == null || refreshToken.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Không tìm thấy Refresh Token!");
+    }
+
+    try {
+      AuthTokens tokens = authService.refreshToken(refreshToken);
+
+      setRefreshTokenCookie(response, tokens.refreshToken());
+      return ResponseEntity.ok(new TokenResponse(tokens.accessToken(), "Làm mới token thành công!"));
+    } catch (Exception e) {
+      clearRefreshTokenCookie(response);
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh Token không hợp lệ hoặc đã hết hạn");
+    }
   }
 
   private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {

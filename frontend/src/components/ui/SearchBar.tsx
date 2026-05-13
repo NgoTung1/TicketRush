@@ -7,6 +7,7 @@ interface SearchBarProps {
   onChange?: (value: string) => void;
   onSubmit?: (value: string) => void;
   className?: string;
+  inputClassName?: string;
   id?: string;
 }
 
@@ -16,6 +17,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onChange,
   onSubmit,
   className = '',
+  inputClassName = '',
   id,
 }) => {
   const [internal, setInternal] = useState('');
@@ -53,11 +55,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-        className="
+        className={`
           w-full bg-transparent text-[14px] text-tr-text
-          placeholder-tr-text-muted
+          placeholder-[#5A5A5A]
           px-3 py-1 outline-none
-        "
+          ${inputClassName}
+        `}
       />
     </form>
   );

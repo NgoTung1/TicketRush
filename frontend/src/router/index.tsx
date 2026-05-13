@@ -4,6 +4,8 @@ import HomePage from '@/pages/event/HomePage';
 import EventList from '@/pages/event/EventList';
 import EventDetail from '@/pages/event/EventDetail';
 import CreateEventPage from '@/pages/event/CreateEventPage';
+import { AuthPage } from '@/pages/AuthPage';
+import ProfilePage from '@/pages/ProfilePage';
 
 const router = createBrowserRouter([
   {
@@ -30,6 +32,14 @@ const router = createBrowserRouter([
         path: 'hoi-thao',
         element: <EventList />,
       },
+      {
+        path: 'auth',
+        element: <AuthPage />,
+      },
+      {
+        path: 'profile',
+        element: <ProfilePage />,
+      }
     ],
   },
   {
