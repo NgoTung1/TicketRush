@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import EventItem from '../../components/event/EventItem';
+import OngoingFilter from "@/assets/images/OngoingFilter.svg"
+import Filter from "@/assets/images/Filter.svg"
+import DateFilter from "@/assets/images/Date.svg"
+import SearchIcon from "@/assets/images/SearchIcon.svg"
 
 const EventList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(3);
+  const searchText = "Ngày mưa";
 
   const baseEvents = [
     {
@@ -45,41 +50,38 @@ const EventList: React.FC = () => {
         
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 mb-8">
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-[#2a2a2a] hover:bg-[#333] text-[13px] text-white rounded-md transition-colors border border-white/10">
-            <svg className="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-            </svg>
+          <button className="flex items-center gap-2 px-3 py-1.5 font-bold bg-[#414141] hover:bg-[#333] text-[13px] text-white rounded-md transition-colors border border-white/10">
+            <img src={Filter}></img>
             Tất cả
             <svg className="w-3.5 h-3.5 ml-1 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
           
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-[#2a2a2a] hover:bg-[#333] text-[13px] text-white rounded-md transition-colors border border-white/10">
-            <svg className="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+          <button className="flex items-center gap-2 px-3 py-1.5 font-bold bg-[#414141] hover:bg-[#333] text-[13px] text-white rounded-md transition-colors border border-white/10">
+            <img src={OngoingFilter}></img>
             Đang diễn ra
             <svg className="w-3.5 h-3.5 ml-1 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
-          <button className="flex items-center gap-2 px-3 py-1.5 bg-[#2a2a2a] hover:bg-[#333] text-[13px] text-white rounded-md transition-colors border border-white/10">
-            <svg className="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+          <button className="flex items-center gap-2 px-3 py-1.5 font-bold bg-[#414141] hover:bg-[#333] text-[13px] text-white rounded-md transition-colors border border-white/10">
+            <img src={DateFilter}></img>
             Tất cả các ngày
             <svg className="w-3.5 h-3.5 ml-1 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
+        <button className="flex items-center justify-center gap-2 px-3 py-1.5 min-w-8 min-h-8 bg-[#696969] hover:bg-[#333] text-white rounded-md transition-all duration-300 border border-white/10 whitespace-nowrap">
+          {/* Đặt kích thước cố định cho icon để nó không bị méo */}
+          <img src={SearchIcon} alt="search" className="w-4 h-4 object-contain" />
           
-          <button className="flex items-center justify-center w-8 h-8 bg-[#2a2a2a] hover:bg-[#333] text-white rounded-md transition-colors border border-white/10">
-            <svg className="w-3.5 h-3.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
+          {/* Chỉ hiển thị thẻ span này nếu có nội dung searchText */}
+          {searchText && (
+            <span className="font-bold text-sm">{searchText}</span>
+          )}
+        </button>
         </div>
 
         {/* Grid */}
