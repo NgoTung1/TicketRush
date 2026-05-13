@@ -15,7 +15,7 @@ export const EventItem: React.FC<EventItemProps> = ({
     price = "200.000đ",
     date = "20:30 - 30/04/2026",
     status = "Sắp diễn ra",
-    statusColor = "text-[#ffe600]", // Default yellow
+    statusColor = "text-[#F7FF55]", // Default yellow
     imageUrl = "https://ticketbox.vn/images/default-event-cover.jpg" // Fallback placeholder
 }) => {
     return (

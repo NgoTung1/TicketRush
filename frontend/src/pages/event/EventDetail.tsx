@@ -1,6 +1,8 @@
 import React from 'react';
 import EventItem from '../../components/event/EventItem';
 import EventSessionItem from '../../components/event/EventSessionItem';
+import DateFilter from "@/assets/images/Date.svg"
+import LocationFilter from "@/assets/images/LocationIcon.svg"
 
 const EventDetail: React.FC = () => {
   const relatedEvents = [
@@ -90,7 +92,7 @@ const EventDetail: React.FC = () => {
             <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-white mb-4 lg:mb-6 leading-tight">
               SPARK NITE: S.T SƠN THẠCH x NEKO LÊ
             </h1>
-            <p className="text-white text-sm sm:text-[22px] leading-relaxed">
+            <p className="text-white text-sm sm:text-[22px] leading-snug">
               Đêm hội ngộ bùng nổ của S.T Sơn Thạch x Neko Lê! Sẵn sàng cho một đêm không ngủ cùng "Cỗ máy nhảy" S.T Sơn Thạch và "Phù thủy rapper" Neko Lê. Bữa tiệc âm nhạc kết hợp Talkshow hứa hẹn mang đến những sân khấu live band đỉnh cao, những màn tung hứng hài hước và vô số "hint" hậu trường chưa từng được tiết lộ. Số lượng vé cực kỳ giới hạn, nhanh tay săn ngay vị trí đẹp nhất trên TicketRush!
             </p>
           </div>
@@ -100,24 +102,19 @@ const EventDetail: React.FC = () => {
         <div className="mb-12">
           <h3 className="text-[24px] font-bold mb-4 italic text-white">Ban tổ chức: S.T SƠN THẠCH x NEKO LÊ</h3>
           <div className="flex items-center gap-3 text-[16px] mb-3 text-white">
-            <svg className="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+            <img src={DateFilter}></img>
             <span className="font-bold italic">20:30 - 25/04/2026</span>
             <span className="px-3 py-0.5 bg-white text-[#00a3ff] text-[10px] font-bold italic rounded-full uppercase ml-2 tracking-wide">Sắp diễn ra</span>
           </div>
           <div className="flex items-center gap-3 text-[16px] text-white font-bold italic">
-            <svg className="w-5 h-5 opacity-70 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            <img src={LocationFilter}></img>
             <span>Lầu 1, Nhà hát Bến Thành Số 6 Mạc Đĩnh Chi, Phường Bến Nghé, Quận 1, TP Hồ Chí Minh</span>
           </div>
         </div>
 
         {/* Lịch diễn */}
         <div className="mb-16">
-          <h2 className="text-xl font-bold mb-6 text-white">Lịch diễn</h2>
+          <h2 className="text-[24px] font-bold italic mb-6 text-white">Lịch diễn</h2>
           <div className="space-y-3">
             <EventSessionItem time="20:00 - 21:30, T5" date="26/03/2026" price="400.000đ" status="sold_out" />
             <EventSessionItem time="20:00 - 21:30, T5" date="26/03/2026" price="400.000đ" status="sold_out" />
