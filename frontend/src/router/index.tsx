@@ -1,6 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom';
 import RootLayout from '@/layouts/RootLayout';
 import HomePage from '@/pages/HomePage';
+import { AuthPage } from '@/pages/AuthPage';
+import ProfilePage from '@/pages/ProfilePage';
 
 const router = createBrowserRouter([
   {
@@ -13,16 +15,24 @@ const router = createBrowserRouter([
       },
       {
         path: 'am-nhac',
-        element: <HomePage />,  
+        element: <HomePage />,
       },
       {
         path: 'nghe-thuat',
-        element: <HomePage />, 
+        element: <HomePage />,
       },
       {
         path: 'hoi-thao',
-        element: <HomePage />,  
+        element: <HomePage />,
       },
+      {
+        path: 'auth',
+        element: <AuthPage />,
+      },
+      {
+        path: 'profile',
+        element: <ProfilePage />,
+      }
     ],
   },
 ]);

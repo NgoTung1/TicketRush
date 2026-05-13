@@ -2,46 +2,80 @@ import axios from 'axios';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
 
-const axiosClient = axios.create({
+let accessToken: string | null = null;
+
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
+};
+
+export const axiosClient = axios.create({
   baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
-  // timeout: 10000, 
+  withCredentials: true,
 });
 
+// ---------------------------------------------
+// REQUEST INTERCEPTOR: Chặn trước khi gửi đi
+// ---------------------------------------------
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
+// ---------------------------------------------
+// RESPONSE INTERCEPTOR: Xử lý Lỗi & Cấp lại Token
+// ---------------------------------------------
 axiosClient.interceptors.response.use(
   (response) => {
-
     return response.data;
   },
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+
+      // Chặn chống lặp vô hạn: Nếu API đang gọi chính là API refresh bị 401 thì dừng luôn
+      if (originalRequest.url.includes('/api/public/auth/refresh')) {
+        return Promise.reject(error);
+      }
+
+      originalRequest._retry = true;
+
+      try {
+
+        const refreshResponse = await axios.post(
+          `${baseURL}api/public/auth/refresh`,
+          {},
+          { withCredentials: true }
+        );
+
+        accessToken = refreshResponse.data.token;
+
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+
+        return axiosClient(originalRequest);
+
+      } catch (refreshError) {
+        console.warn('Phiên đăng nhập hết hạn! Vui lòng đăng nhập lại.');
+        accessToken = null;
+        window.location.href = '/auth';
+        return Promise.reject(refreshError);
+      }
+    }
 
     if (error.response) {
-      if (error.response.status === 401) {
-        console.warn('Unauthorized! Cần đăng nhập lại.');
-      } else if (error.response.status === 403) {
+      if (error.response.status === 403) {
         console.warn('Forbidden! Bạn không có quyền truy cập.');
       } else if (error.response.status === 500) {
         console.error('Lỗi Server nội bộ!');
       }
-    } else if (error.request) {
-      console.error('Không nhận được phản hồi từ server:', error.request);
-    } else {
-      console.error('Lỗi thiết lập request:', error.message);
     }
 
     return Promise.reject(error);

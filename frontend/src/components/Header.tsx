@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Search, Menu, X, User } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Search, Menu, X, ShoppingCart, LogOut, User } from 'lucide-react';
 import SearchBar from '@/components/ui/SearchBar';
 import Button from '@/components/ui/Button';
+import { useAuthStore } from '@/store/AuthStore';
+import { authApi } from '@/api/authApi';
+import { setAccessToken } from '@/lib/axios';
 
 interface NavItem {
   label: string;
@@ -18,16 +21,25 @@ const NAV_ITEMS: NavItem[] = [
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false); 
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const menuBtnRef = useRef<HTMLButtonElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  const { user, isAuthenticated, clearUser } = useAuthStore();
+
+  // Cart badge count (default: 0 = hidden)
+  const cartItemCount = 0;
 
   // Close sidebar and search on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsMobileSearchOpen(false);
+    setIsProfileMenuOpen(false);
   }, [location.pathname]);
 
   // Close sidebar on click outside
@@ -42,10 +54,18 @@ const Header: React.FC = () => {
       ) {
         setIsMobileMenuOpen(false);
       }
+      // Close profile dropdown on click outside
+      if (
+        isProfileMenuOpen &&
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(e.target as Node)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, isProfileMenuOpen]);
 
   // Lock body scroll when sidebar open
   useEffect(() => {
@@ -62,17 +82,47 @@ const Header: React.FC = () => {
   const handleSearch = (value: string) => {
     // TODO: navigate to search results
     console.log('Search:', value);
-    setIsMobileSearchOpen(false); 
+    setIsMobileSearchOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authApi.logout();
+    } catch (e) {
+      // Ignore logout API errors
+    }
+    setAccessToken(null);
+    clearUser();
+    setIsProfileMenuOpen(false);
+    navigate('/');
+  };
+
+  // Build avatar display: initials fallback or image
+  const getAvatarContent = () => {
+    if (user?.avatarUrl) {
+      return (
+        <img
+          src={user.avatarUrl}
+          alt="Avatar"
+          className="w-full h-full object-cover rounded-full"
+        />
+      );
+    }
+    // Fallback: first letter of name
+    const initial = user?.fullName?.charAt(0)?.toUpperCase() || 'U';
+    return (
+      <span className="text-xs font-bold text-white">{initial}</span>
+    );
   };
 
   return (
     <>
       <header
         id="main-header"
-        className="sticky top-0 left-0 right-0 z-[60] bg-[#141414]"
+        className="z-[60] bg-[#141414]"
         style={{ height: 'var(--header-height)' }}
       >
-        <div className="h-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
+        <div className="h-full max-w-[1440px] mx-auto px-4 flex items-center">
           {/* ── Mobile: Hamburger  */}
           <button
             ref={menuBtnRef}
@@ -80,7 +130,7 @@ const Header: React.FC = () => {
             className="lg:hidden mr-3 p-1.5 rounded-md text-[#FFFFFF] hover:bg-[#2A2A2A] transition-colors duration-200"
             onClick={() => {
               setIsMobileMenuOpen(!isMobileMenuOpen);
-              setIsMobileSearchOpen(false); 
+              setIsMobileSearchOpen(false);
             }}
             aria-label="Toggle navigation menu"
             aria-expanded={isMobileMenuOpen}
@@ -94,8 +144,8 @@ const Header: React.FC = () => {
             id="logo"
             className="flex items-center shrink-0 mr-6 lg:mr-10 group"
           >
-            <span className="text-xl sm:text-2xl font-black font-paytone tracking-tight">
-              <span className="text-tr-accent group-hover:text-tr-accent-hover transition-colors duration-200">
+            <span className="text-2xl font-black font-paytone tracking-tight">
+              <span className="text-tr-accent">
                 TICKET
               </span>
               <span className="text-[#FFFFFF]">RUSH</span>
@@ -112,7 +162,7 @@ const Header: React.FC = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className="relative px-4 py-1.5 rounded-md text-[16px] font-bold text-[#FFFFFF] hover:bg-[#2A2A2A] transition-all duration-200 whitespace-nowrap"
+                className="relative px-4 py-1.5 rounded-full text-[16px] font-bold text-[#FFFFFF] hover:bg-[#2A2A2A] transition-all duration-200 whitespace-nowrap"
               >
                 {item.label}
               </Link>
@@ -125,7 +175,8 @@ const Header: React.FC = () => {
             value={searchQuery}
             onChange={setSearchQuery}
             onSubmit={handleSearch}
-            className="hidden sm:flex ml-auto lg:ml-0 lg:mr-4"
+            className="hidden sm:flex ml-auto lg:ml-0 lg:mr-4 bg-[#1C1C1C] w-[272px]"
+            inputClassName='text-[12px] py-1.5 px-1.5'
             placeholder="Tìm kiếm"
           />
 
@@ -136,45 +187,118 @@ const Header: React.FC = () => {
             aria-label="Toggle search"
             onClick={() => {
               setIsMobileSearchOpen(!isMobileSearchOpen);
-              setIsMobileMenuOpen(false); 
+              setIsMobileMenuOpen(false);
             }}
           >
             {isMobileSearchOpen ? <X size={20} /> : <Search size={20} />}
           </button>
 
-          {/* ── Auth Buttons (Desktop)  */}
-          <div className="hidden sm:flex items-center gap-2 sm:gap-3 shrink-0">
-            <Button
-              as="link"
-              to="/dang-nhap"
-              id="login-btn"
-              variant="ghost"
-              className="text-[16px] rounded-full"
-            >
-              Đăng nhập
-            </Button>
-            <Button
-              as="link"
-              to="/dang-ky"
-              id="register-btn"
-              variant="primary"
-              className="text-[16px] rounded-full"
-            >
-              Đăng ký
-            </Button>
-          </div>
+          {/* ── Authenticated: Cart + Avatar | Unauthenticated: Auth Buttons */}
+          {isAuthenticated ? (
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Shopping Cart */}
+              <Link
+                to="/cart"
+                id="cart-btn"
+                className="relative p-2 rounded-lg text-[#FFFFFF] hover:bg-[#2A2A2A] transition-colors duration-200"
+                aria-label="Giỏ hàng"
+              >
+                <ShoppingCart size={20} />
+                {/* Red badge - only visible when cartItemCount > 0 */}
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1 leading-none">
+                    {cartItemCount > 99 ? '99+' : cartItemCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* User Avatar + Dropdown */}
+              <div ref={profileMenuRef} className="relative">
+                <button
+                  id="user-avatar-btn"
+                  onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                  className="w-8 h-8 rounded-full bg-[#2A2A2A] border-2 border-transparent hover:border-tr-accent flex items-center justify-center overflow-hidden transition-all duration-200"
+                  aria-label="Menu tài khoản"
+                >
+                  {getAvatarContent()}
+                </button>
+
+                {/* Profile Dropdown */}
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl shadow-2xl shadow-black/50 py-2 z-[70] animate-[fadeIn_0.15s_ease-out]">
+                    {/* User info */}
+                    <div className="px-4 py-3 border-b border-[#2A2A2A]">
+                      <p className="text-sm font-semibold text-white truncate">
+                        {user?.fullName || 'Người dùng'}
+                      </p>
+                      <p className="text-xs text-tr-text-muted truncate mt-0.5">
+                        {user?.email}
+                      </p>
+                    </div>
+
+                    {/* Menu items */}
+                    <div className="py-1">
+                      <Link
+                        to="/profile"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#FFFFFF] hover:bg-[#2A2A2A] transition-colors duration-200"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                      >
+                        <User size={16} className="text-tr-text-muted" />
+                        Trang cá nhân
+                      </Link>
+                    </div>
+
+                    {/* Logout */}
+                    <div className="">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full shadow-none flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 bg-transparent hover:bg-[#2A2A2A] transition-colors duration-200"
+                      >
+                        <LogOut size={16} />
+                        Đăng xuất
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* ── Auth Buttons (Desktop) - Only when NOT authenticated */
+            <div className="hidden sm:flex items-center gap-2 sm:gap-3 shrink-0">
+              <Button
+                as="link"
+                to="/auth?view=login"
+                id="login-btn"
+                variant="ghost"
+                className="text-[14px] rounded-full"
+              >
+                Đăng nhập
+              </Button>
+              <Button
+                as="link"
+                to="/auth?view=register"
+                id="register-btn"
+                variant="primary"
+                className="text-[14px] rounded-full"
+              >
+                Đăng ký
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* ── Thanh Tìm Kiếm Dài (Chỉ hiện khi bấm kính lúp ở Mobile) ── */}
         {isMobileSearchOpen && (
-          <div 
-            className="absolute top-[var(--header-height)] left-0 w-full p-3 bg-[#141414] sm:hidden pointer-events-auto shadow-lg"
+          <div
+            className="absolute top-[var(--header-height)] left-0 w-full p-3 bg-[#141414] sm:hidden pointer-events-auto"
           >
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
               onSubmit={handleSearch}
-              placeholder="Tìm kiếm..."
+              placeholder="Tìm kiếm"
+              className="sm:flex bg-[#1C1C1C]"
+              inputClassName='text-[12px] py-1.5 px-1.5'
             />
           </div>
         )}
@@ -200,10 +324,10 @@ const Header: React.FC = () => {
           lg:hidden
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
-        style={{ 
-          top: 'var(--header-height)', 
-          height: 'calc(100vh - var(--header-height))', 
-          width: 'var(--sidebar-width)' 
+        style={{
+          top: 'var(--header-height)',
+          height: 'calc(100vh - var(--header-height))',
+          width: 'var(--sidebar-width)'
         }}
         aria-label="Mobile navigation"
       >
@@ -223,26 +347,47 @@ const Header: React.FC = () => {
           </ul>
         </nav>
 
-        {/* Sidebar Footer – Auth on mobile */}
-        <div className="px-4 py-4 border-t border-tr-border rounded-2xl sm:hidden flex flex-col gap-2 bg-[#1C1C1C]">
-          <Button
-            as="link"
-            to="/dang-nhap"
-            variant="outline"
-            className="w-full rounded-xl"
-          >
-            <User size={16} />
-            Đăng nhập
-          </Button>
-          <Button
-            as="link"
-            to="/dang-ky"
-            variant="primary"
-            className="w-full rounded-xl"
-          >
-            Đăng ký
-          </Button>
-        </div>
+        {/* Sidebar Footer – Auth on mobile (only when NOT authenticated) */}
+        {isAuthenticated ? (
+          <div className="px-4 py-4 sm:hidden flex flex-col gap-3 border-t border-[#2A2A2A]">
+            {/* User info in sidebar */}
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#2A2A2A] flex items-center justify-center overflow-hidden shrink-0">
+                {getAvatarContent()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white truncate">{user?.fullName}</p>
+                <p className="text-xs text-tr-text-muted truncate">{user?.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-[12px] border border-[#2A2A2A] text-red-400 text-sm font-medium hover:bg-[#2A2A2A] transition-colors duration-200"
+            >
+              <LogOut size={16} />
+              Đăng xuất
+            </button>
+          </div>
+        ) : (
+          <div className="px-4 py-4 sm:hidden flex flex-col gap-3">
+            <Button
+              as="link"
+              to="/auth"
+              variant="outline"
+              className="w-full rounded-[12px] py-2"
+            >
+              Đăng nhập
+            </Button>
+            <Button
+              as="link"
+              to="/auth?view=register"
+              variant="primary"
+              className="w-full rounded-[12px] py-2"
+            >
+              Đăng ký
+            </Button>
+          </div>
+        )}
       </aside>
     </>
   );

@@ -33,7 +33,6 @@ const SIZE_CLASSES: Record<ButtonSize, string> = {
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary: `
     bg-white text-black font-bold
-    active:scale-[0.97]
     shadow-md shadow-tr-accent/20
   `,
   ghost: `

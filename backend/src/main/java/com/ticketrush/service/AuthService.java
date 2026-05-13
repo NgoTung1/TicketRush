@@ -107,6 +107,23 @@ public class AuthService {
     restTemplate.postForEntity(url, entity, Void.class);
   }
 
+  public AuthTokens refreshToken(String refreshToken) {
+    String url = supabaseProps.url() + "/auth/v1/token?grant_type=refresh_token";
+
+    Map<String, String> body = new HashMap<>();
+    body.put("refresh_token", refreshToken);
+
+    HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, createHeaders());
+
+    // Gọi sang Supabase xin token mới
+    ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
+    Map<String, Object> resBody = response.getBody();
+
+    return new AuthTokens(
+        (String) resBody.get("access_token"),
+        (String) resBody.get("refresh_token"));
+  }
+
   // Hàm lõi dùng chung để đăng ký
   private void registerAccount(String email, String password, String fullName, Role role) {
     String url = supabaseProps.url() + "/auth/v1/signup";
