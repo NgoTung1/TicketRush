@@ -9,17 +9,21 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Roboto', ...defaultTheme.fontFamily.sans],
-        logo: [...defaultTheme.fontFamily.sans],
+        roboto: ['Roboto', 'sans-serif'],
       },
       colors: {
-        background: '#111111',
-        panel: '#1f1f1f',
-        primary: '#1890ff',
-        success: '#10b981', // Tailwind emerald-500 or slightly brighter
-        'ticket-green': '#00e54b',
-        'ticket-blue': '#2196f3',
-      }
+        'tr-bg': '#141414',
+        'tr-header': '#1a1a1a',
+        'tr-surface': '#1e1e1e',
+        'tr-hover': '#2a2a2a',
+        'tr-accent': '#00a3ff',
+        'tr-accent-hover': '#0090e0',
+        'tr-text': '#ffffff',
+        'tr-text-secondary': '#b3b3b3',
+        'tr-text-muted': '#808080',
+        'tr-border': '#2a2a2a',
+        'tr-search': '#2a2a2a',
+      },
     },
   },
   plugins: [],
