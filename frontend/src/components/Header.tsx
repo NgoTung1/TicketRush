@@ -18,7 +18,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false); 
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -60,9 +60,8 @@ const Header: React.FC = () => {
   }, [isMobileMenuOpen]);
 
   const handleSearch = (value: string) => {
-    // TODO: navigate to search results
     console.log('Search:', value);
-    setIsMobileSearchOpen(false); 
+    setIsMobileSearchOpen(false);
   };
 
   return (
@@ -80,7 +79,7 @@ const Header: React.FC = () => {
             className="lg:hidden mr-3 p-1.5 rounded-md text-[#FFFFFF] hover:bg-[#2A2A2A] transition-colors duration-200"
             onClick={() => {
               setIsMobileMenuOpen(!isMobileMenuOpen);
-              setIsMobileSearchOpen(false); 
+              setIsMobileSearchOpen(false);
             }}
             aria-label="Toggle navigation menu"
             aria-expanded={isMobileMenuOpen}
@@ -136,7 +135,7 @@ const Header: React.FC = () => {
             aria-label="Toggle search"
             onClick={() => {
               setIsMobileSearchOpen(!isMobileSearchOpen);
-              setIsMobileMenuOpen(false); 
+              setIsMobileMenuOpen(false);
             }}
           >
             {isMobileSearchOpen ? <X size={20} /> : <Search size={20} />}
@@ -167,7 +166,7 @@ const Header: React.FC = () => {
 
         {/* ── Thanh Tìm Kiếm Dài (Chỉ hiện khi bấm kính lúp ở Mobile) ── */}
         {isMobileSearchOpen && (
-          <div 
+          <div
             className="absolute top-[var(--header-height)] left-0 w-full p-3 bg-[#141414] sm:hidden pointer-events-auto shadow-lg"
           >
             <SearchBar
@@ -200,10 +199,10 @@ const Header: React.FC = () => {
           lg:hidden
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
-        style={{ 
-          top: 'var(--header-height)', 
-          height: 'calc(100vh - var(--header-height))', 
-          width: 'var(--sidebar-width)' 
+        style={{
+          top: 'var(--header-height)',
+          height: 'calc(100vh - var(--header-height))',
+          width: 'var(--sidebar-width)'
         }}
         aria-label="Mobile navigation"
       >
