@@ -118,7 +118,7 @@ const Header: React.FC = () => {
     <>
       <header
         id="main-header"
-        className="z-[60] bg-[#141414]"
+        className="bg-[#141414]"
         style={{ height: 'var(--header-height)' }}
       >
         <div className="h-full max-w-[1440px] mx-auto px-2 flex items-center">
