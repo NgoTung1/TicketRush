@@ -4,6 +4,7 @@ import RootLayout from '@/layouts/RootLayout';
 import Checkout from '@/pages/Checkout';
 import Invoices from '@/pages/Invoices';
 import TicketDetail from '@/pages/TicketDetail';
+import CancelledTicketDetail from '@/pages/CancelledTicketDetail';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="checkout/:orderId" element={<Checkout />} />
           <Route path="invoices" element={<Invoices />} />
           <Route path="ticket/:ticketId" element={<TicketDetail />} />
+          <Route path="ticket/cancelled/:id" element={<CancelledTicketDetail />} />
 
           {/* Placeholder seat selection page */}
           <Route

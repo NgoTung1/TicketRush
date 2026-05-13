@@ -1,7 +1,15 @@
 import React from 'react';
 import { CalendarDays, MapPin } from 'lucide-react';
 
-const EventOfTicket: React.FC = () => {
+type EventOfTicketVariant = 'default' | 'cancelled';
+
+interface EventOfTicketProps {
+  variant?: EventOfTicketVariant;
+}
+
+const EventOfTicket: React.FC<EventOfTicketProps> = ({ variant = 'default' }) => {
+  const isCancelled = variant === 'cancelled';
+
   return (
     <div className="mb-10 w-full border-b border-gray-800 pb-10">
       <h2 className="text-2xl font-bold text-white mb-6">Sự kiện</h2>
@@ -18,12 +26,21 @@ const EventOfTicket: React.FC = () => {
 
         {/* Event Info */}
         <div className="flex flex-col justify-start md:w-[35%] py-4">
-          <h3 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
+          <h3
+            className={
+              `text-3xl lg:text-4xl font-bold mb-4 leading-tight ` +
+              (isCancelled ? 'text-gray-400' : 'text-white')
+            }
+          >
             SPARK NITE: S.T SƠN THẠCH x NEKO LÊ
           </h3>
           <p className="text-gray-400 text-base mb-6">
             Ban tổ chức: <span className="text-white font-medium">S.T SƠN THẠCH x NEKO LÊ</span>
           </p>
+
+          {isCancelled ? (
+            <p className="text-red-500 text-2xl font-extrabold -mt-4 mb-6">CANCELLED</p>
+          ) : null}
 
           <div className="space-y-4">
             <div className="flex items-center text-gray-300 text-base">
