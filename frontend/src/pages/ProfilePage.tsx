@@ -33,6 +33,8 @@ const ProfilePage: React.FC = () => {
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isGenderOpen, setIsGenderOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
 
@@ -134,11 +136,11 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-var(--header-height))] bg-[#0e0e0e] py-10 px-4">
-      <div className="max-w-[520px] mx-auto">
-        <div className="flex flex-col items-center mb-8">
+    <div className="min-h-[calc(100vh-var(--header-height))] py-10 px-4 flex flex-col">
+      <div className="max-w-[520px] mx-auto mt-[64px]">
+        <div className="flex flex-col items-center mb-6">
           <div className="relative group">
-            <div className="w-24 h-24 rounded-full bg-[#2A2A2A] border-2 border-[#3a3a3a] flex items-center justify-center overflow-hidden">
+            <div className="w-24 h-24 rounded-full bg-[#2A2A2A] flex items-center justify-center overflow-hidden">
               {getAvatarDisplay()}
             </div>
             <button
@@ -164,25 +166,39 @@ const ProfilePage: React.FC = () => {
           </div>
 
           {/* Name + edit icon */}
-          <div className="flex items-center gap-2 mt-3">
-            <h2 className="text-lg font-semibold text-white">
-              {fullName || 'Anonymous'}
-            </h2>
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="text-tr-text-muted hover:text-tr-accent transition-colors duration-200"
-              aria-label="Chỉnh sửa tên"
-            >
-              <Pencil size={14} />
-            </button>
+          <div className="relative flex items-center gap-2 mt-3">
+            {isEditingName ? (
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => { setFullName(e.target.value); setIsEditing(true); }}
+                onBlur={() => setIsEditingName(false)}
+                onKeyDown={(e) => { if (e.key === 'Enter') setIsEditingName(false); }}
+                autoFocus
+                className="bg-transparent border-b border-white/50 text-lg font-semibold text-white outline-none text-center w-auto min-w-[120px] focus:border-tr-accent transition-colors duration-200 px-1"
+              />
+            ) : (
+              <h2 className="text-lg font-semibold text-white">
+                {fullName || 'Anonymous'}
+              </h2>
+            )}
+            {!isEditingName && (
+              <button
+                type="button"
+                onClick={() => setIsEditingName(true)}
+                className="absolute text-tr-text-muted hover:text-tr-accent transition-colors duration-200 left-full translate-x-2"
+                aria-label="Chỉnh sửa tên"
+              >
+                <Pencil size={14} />
+              </button>
+            )}
           </div>
         </div>
 
         {/* ── Form Fields ─────────────────────────────────── */}
-        <div className="space-y-4">
+        <div className="space-y-2 w-[380px]">
           <div>
-            <label className="block text-xs text-white font-medium mb-1.5">
+            <label className="block text-[12px] text-white font-bold mb-1.5">
               Email
             </label>
             <input
@@ -190,16 +206,16 @@ const ProfilePage: React.FC = () => {
               value={email}
               readOnly
               className="
-                w-full bg-[#606060] text-sm text-white/60
-                rounded-lg px-3 py-3 outline-none
-                border border-[#3a3a3a] cursor-not-allowed
+                w-full bg-[#414141] text-[12px] text-white/60
+                rounded-lg px-3 py-2 outline-none
+                cursor-not-allowed
               "
             />
           </div>
 
           {/* Phone */}
           <div>
-            <label className="block text-xs text-white font-medium mb-1.5">
+            <label className="block text-[12px] text-white font-bold mb-1.5">
               Số điện thoại
             </label>
             <input
@@ -208,10 +224,10 @@ const ProfilePage: React.FC = () => {
               onChange={(e) => { setPhone(e.target.value); setIsEditing(true); }}
               placeholder="Nhập số điện thoại"
               className="
-                w-full bg-[#606060] text-sm text-white
+                w-full bg-[#2E2E2E] text-[12px] text-white
                 placeholder:text-white/40
-                rounded-lg px-3 py-3 outline-none
-                border border-[#3a3a3a] focus:border-tr-accent/60
+                rounded-lg px-3 py-2 outline-none
+                focus:border-tr-accent/60
                 transition-all duration-200
               "
             />
@@ -219,7 +235,7 @@ const ProfilePage: React.FC = () => {
 
           {/* Birth date */}
           <div>
-            <label className="block text-xs text-white font-medium mb-1.5">
+            <label className="block text-[12px] text-white font-bold mb-1.5">
               Ngày sinh
             </label>
             <div className="relative">
@@ -228,9 +244,9 @@ const ProfilePage: React.FC = () => {
                 value={birthDate}
                 onChange={(e) => { setBirthDate(e.target.value); setIsEditing(true); }}
                 className="
-                  w-full bg-[#606060] text-sm text-white
-                  rounded-lg px-3 py-3 outline-none
-                  border border-[#3a3a3a] focus:border-tr-accent/60
+                  w-full bg-[#2E2E2E] text-[12px] text-white
+                  rounded-lg px-3 py-2 outline-none
+                  focus:border-tr-accent/60
                   transition-all duration-200
                   [color-scheme:dark]
                 "
@@ -240,17 +256,19 @@ const ProfilePage: React.FC = () => {
 
           {/* Gender */}
           <div>
-            <label className="block text-xs text-white font-medium mb-1.5">
+            <label className="block text-[12px] text-white font-bold mb-1.5">
               Giới tính
             </label>
             <div className="relative">
               <select
                 value={gender}
-                onChange={(e) => { setGender(e.target.value); setIsEditing(true); }}
+                onClick={() => setIsGenderOpen(!isGenderOpen)}
+                onBlur={() => setIsGenderOpen(false)}
+                onChange={(e) => { setGender(e.target.value); setIsEditing(true); setIsGenderOpen(false); }}
                 className="
-                  w-full bg-[#606060] text-sm text-white
-                  rounded-lg px-3 py-3 outline-none appearance-none
-                  border border-[#3a3a3a] focus:border-tr-accent/60
+                  w-full bg-[#2E2E2E] text-[12px] text-white
+                  rounded-lg px-3 py-2 outline-none appearance-none
+                  focus:border-tr-accent/60
                   transition-all duration-200 cursor-pointer
                 "
               >
@@ -261,8 +279,8 @@ const ProfilePage: React.FC = () => {
                 ))}
               </select>
               {/* Dropdown arrow */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+              <div className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-transform duration-200 ${isGenderOpen ? 'rotate-180' : ''}`}>
+                <svg width="10" height="6" viewBox="0 0 12 8" fill="none">
                   <path d="M1 1.5L6 6.5L11 1.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>

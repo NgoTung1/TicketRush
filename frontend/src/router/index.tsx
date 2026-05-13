@@ -6,6 +6,7 @@ import EventDetail from '@/pages/event/EventDetail';
 import CreateEventPage from '@/pages/event/CreateEventPage';
 import { AuthPage } from '@/pages/AuthPage';
 import ProfilePage from '@/pages/ProfilePage';
+import OAuthCallback from '@/components/auth/OAuthCallBack';
 
 const router = createBrowserRouter([
   {
@@ -39,6 +40,10 @@ const router = createBrowserRouter([
       {
         path: 'profile',
         element: <ProfilePage />,
+      },
+      {
+        path: "/auth/callback",
+        element: <OAuthCallback />,
       }
     ],
   },

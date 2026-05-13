@@ -42,8 +42,8 @@ const OAuthCallback = () => {
   }, [navigate]);
 
   return (
-    <div className="flex items-center justify-center h-screen bg-[#1C1C1C] text-white">
-      <h2 className="text-xl">Đang xử lý đăng nhập Google, vui lòng đợi...</h2>
+    <div className="flex items-center justify-center h-screen text-white">
+      <h2 className="text-[12px] italic">Đang xử lý đăng nhập Google, vui lòng đợi...</h2>
     </div>
   );
 };
