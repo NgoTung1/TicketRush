@@ -3,10 +3,7 @@ import RootLayout from '@/layouts/RootLayout';
 import HomePage from '@/pages/HomePage';
 import { AuthPage } from '@/pages/AuthPage';
 import ProfilePage from '@/pages/ProfilePage';
-import HomePage from '@/pages/event/HomePage';
-import EventList from '@/pages/event/EventList';
-import EventDetail from '@/pages/event/EventDetail';
-import CreateEventPage from '@/pages/event/CreateEventPage';
+import OAuthCallback from '@/components/auth/OAuthCallBack';
 
 const router = createBrowserRouter([
   {
@@ -43,6 +40,10 @@ const router = createBrowserRouter([
       {
         path: 'profile',
         element: <ProfilePage />,
+      },
+      {
+        path: "/auth/callback",
+        element: <OAuthCallback />,
       }
     ],
   },

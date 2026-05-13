@@ -11,7 +11,10 @@ const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
 
 const RootLayout: React.FC = () => {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/auth';
+  const hideFooter =
+    location.pathname === '/auth' ||
+    location.pathname === '/profile';
+
   const [isRestoring, setIsRestoring] = useState(true);
   const fetchUserProfile = useAuthStore((state) => state.fetchUserProfile);
 
@@ -58,8 +61,8 @@ const RootLayout: React.FC = () => {
         <Outlet />
       </main>
 
-      {/* ── Footer (hidden on auth page) ────────────────── */}
-      {!isAuthPage && <Footer />}
+      {/* ── Footer (hidden on auth and profile pages) ────────────────── */}
+      {!hideFooter && <Footer />}
     </div>
   );
 };

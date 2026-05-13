@@ -123,7 +123,7 @@ const Header: React.FC = () => {
         className="z-[60] bg-[#141414]"
         style={{ height: 'var(--header-height)' }}
       >
-        <div className="h-full max-w-[1440px] mx-auto px-4 flex items-center">
+        <div className="h-full max-w-[1440px] mx-auto px-2 flex items-center">
           {/* ── Mobile: Hamburger  */}
           <button
             ref={menuBtnRef}
