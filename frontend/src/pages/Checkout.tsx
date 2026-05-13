@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Header from '../components/layout/Header';
 import PaymentMethodSelector from '../components/checkout/PaymentMethodSelector';
 import InvoiceDetails from '../components/checkout/InvoiceDetails';
 
@@ -73,20 +72,14 @@ const Checkout: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background text-white font-sans flex flex-col">
-        <Header />
-        <div className="flex-grow flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[60vh]">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-ticket-blue"></div>
-        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-white font-sans flex flex-col">
-      <Header />
-      
-      <main className="flex-grow max-w-7xl mx-auto w-full px-8 py-10">
+    <div className="w-full">
         <div className="flex justify-between items-end mb-8">
           <h1 className="text-3xl font-bold">Thanh toán</h1>
           <div className="text-gray-300 font-medium italic">
@@ -120,7 +113,6 @@ const Checkout: React.FC = () => {
             </div>
           </div>
         </div>
-      </main>
     </div>
   );
 };

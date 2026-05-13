@@ -19,21 +19,26 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({ selectedM
       <h2 className="text-xl font-bold text-white mb-6">Phương thức thanh toán</h2>
       <div className="space-y-4">
         {paymentMethods.map((method) => (
-          <div
+          <label
             key={method.id}
-            className="flex items-center space-x-4 cursor-pointer"
-            onClick={() => onSelect(method.id)}
+            className="flex items-center space-x-4 cursor-pointer select-none"
           >
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedMethod === method.id ? 'border-success' : 'border-gray-500'}`}>
-              {selectedMethod === method.id && <div className="w-2.5 h-2.5 bg-success rounded-full"></div>}
-            </div>
+            <input
+              type="radio"
+              name="paymentMethod"
+              value={method.id}
+              checked={selectedMethod === method.id}
+              onChange={() => onSelect(method.id)}
+              className="h-4 w-4 accent-ticket-green"
+              aria-label={method.label}
+            />
             <div className="w-8 h-8 flex items-center justify-center bg-white rounded-md overflow-hidden p-1">
               <img src={method.icon} alt={method.label} className="max-w-full max-h-full object-contain" />
             </div>
             <span className={`text-base font-medium ${selectedMethod === method.id ? 'text-white' : 'text-gray-300'}`}>
               {method.label}
             </span>
-          </div>
+          </label>
         ))}
       </div>
     </div>

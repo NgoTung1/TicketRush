@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { InvoiceItem } from '../components/invoices/InvoiceItem';
 import { Pagination } from '../components/invoices/Pagination';
 import { Calendar } from 'lucide-react';
-import Header from '../components/layout/Header';
 
 // Mock data
 const generateMockInvoices = (status: 'paid' | 'cancelled', count: number) => {
@@ -39,10 +38,8 @@ const Invoices: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-white font-sans flex flex-col">
-      <Header />
-
-      <main className="flex-grow max-w-7xl mx-auto w-full px-8 py-10">
+    <div className="bg-background text-white font-sans">
+      <div className="max-w-7xl mx-auto w-full px-8 py-10">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Hóa đơn</h1>
         
@@ -105,7 +102,7 @@ const Invoices: React.FC = () => {
           />
         )}
         </div>
-      </main>
+      </div>
     </div>
   );
 };

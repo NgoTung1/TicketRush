@@ -56,9 +56,11 @@ const RootLayout: React.FC = () => {
 
       {/* ── Main Content ────────────────────────────────── */}
       <main
-        className="relative flex-1"
+        className="relative flex-1 bg-background text-white"
       >
-        <Outlet />
+        <div className="h-full max-w-[1440px] mx-auto px-2 py-8">
+          <Outlet />
+        </div>
       </main>
 
       {/* ── Footer (hidden on auth and profile pages) ────────────────── */}

@@ -22,7 +22,6 @@ const NAV_ITEMS: NavItem[] = [
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const location = useLocation();
@@ -83,7 +82,6 @@ const Header: React.FC = () => {
   const handleSearch = (value: string) => {
     console.log('Search:', value);
     setIsMobileSearchOpen(false);
-    setIsMobileSearchOpen(false);
   };
 
   const handleLogout = async () => {
@@ -131,7 +129,6 @@ const Header: React.FC = () => {
             className="lg:hidden mr-3 p-1.5 rounded-md text-[#FFFFFF] hover:bg-[#2A2A2A] transition-colors duration-200"
             onClick={() => {
               setIsMobileMenuOpen(!isMobileMenuOpen);
-              setIsMobileSearchOpen(false);
               setIsMobileSearchOpen(false);
             }}
             aria-label="Toggle navigation menu"
@@ -189,7 +186,6 @@ const Header: React.FC = () => {
             aria-label="Toggle search"
             onClick={() => {
               setIsMobileSearchOpen(!isMobileSearchOpen);
-              setIsMobileMenuOpen(false);
               setIsMobileMenuOpen(false);
             }}
           >
@@ -292,11 +288,7 @@ const Header: React.FC = () => {
 
         {/* ── Thanh Tìm Kiếm Dài (Chỉ hiện khi bấm kính lúp ở Mobile) ── */}
         {isMobileSearchOpen && (
-          <div
-            className="absolute top-[var(--header-height)] left-0 w-full p-3 bg-[#141414] sm:hidden pointer-events-auto"
-          <div
-            className="absolute top-[var(--header-height)] left-0 w-full p-3 bg-[#141414] sm:hidden pointer-events-auto shadow-lg"
-          >
+          <div className="absolute top-[var(--header-height)] left-0 w-full p-3 bg-[#141414] sm:hidden pointer-events-auto shadow-lg">
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
@@ -332,11 +324,7 @@ const Header: React.FC = () => {
         style={{
           top: 'var(--header-height)',
           height: 'calc(100vh - var(--header-height))',
-          width: 'var(--sidebar-width)'
-        style={{
-          top: 'var(--header-height)',
-          height: 'calc(100vh - var(--header-height))',
-          width: 'var(--sidebar-width)'
+          width: 'var(--sidebar-width)',
         }}
         aria-label="Mobile navigation"
       >

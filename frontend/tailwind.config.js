@@ -23,6 +23,13 @@ export default {
         'tr-text-muted': '#808080',
         'tr-border': '#2a2a2a',
         'tr-search': '#2a2a2a',
+
+        // Legacy tokens still used by some pages/components
+        background: 'var(--color-bg-primary)',
+        panel: 'var(--color-bg-surface)',
+        'ticket-blue': 'var(--color-accent)',
+        'ticket-green': '#00c853',
+        success: '#00c853',
       },
     },
   },
