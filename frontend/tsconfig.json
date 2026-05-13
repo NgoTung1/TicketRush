@@ -28,6 +28,6 @@
       ]
     }
   },
-  "include": ["src"],
+  "include": ["src", "src/pages/TicketDetail.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
