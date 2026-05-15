@@ -34,14 +34,14 @@ function toEventItemProps(event: EventResponse) {
       event.status === 'ONCOMING'
         ? 'Sắp diễn ra'
         : event.status === 'ONGOING'
-          ? 'Đang diễn ra'
-          : 'Đã kết thúc',
+        ? 'Đang diễn ra'
+        : 'Đã kết thúc',
     statusColor:
       event.status === 'ONCOMING'
         ? 'text-[#ffe600]'
         : event.status === 'ONGOING'
-          ? 'text-[#00e5ff]'
-          : 'text-gray-400',
+        ? 'text-[#00e5ff]'
+        : 'text-gray-400',
     imageUrl: event.bannerUrl || `https://picsum.photos/seed/${event.id}/600/400`,
   };
 }
@@ -103,10 +103,11 @@ const FilterDropdown: React.FC<DropdownProps> = ({ icon, label, options, value, 
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((p) => !p)}
-        className={`flex items-center gap-2 px-3 py-1.5 font-bold text-[13px] rounded-md transition-colors border ${isActive
+        className={`flex items-center gap-2 px-3 py-1.5 font-bold text-[13px] rounded-md transition-colors border ${
+          isActive
             ? 'bg-[#00a3ff]/20 border-[#00a3ff]/60 text-[#00a3ff]'
             : 'bg-[#414141] hover:bg-[#333] text-white border-white/10'
-          }`}
+        }`}
       >
         <img src={icon} alt="" className="w-4 h-4 object-contain" />
         <span>{activeLabel}</span>
@@ -129,10 +130,11 @@ const FilterDropdown: React.FC<DropdownProps> = ({ icon, label, options, value, 
                 onChange(opt.value);
                 setOpen(false);
               }}
-              className={`w-full text-left px-4 py-2 text-[13px] font-medium transition-colors ${opt.value === value
+              className={`w-full text-left px-4 py-2 text-[13px] font-medium transition-colors ${
+                opt.value === value
                   ? 'bg-[#00a3ff]/20 text-[#00a3ff]'
                   : 'text-white/80 hover:bg-white/5 hover:text-white'
-                }`}
+              }`}
             >
               {opt.label}
             </button>
@@ -319,19 +321,20 @@ const EventList: React.FC = () => {
             />
             <button
               onClick={() => dateInputRef.current?.showPicker()}
-              className={`flex items-center gap-2 px-3 py-1.5 font-bold text-[13px] rounded-md border transition-colors ${currentDate
+              className={`flex items-center gap-2 px-3 py-1.5 font-bold text-[13px] rounded-md border transition-colors ${
+                currentDate
                   ? 'bg-[#00a3ff]/20 border-[#00a3ff]/60 text-[#00a3ff]'
                   : 'bg-[#414141] hover:bg-[#333] text-white border-white/10'
-                }`}
+              }`}
             >
               <img src={DateFilter} alt="" className="w-4 h-4 object-contain" />
               <span className="whitespace-nowrap">
                 {currentDate
                   ? new Date(currentDate + 'T00:00:00').toLocaleDateString('vi-VN', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                  })
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })
                   : 'Tất cả các ngày'}
               </span>
               {currentDate && (
@@ -349,8 +352,8 @@ const EventList: React.FC = () => {
             </button>
           </div>
 
-          {/* Search: realtime */}
-          <div className="flex items-center gap-2 ml-auto">
+          {/* Search: realtime (Đã xoá bỏ ml-auto để nút "Tạo sự kiện mới" được đẩy qua phải) */}
+          <div className="flex items-center gap-2">
             <div className="relative flex items-center">
               <img
                 src={SearchIcon}
@@ -374,6 +377,14 @@ const EventList: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Button: Tạo sự kiện mới */}
+          <button
+            onClick={() => navigate('/admin/create-event')} // Cập nhật route của bạn ở đây
+            className="ml-auto px-5 py-1.5 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-[13px] font-bold rounded-full transition-colors whitespace-nowrap"
+          >
+            Tạo sự kiện mới
+          </button>
         </div>
 
         {/* Error */}
@@ -458,8 +469,9 @@ const EventList: React.FC = () => {
                 <button
                   key={p}
                   onClick={() => handlePageChange(p as number)}
-                  className={`w-7 h-7 flex items-center justify-center rounded-sm transition-colors ${currentPage === p ? 'bg-white/20 text-white' : 'hover:text-white'
-                    }`}
+                  className={`w-7 h-7 flex items-center justify-center rounded-sm transition-colors ${
+                    currentPage === p ? 'bg-white/20 text-white' : 'hover:text-white'
+                  }`}
                 >
                   {p}
                 </button>

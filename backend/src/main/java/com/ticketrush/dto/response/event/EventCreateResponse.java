@@ -14,6 +14,7 @@ public class EventCreateResponse {
     private String title;
     private UUID categoryId;
     private String organizer;
+    private String description;
     private String address;
     private String bannerUrl;
     private LocalDateTime startTime;

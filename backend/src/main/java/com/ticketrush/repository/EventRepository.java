@@ -13,9 +13,10 @@ import java.util.List;
 import java.util.UUID;
 
 public interface EventRepository extends JpaRepository<Event, UUID> {
+    
     @Query("SELECT e FROM Event e WHERE " +
            "(:categoryId IS NULL OR e.category.id = :categoryId) AND " +
-           "(CAST(:status AS String) IS NULL OR CAST(e.status AS String) = CAST(:status AS String))")
+           "(:status IS NULL OR e.status = :status)")
     Page<Event> searchEvents(
             @Param("categoryId") UUID categoryId, 
             @Param("status") EventStatus status, 
@@ -26,4 +27,3 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
 
     List<Event> findByStatusAndStartTimeLessThanEqual(EventStatus status, LocalDateTime dateTime);
 }
-
