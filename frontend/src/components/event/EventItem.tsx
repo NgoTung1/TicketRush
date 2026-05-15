@@ -20,12 +20,13 @@ export const EventItem: React.FC<EventItemProps> = ({
 }) => {
     return (
         <div className="w-full max-w-[340px] bg-[#1a1a1b] rounded-xl overflow-hidden flex flex-col cursor-pointer transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/50">
-            {/* Image Container */}
-            <div className="relative w-full aspect-[16/10]">
+            
+            {/* Image Container: Đã fix cứng chiều cao h-[190px] và thêm shrink-0 */}
+            <div className="relative w-full h-[190px] shrink-0">
                 <img
                     src={imageUrl}
                     alt={title}
-                    className="w-full h-full object-cover rounded-2xl"
+                    className="w-full h-full object-cover"
                 />
             </div>
 

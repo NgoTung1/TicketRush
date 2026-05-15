@@ -1,137 +1,335 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import EventItem from '../../components/event/EventItem';
 import EventSessionItem from '../../components/event/EventSessionItem';
-import DateFilter from "@/assets/images/Date.svg"
-import LocationFilter from "@/assets/images/LocationIcon.svg"
+import DateFilter from '@/assets/images/Date.svg';
+import LocationFilter from '@/assets/images/LocationIcon.svg';
+import { eventApi, EventResponse } from '../../api/eventApi';
+import { eventSessionApi, EventSessionResponse } from '../../api/eventSessionApi';
+import { seatTypeApi, SeatTypeResponse } from '../../api/seatTypeApi';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDateTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    const dd = d.getDate().toString().padStart(2, '0');
+    const mo = (d.getMonth() + 1).toString().padStart(2, '0');
+    const yy = d.getFullYear();
+    return `${hh}:${mm} - ${dd}/${mo}/${yy}`;
+  } catch {
+    return iso;
+  }
+}
+
+function formatSessionTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    const weekdays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    const wd = weekdays[d.getDay()];
+    return `${hh}:${mm}, ${wd}`;
+  } catch {
+    return iso;
+  }
+}
+
+function formatSessionDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    const dd = d.getDate().toString().padStart(2, '0');
+    const mo = (d.getMonth() + 1).toString().padStart(2, '0');
+    const yy = d.getFullYear();
+    return `${dd}/${mo}/${yy}`;
+  } catch {
+    return iso;
+  }
+}
+
+function formatPrice(price: number): string {
+  if (price === 0) return 'Miễn phí';
+  return price.toLocaleString('vi-VN') + 'đ';
+}
+
+function formatMinPrice(seatTypes: SeatTypeResponse[]): string {
+  if (!seatTypes || seatTypes.length === 0) return 'Xem chi tiết';
+  const min = Math.min(...seatTypes.map((s) => s.price));
+  return min === 0 ? 'Miễn phí' : formatPrice(min) + '+';
+}
+
+const extractList = (res: any): any[] => {
+  if (!res) return [];
+  if (Array.isArray(res)) return res;
+  if (res.data && Array.isArray(res.data)) return res.data;
+  if (res.data?.content && Array.isArray(res.data.content)) return res.data.content;
+  if (res.content && Array.isArray(res.content)) return res.content;
+  return [];
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 const EventDetail: React.FC = () => {
-  const relatedEvents = [
-    {
-      title: "HBAshow: Hoàng Hôn Rực Rỡ - Hoàng Hải & Bạch Công Khanh",
-      price: "200.000đ",
-      date: "20:30 - 30/04/2026",
-      status: "Đã kết thúc",
-      statusColor: "text-gray-500",
-      imageUrl: "https://picsum.photos/seed/hba2/600/400",
-    },
-    {
-      title: "GAI HOME CONCERT",
-      price: "1.200.000đ",
-      date: "20:30 - 30/04/2026",
-      status: "Đã kết thúc",
-      statusColor: "text-gray-500",
-      imageUrl: "https://picsum.photos/seed/gai2/600/400",
-    },
-    {
-      title: "Show nhạc nước đặc biệt chào mừng Đại Lễ 30/04 & 01/05",
-      price: "200.000đ",
-      date: "20:30 - 30/04/2026",
-      status: "Đã kết thúc",
-      statusColor: "text-gray-500",
-      imageUrl: "https://picsum.photos/seed/water3/600/400",
-    },
-    {
-      title: "[GARDEN ART] - ART WORKSHOP VẼ TRANH MÀU NƯỚC 'HOA TRONG VƯỜ...",
-      price: "0đ",
-      date: "23:30 - 30/04/2026",
-      status: "Đã kết thúc",
-      statusColor: "text-gray-500",
-      imageUrl: "https://picsum.photos/seed/art3/600/400",
-    },
-    {
-      title: "HBAshow: Hoàng Hôn Rực Rỡ - Hoàng Hải & Bạch Công Khanh",
-      price: "200.000đ",
-      date: "20:30 - 30/04/2026",
-      status: "Đã kết thúc",
-      statusColor: "text-gray-500",
-      imageUrl: "https://picsum.photos/seed/hba4/600/400",
-    },
-    {
-      title: "GAI HOME CONCERT",
-      price: "1.200.000đ",
-      date: "20:30 - 30/04/2026",
-      status: "Đã kết thúc",
-      statusColor: "text-gray-500",
-      imageUrl: "https://picsum.photos/seed/gai4/600/400",
-    },
-    {
-      title: "Show nhạc nước đặc biệt chào mừng Đại Lễ 30/04 & 01/05",
-      price: "200.000đ",
-      date: "20:30 - 30/04/2026",
-      status: "Đã kết thúc",
-      statusColor: "text-gray-500",
-      imageUrl: "https://picsum.photos/seed/water4/600/400",
-    },
-    {
-      title: "[GARDEN ART] - ART WORKSHOP VẼ TRANH MÀU NƯỚC 'HOA TRONG VƯỜ...",
-      price: "0đ",
-      date: "23:30 - 30/04/2026",
-      status: "Đã kết thúc",
-      statusColor: "text-gray-500",
-      imageUrl: "https://picsum.photos/seed/art4/600/400",
-    }
-  ];
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  // ─── State ─────────────────────────────────────────────────────────────────
+  const [event, setEvent] = useState<EventResponse | null>(null);
+  const [sessions, setSessions] = useState<EventSessionResponse[]>([]);
+  const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
+  const [relatedEvents, setRelatedEvents] = useState<EventResponse[]>([]);
+  // Map: eventId → seatTypes (dùng cho related events card giá)
+  const [relatedSeatTypes, setRelatedSeatTypes] = useState<Record<string, SeatTypeResponse[]>>({});
+
+  const [loadingEvent, setLoadingEvent] = useState(true);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // ─── Fetch event + sessions + seatTypes ────────────────────────────────────
+  useEffect(() => {
+    if (!id) return;
+
+    setLoadingEvent(true);
+    setLoadingSessions(true);
+    setError(null);
+
+    // Event detail
+    eventApi.getEventById(id)
+      .then((res: any) => {
+        const e: EventResponse = res?.data ?? res;
+        setEvent(e);
+      })
+      .catch(() => setError('Không thể tải thông tin sự kiện.'))
+      .finally(() => setLoadingEvent(false));
+
+    // Sessions
+    eventSessionApi.getSessionsByEventId(id)
+      .then((res: any) => {
+        setSessions(extractList(res));
+      })
+      .finally(() => setLoadingSessions(false));
+
+    // Seat types (giá vé)
+    seatTypeApi.getSeatTypesByEventId(id)
+      .then((res: any) => {
+        setSeatTypes(extractList(res));
+      });
+
+    // Related events: lấy ONGOING + mới (không filter status → mới nhất)
+    Promise.all([
+      eventApi.getEvents({ status: 'ONGOING', page: 0, size: 4 }),
+      eventApi.getEvents({ page: 0, size: 4 }),
+    ]).then(([ongoingRes, newRes]) => {
+      const ongoing = extractList(ongoingRes);
+      const newest = extractList(newRes);
+      // Gộp, loại trùng và loại event hiện tại, lấy tối đa 8
+      const merged = [...ongoing, ...newest]
+        .filter((e, idx, arr) => e.id !== id && arr.findIndex((x) => x.id === e.id) === idx)
+        .slice(0, 8);
+      setRelatedEvents(merged);
+
+      // Fetch seat types cho từng related event để hiển thị giá
+      merged.forEach((e) => {
+        seatTypeApi.getSeatTypesByEventId(e.id)
+          .then((res: any) => {
+            const types = extractList(res);
+            setRelatedSeatTypes((prev) => ({ ...prev, [e.id]: types }));
+          })
+          .catch(() => {});
+      });
+    });
+  }, [id]);
+
+  // ─── Derived ───────────────────────────────────────────────────────────────
+
+  const statusLabel =
+    event?.status === 'ONCOMING'
+      ? 'Sắp diễn ra'
+      : event?.status === 'ONGOING'
+      ? 'Đang diễn ra'
+      : 'Đã kết thúc';
+
+  const statusTextColor =
+    event?.status === 'ONCOMING'
+      ? 'text-[#00a3ff]'
+      : event?.status === 'ONGOING'
+      ? 'text-[#00a3ff]'
+      : 'text-gray-500';
+
+  // ─── Loading skeleton ──────────────────────────────────────────────────────
+
+  if (loadingEvent) {
+    return (
+      <div className="bg-[#141414] min-h-screen text-white pt-20 pb-16">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 animate-pulse">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 mb-12">
+            <div className="w-full lg:w-[55%] aspect-video bg-white/10 rounded-2xl" />
+            <div className="w-full lg:w-[45%] space-y-4 py-4">
+              <div className="h-8 bg-white/10 rounded w-3/4" />
+              <div className="h-4 bg-white/10 rounded w-full" />
+              <div className="h-4 bg-white/10 rounded w-5/6" />
+              <div className="h-4 bg-white/10 rounded w-4/6" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-[#141414] min-h-screen text-white pt-20 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-red-400 font-medium">{error}</p>
+          <button
+            onClick={() => navigate('/event')}
+            className="px-6 py-2 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-sm font-bold rounded-full transition-colors"
+          >
+            Quay lại danh sách
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="bg-[#141414] min-h-screen text-white pt-20 pb-16">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
-        
+
         {/* Hero Section */}
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 mb-8 lg:mb-12">
-          {/* Left: Poster */}
+          {/* Left: Poster — fixed 16/9, object-cover fills full frame without stretching */}
           <div className="w-full lg:w-[55%] shrink-0">
-            <img 
-              src="https://picsum.photos/seed/sparknite_detail/1000/600" 
-              alt="Spark Nite" 
-              className="w-full h-auto object-cover rounded-2xl shadow-xl border border-white/10" 
-            />
+            <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-xl border border-white/10">
+              <img
+                src={event?.bannerUrl || `https://picsum.photos/seed/${id}/1000/600`}
+                alt={event?.title}
+                className="w-full h-full object-cover object-center"
+              />
+            </div>
           </div>
 
-          {/* Right: Info */}
-          <div className="w-full lg:w-[45%] flex flex-col justify-start lg:justify-center">
+          {/* Right: Info - Đã đổi class thành justify-start để đẩy nội dung lên trên */}
+          <div className="w-full lg:w-[45%] flex flex-col justify-start">
             <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-white mb-4 lg:mb-6 leading-tight">
-              SPARK NITE: S.T SƠN THẠCH x NEKO LÊ
+              {event?.title || '—'}
             </h1>
-            <p className="text-white text-sm sm:text-[22px] leading-snug">
-              Đêm hội ngộ bùng nổ của S.T Sơn Thạch x Neko Lê! Sẵn sàng cho một đêm không ngủ cùng "Cỗ máy nhảy" S.T Sơn Thạch và "Phù thủy rapper" Neko Lê. Bữa tiệc âm nhạc kết hợp Talkshow hứa hẹn mang đến những sân khấu live band đỉnh cao, những màn tung hứng hài hước và vô số "hint" hậu trường chưa từng được tiết lộ. Số lượng vé cực kỳ giới hạn, nhanh tay săn ngay vị trí đẹp nhất trên TicketRush!
+            <p className="text-white text-sm sm:text-[18px] leading-relaxed text-white/80">
+              {event?.description || 'Chưa có mô tả cho sự kiện này.'}
             </p>
           </div>
         </div>
 
         {/* Organizer & Location */}
         <div className="mb-12">
-          <h3 className="text-[24px] font-bold mb-4 italic text-white">Ban tổ chức: S.T SƠN THẠCH x NEKO LÊ</h3>
+          <h3 className="text-[24px] font-bold mb-4 italic text-white">
+            Ban tổ chức: {event?.organizer || '—'}
+          </h3>
           <div className="flex items-center gap-3 text-[16px] mb-3 text-white">
-            <img src={DateFilter}></img>
-            <span className="font-bold italic">20:30 - 25/04/2026</span>
-            <span className="px-3 py-0.5 bg-white text-[#00a3ff] text-[10px] font-bold italic rounded-full uppercase ml-2 tracking-wide">Sắp diễn ra</span>
+            <img src={DateFilter} alt="" />
+            <span className="font-bold italic">
+              {event?.startTime ? formatDateTime(event.startTime) : '—'}
+            </span>
+            <span className={`px-3 py-0.5 bg-white text-[10px] font-bold italic rounded-full uppercase ml-2 tracking-wide ${statusTextColor}`}>
+              {statusLabel}
+            </span>
           </div>
           <div className="flex items-center gap-3 text-[16px] text-white font-bold italic">
-            <img src={LocationFilter}></img>
-            <span>Lầu 1, Nhà hát Bến Thành Số 6 Mạc Đĩnh Chi, Phường Bến Nghé, Quận 1, TP Hồ Chí Minh</span>
+            <img src={LocationFilter} alt="" />
+            <span>{event?.address || '—'}</span>
           </div>
         </div>
 
         {/* Lịch diễn */}
         <div className="mb-16">
           <h2 className="text-[24px] font-bold italic mb-6 text-white">Lịch diễn</h2>
-          <div className="space-y-3">
-            <EventSessionItem time="20:00 - 21:30, T5" date="26/03/2026" price="400.000đ" status="sold_out" />
-            <EventSessionItem time="20:00 - 21:30, T5" date="26/03/2026" price="400.000đ" status="sold_out" />
-            <EventSessionItem time="20:00 - 21:30, T5" date="26/03/2026" price="400.000đ" status="available" />
-          </div>
+
+          {loadingSessions ? (
+            <div className="space-y-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-20 rounded-xl bg-white/5 animate-pulse" />
+              ))}
+            </div>
+          ) : sessions.length === 0 ? (
+            <p className="text-white/40 text-sm">Chưa có lịch diễn.</p>
+          ) : (
+            <div className="space-y-3">
+              {sessions.map((session) => {
+                // Giá thấp nhất của event (seat types đã load)
+                const priceLabel =
+                  seatTypes.length > 0 ? formatMinPrice(seatTypes) : '—';
+
+                // Map session status → EventSessionItem status
+                const itemStatus: 'available' | 'sold_out' =
+                  session.status === 'COMPLETED' || session.status === 'CANCELLED'
+                    ? 'sold_out'
+                    : 'available';
+
+                const timeStr = session.startAt
+                  ? `${formatSessionTime(session.startAt)} - ${formatSessionTime(session.endAt)}`
+                  : session.name;
+
+                return (
+                  <EventSessionItem
+                    key={session.id}
+                    time={timeStr}
+                    date={session.startAt ? formatSessionDate(session.startAt) : '—'}
+                    price={priceLabel}
+                    status={itemStatus}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Có thể bạn quan tâm */}
         <div>
           <h2 className="text-xl font-bold mb-8 text-center text-white">Có thể bạn quan tâm</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {relatedEvents.map((event, index) => (
-              <EventItem key={index} {...event} />
-            ))}
+            {relatedEvents.map((e) => {
+              const types = relatedSeatTypes[e.id] || [];
+              return (
+                <div
+                  key={e.id}
+                  onClick={() => navigate(`/event/${e.id}`)}
+                  className="cursor-pointer"
+                >
+                  <EventItem
+                    title={e.title}
+                    price={formatMinPrice(types)}
+                    date={formatDateTime(e.startTime)}
+                    status={
+                      e.status === 'ONCOMING'
+                        ? 'Sắp diễn ra'
+                        : e.status === 'ONGOING'
+                        ? 'Đang diễn ra'
+                        : 'Đã kết thúc'
+                    }
+                    statusColor={
+                      e.status === 'ONCOMING'
+                        ? 'text-[#ffe600]'
+                        : e.status === 'ONGOING'
+                        ? 'text-[#00e5ff]'
+                        : 'text-gray-400'
+                    }
+                    imageUrl={e.bannerUrl || `https://picsum.photos/seed/${e.id}/600/400`}
+                  />
+                </div>
+              );
+            })}
           </div>
           <div className="mt-10 text-center">
-            <button className="text-sm text-gray-400 hover:text-white transition-colors underline underline-offset-4">Xem thêm</button>
+            <button
+              onClick={() => navigate('/event')}
+              className="text-sm text-gray-400 hover:text-white transition-colors underline underline-offset-4"
+            >
+              Xem thêm
+            </button>
           </div>
         </div>
 

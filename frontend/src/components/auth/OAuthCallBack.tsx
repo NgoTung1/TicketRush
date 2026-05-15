@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import axiosClient, { setAccessToken } from '@/lib/axios';
 import { useAuthStore } from '@/store/AuthStore';
+import { getRoleFromToken } from '@/helpers/jwt';
 
 const OAuthCallback = () => {
   const navigate = useNavigate();
@@ -30,7 +31,12 @@ const OAuthCallback = () => {
 
         await supabase.auth.signOut();
 
-        navigate('/');
+        const role = getRoleFromToken(accessToken);
+        if (role?.toLowerCase() === 'admin') {
+          navigate('/admin/event-list');
+        } else {
+          navigate('/');
+        }
 
       } catch (err) {
         console.error("Lỗi xác thực OAuth:", err);
