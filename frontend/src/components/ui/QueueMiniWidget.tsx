@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Loader2 } from 'lucide-react';
+import { ExternalLink, Loader2, X } from 'lucide-react';
 
 interface QueueMiniWidgetProps {
   imageUrl: string;
@@ -8,6 +8,7 @@ interface QueueMiniWidgetProps {
   position?: number;           // Vị trí xếp hàng (dùng cho status 'waiting')
   timeLeft?: string;           // Thời gian còn lại (dùng cho status 'ready', VD: '09:56')
   onNavigate?: () => void;     // Hàm xử lý khi bấm nút chuyển trang (chỉ dùng khi 'ready')
+  onCancel?: () => void;       // Hàm xử lý khi hủy hàng đợi (status 'waiting')
 }
 
 const QueueMiniWidget: React.FC<QueueMiniWidgetProps> = ({
@@ -17,6 +18,7 @@ const QueueMiniWidget: React.FC<QueueMiniWidgetProps> = ({
   position,
   timeLeft,
   onNavigate,
+  onCancel,
 }) => {
   return (
     <div className="w-[280px] bg-[#2a2a2a] rounded-xl overflow-hidden animate-[fadeInUp_0.3s_ease-out]">
@@ -33,9 +35,14 @@ const QueueMiniWidget: React.FC<QueueMiniWidgetProps> = ({
         {status === 'waiting' ? (
           <>
             <span className="text-white text-sm font-medium italic">
-              Vị trí hiện tại của bạn: <span className="text-[#00E676] font-bold not-italic">{position}</span>
+              Vị trí hiện tại của bạn: <span className="text-[#00E676] font-bold not-italic">{position || '...'}</span>
             </span>
-            <Loader2 size={18} className="text-gray-400 animate-spin" />
+            <div className="flex items-center gap-1">
+              <Loader2 size={18} className="text-gray-400 animate-spin" />
+              <button onClick={onCancel} className="text-gray-400 hover:text-red-400 transition-colors p-1" title="Hủy xếp hàng">
+                <X size={18} />
+              </button>
+            </div>
           </>
         ) : (
           <>

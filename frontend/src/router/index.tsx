@@ -15,6 +15,8 @@ import AdminCategoryDetail from '@/pages/event/AdminCategoryDetail';
 import AdminEventDetail from '@/pages/event/AdminEventDetail';
 import AdminUpdateEvent from '@/pages/event/AdminUpdateEvent';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { RoomPage } from '@/pages/RoomPage';
+
 
 /**
  * URL Convention cho EventList:
@@ -81,6 +83,10 @@ const router = createBrowserRouter([
           {
             path: 'profile',
             element: <ProfilePage />,
+          },
+          {
+        path: 'event/:id/room',
+        element: <RoomPage />,
           },
           // Các route Redirect
           {

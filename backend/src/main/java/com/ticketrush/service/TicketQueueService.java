@@ -1,12 +1,13 @@
 package com.ticketrush.service;
 
-import com.ticketrush.external.scheduler.TimeoutScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.Duration;
+import java.util.Set;
 
 @Service
 public class TicketQueueService {
@@ -15,9 +16,9 @@ public class TicketQueueService {
   private StringRedisTemplate redisTemplate;
 
   @Autowired
-  private TimeoutScheduler timeoutScheduler;
+  private BlockService blockService;
 
-  private static final int ACTIVE_ROOM_LIMIT = 500;
+  private static final int ACTIVE_ROOM_LIMIT = 200;
   private static final long PAYMENT_WINDOW_SECONDS = 600; // 10 phút
 
   private String getWaitingKey(String eventId) {
@@ -30,20 +31,25 @@ public class TicketQueueService {
 
   public String joinEvent(String eventId, String userId) {
     String activeKey = getActiveKey(eventId);
+    String waitingKey = getWaitingKey(eventId);
+
+    // Nếu Score khác null tức là họ đang ở trong Active hoặc Waiting
+    Double activeScore = redisTemplate.opsForZSet().score(activeKey, userId);
+    Double waitingScore = redisTemplate.opsForZSet().score(waitingKey, userId);
+
+    if (activeScore != null || waitingScore != null) {
+      return activeScore != null ? "ALREADY_IN_ACTIVE" : "ALREADY_IN_WAITING";
+    }
+
     long now = Instant.now().getEpochSecond();
     Long currentActive = redisTemplate.opsForZSet().zCard(activeKey);
 
     if (currentActive != null && currentActive < ACTIVE_ROOM_LIMIT) {
-      // Cho vào phòng
       long expireTime = now + PAYMENT_WINDOW_SECONDS;
       redisTemplate.opsForZSet().add(activeKey, userId, expireTime);
-
-      // Gắn hẹn giờ bị đuổi
-      timeoutScheduler.schedulePaymentTimeout(eventId, userId, PAYMENT_WINDOW_SECONDS);
       return "ACTIVE_ROOM";
     } else {
-      // Phòng đầy => ném vào Waiting Room
-      redisTemplate.opsForZSet().add(getWaitingKey(eventId), userId, now);
+      redisTemplate.opsForZSet().add(waitingKey, userId, now);
       return "WAITING_ROOM";
     }
   }
@@ -51,11 +57,22 @@ public class TicketQueueService {
   // Hàm xóa user khỏi active room dùng khi hết 10 phút, hoặc user chủ động Out
   public void removeUserAndPullNext(String eventId, String userId) {
     String activeKey = getActiveKey(eventId);
-    // 1. Xóa khỏi Active Room
-    Long removed = redisTemplate.opsForZSet().remove(activeKey, userId);
-    // 2. Kéo người chờ lâu nhất vào bù
-    if (removed != null && removed > 0) {
+    String waitingKey = getWaitingKey(eventId);
+
+    // THỬ TÌM VÀ XÓA Ở PHÒNG THANH TOÁN (ACTIVE ROOM)
+    Long removedFromActive = redisTemplate.opsForZSet().remove(activeKey, userId);
+
+    if (removedFromActive != null && removedFromActive > 0) {
       pullNextUserToActiveRoom(eventId);
+      System.out.println("User " + userId + " đã chủ động rời Active Room.");
+      return;
+    }
+
+    // TÌM VÀ XÓA Ở HÀNG CHỜ (WAITING ROOM)
+    Long removedFromWaiting = redisTemplate.opsForZSet().remove(waitingKey, userId);
+
+    if (removedFromWaiting != null && removedFromWaiting > 0) {
+      System.out.println("User " + userId + " đã bỏ cuộc khi đang ở Waiting Room.");
     }
   }
 
@@ -70,25 +87,45 @@ public class TicketQueueService {
       long expireTime = Instant.now().getEpochSecond() + PAYMENT_WINDOW_SECONDS;
       // Ném vào phòng Thanh toán
       redisTemplate.opsForZSet().add(activeKey, nextUserId, expireTime);
-      // Hẹn giờ out cho user mới
-      timeoutScheduler.schedulePaymentTimeout(eventId, nextUserId, PAYMENT_WINDOW_SECONDS);
       System.out.println("Đã kéo User " + nextUserId + " vào phòng!");
     }
   }
 
-  // Hàm dọn rác thủ công(chưa thực sự cần dùng)
+  // Hàm dọn rác thủ công
   public void sweepTimeoutUsers(String eventId) {
     long now = Instant.now().getEpochSecond();
-    // Quét những đứa đã hết giờ
-    Long removedCount = redisTemplate.opsForZSet().removeRangeByScore(getActiveKey(eventId),
-        Double.NEGATIVE_INFINITY, now);
+    String activeKey = getActiveKey(eventId);
 
-    if (removedCount != null && removedCount > 0) {
-      System.out.println("Cronjob đã cứu hệ thống! Dọn được " + removedCount + " user bị kẹt do rớt Pub/Sub.");
-      // Hở bao nhiêu chỗ thì kéo bấy nhiêu người vào
-      for (int i = 0; i < removedCount; i++) {
+    // Lấy danh sách user đã hết hạn
+    Set<String> timedOutUsers = redisTemplate.opsForZSet().rangeByScore(activeKey, Double.NEGATIVE_INFINITY, now);
+
+    if (timedOutUsers != null && !timedOutUsers.isEmpty()) {
+      System.out.println("Cronjob hệ thống! Dọn được " + timedOutUsers.size() + " user bị kẹt do rớt Pub/Sub.");
+
+      for (String userId : timedOutUsers) {
+        // Ghi nhận vi phạm
+        handleUserTimeout(userId);
+
+        // Xóa khỏi hàng chờ & gọi người tiếp theo
+        redisTemplate.opsForZSet().remove(activeKey, userId);
         pullNextUserToActiveRoom(eventId);
       }
+    }
+  }
+
+  private void handleUserTimeout(String userId) {
+    String countKey = "user:timeout_count:" + userId;
+    Long count = redisTemplate.opsForValue().increment(countKey);
+
+    if (count != null && count == 1) {
+      redisTemplate.expire(countKey, Duration.ofMinutes(30));
+    }
+
+    if (count != null && count > 2) {
+      // Bị kick quá 2 lần (tức là lần thứ 3)
+      blockService.blockUser(userId, Duration.ofHours(2),
+          "Bạn đã không hoàn tất thanh toán quá nhiều lần. Tài khoản bị tạm khóa đặt vé trong 2 giờ.");
+      redisTemplate.delete(countKey);
     }
   }
 }

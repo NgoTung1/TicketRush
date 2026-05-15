@@ -13,6 +13,8 @@ export const setAccessToken = (token: string | null) => {
   }
 };
 
+export const getAccessToken = () => accessToken;
+
 export const axiosClient = axios.create({
   baseURL,
   headers: {
