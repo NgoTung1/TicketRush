@@ -38,13 +38,19 @@ export const useRoomStore = create<RoomState>((set, get) => ({
     if (room.status === 'ready' && !room.expiresAt) {
       let minutes = 10;
       let seconds = 0;
+
       if (room.timeLeft) {
         const parts = room.timeLeft.split(':');
         if (parts.length === 2) {
-          minutes = parseInt(parts[0], 10) || 10;
-          seconds = parseInt(parts[1], 10) || 0;
+          const parsedMins = parseInt(parts[0], 10);
+          const parsedSecs = parseInt(parts[1], 10);
+
+          minutes = !isNaN(parsedMins) ? parsedMins : 1;
+          seconds = !isNaN(parsedSecs) ? parsedSecs : 0;
         }
       }
+
+      // Tính toán dựa trên giá trị đã parse chính xác
       room.expiresAt = Date.now() + (minutes * 60 + seconds) * 1000;
     }
 

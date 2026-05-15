@@ -151,7 +151,9 @@ const EventDetail: React.FC = () => {
   const performJoinRoom = async () => {
     if (!id) return;
     try {
+      console.log("AAAA")
       const res = await roomApi.joinRoom(id);
+      console.log("RES: ", res)
       const status = res.status ? res.status.toString() : '';
       const message = (res as any).message;
 
@@ -162,6 +164,7 @@ const EventDetail: React.FC = () => {
         setActiveRoom({ eventId: id, status: 'waiting' });
         setNotifyOpen(true); // Hiển thị NotifyForm tại RootLayout
       } else if (status === 'BLOCKED') {
+        console.log("BLOCK ????")
         setBlockMessage(message || 'Tài khoản của bạn đã bị chặn do phát hiện hoạt động bất thường.');
       }
     } catch (error: any) {
@@ -419,7 +422,7 @@ const EventDetail: React.FC = () => {
         title="Tài khoản bị hạn chế"
         confirmText="Đã hiểu"
       >
-        <p className="font-normal text-center text-red-400">
+        <p className="font-normal">
           {blockMessage}
         </p>
       </NotifyForm>

@@ -1,6 +1,5 @@
 package com.ticketrush.service;
 
-import com.ticketrush.external.scheduler.TimeoutScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -15,9 +14,6 @@ public class TicketQueueService {
 
   @Autowired
   private StringRedisTemplate redisTemplate;
-
-  @Autowired
-  private TimeoutScheduler timeoutScheduler;
 
   @Autowired
   private BlockService blockService;
@@ -35,20 +31,25 @@ public class TicketQueueService {
 
   public String joinEvent(String eventId, String userId) {
     String activeKey = getActiveKey(eventId);
+    String waitingKey = getWaitingKey(eventId);
+
+    // Nếu Score khác null tức là họ đang ở trong Active hoặc Waiting
+    Double activeScore = redisTemplate.opsForZSet().score(activeKey, userId);
+    Double waitingScore = redisTemplate.opsForZSet().score(waitingKey, userId);
+
+    if (activeScore != null || waitingScore != null) {
+      return activeScore != null ? "ALREADY_IN_ACTIVE" : "ALREADY_IN_WAITING";
+    }
+
     long now = Instant.now().getEpochSecond();
     Long currentActive = redisTemplate.opsForZSet().zCard(activeKey);
 
     if (currentActive != null && currentActive < ACTIVE_ROOM_LIMIT) {
-      // Cho vào phòng
       long expireTime = now + PAYMENT_WINDOW_SECONDS;
       redisTemplate.opsForZSet().add(activeKey, userId, expireTime);
-
-      // Gắn hẹn giờ bị đuổi
-      timeoutScheduler.schedulePaymentTimeout(eventId, userId, PAYMENT_WINDOW_SECONDS);
       return "ACTIVE_ROOM";
     } else {
-      // Phòng đầy => ném vào Waiting Room
-      redisTemplate.opsForZSet().add(getWaitingKey(eventId), userId, now);
+      redisTemplate.opsForZSet().add(waitingKey, userId, now);
       return "WAITING_ROOM";
     }
   }
@@ -62,7 +63,6 @@ public class TicketQueueService {
     Long removedFromActive = redisTemplate.opsForZSet().remove(activeKey, userId);
 
     if (removedFromActive != null && removedFromActive > 0) {
-      timeoutScheduler.cancelPaymentTimeout(eventId, userId);
       pullNextUserToActiveRoom(eventId);
       System.out.println("User " + userId + " đã chủ động rời Active Room.");
       return;
@@ -87,8 +87,6 @@ public class TicketQueueService {
       long expireTime = Instant.now().getEpochSecond() + PAYMENT_WINDOW_SECONDS;
       // Ném vào phòng Thanh toán
       redisTemplate.opsForZSet().add(activeKey, nextUserId, expireTime);
-      // Hẹn giờ out cho user mới
-      timeoutScheduler.schedulePaymentTimeout(eventId, nextUserId, PAYMENT_WINDOW_SECONDS);
       System.out.println("Đã kéo User " + nextUserId + " vào phòng!");
     }
   }

@@ -3,7 +3,6 @@ package com.ticketrush.controller;
 import com.ticketrush.service.TicketQueueService;
 import com.ticketrush.service.BlockService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -38,7 +37,7 @@ public class EventTicketController {
       String reason = blockService.getBlockReason(userId);
       response.put("status", "BLOCKED");
       response.put("message", "Tài khoản của bạn đang bị chặn. Lý do: " + reason);
-      return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+      return ResponseEntity.ok(response);
     }
 
     // 2. Đẩy vào luồng xếp hàng
