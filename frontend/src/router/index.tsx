@@ -12,6 +12,7 @@ import AdminEventList from '@/pages/event/AdminEventList';
 import AdminCategoryList from '@/pages/event/AdminCategoryList';
 import AdminCreateCategory from '@/pages/event/AdminCreateCategory';
 import AdminCategoryDetail from '@/pages/event/AdminCategoryDetail';
+import { RoomPage } from '@/pages/RoomPage';
 
 /**
  * URL Convention cho EventList:
@@ -68,6 +69,10 @@ const router = createBrowserRouter([
       {
         path: 'profile',
         element: <ProfilePage />,
+      },
+      {
+        path: 'event/:id/room',
+        element: <RoomPage />,
       },
       {
         path: '/auth/callback',

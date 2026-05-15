@@ -10,6 +10,9 @@ import NotifyForm from '@/components/ui/NotifyForm';
 import ToastContainer from '@/components/ui/ToastContainer';
 import { useToastStore } from '@/store/ToastStore';
 import QueueMiniWidget from '@/components/ui/QueueMiniWidget';
+import { useRoomStore } from '@/store/RoomStore';
+import { useNavigate } from 'react-router-dom';
+import { roomApi } from '@/api/roomApi';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
 
@@ -20,9 +23,10 @@ const RootLayout: React.FC = () => {
     location.pathname === '/profile';
 
   const [isRestoring, setIsRestoring] = useState(true);
-  const [isNotifyOpen, setNotifyOpen] = useState(false);
   const fetchUserProfile = useAuthStore((state) => state.fetchUserProfile);
   const addToast = useToastStore((state) => state.addToast);
+  const { activeRoom, isNotifyOpen, setNotifyOpen, clearActiveRoom } = useRoomStore();
+  const navigate = useNavigate();
 
   // Restore session on app mount by trying to refresh token via httpOnly cookie
   useEffect(() => {
@@ -81,7 +85,7 @@ const RootLayout: React.FC = () => {
         Sự kiện này hiện đang có lượng truy cập lớn! Để đảm bảo tính công bằng bạn đã được xếp vào hàng chờ tự động
       </NotifyForm>
 
-      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 bg-black/80 p-4 rounded-xl">
+      {/* <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 bg-black/80 p-4 rounded-xl">
         <h3 className="text-white text-sm font-bold text-center mb-1">🛠️ Bảng Test Toast</h3>
 
         <button
@@ -116,32 +120,33 @@ const RootLayout: React.FC = () => {
         >
           Hiện Thành công (Success)
         </button>
-      </div>
+      </div> */}
 
-      <div className="fixed bottom-6 right-6 z-[50] flex flex-col gap-4">
-
-        {/* Test 1: Trạng thái đang xếp hàng */}
-        <QueueMiniWidget
-          imageUrl="https://i.imgur.com/B9Bw8j8.png" // Đổi thành link ảnh thật của bạn
-          eventName="Hoàng Hôn Rực Rỡ"
-          status="waiting"
-          position={105}
-        />
-
-        {/* Test 2: Trạng thái Đã đến lượt */}
-        <QueueMiniWidget
-          imageUrl="https://i.imgur.com/B9Bw8j8.png" // Đổi thành link ảnh thật của bạn
-          eventName="Hoàng Hôn Rực Rỡ"
-          status="ready"
-          timeLeft="09:56"
-          onNavigate={() => {
-            alert('Chuyển hướng người dùng vào trang chọn ghế của sự kiện này!');
-            // navigate('/event/hoang-hon-ruc-ro/booking');
-          }}
-        />
-
-      </div>
-    </div>
+      {activeRoom && !location.pathname.startsWith(`/event/${activeRoom.eventId}/room`) && (
+        <div className="fixed bottom-6 right-6 z-[50] flex flex-col gap-4">
+          <QueueMiniWidget
+            imageUrl="https://picsum.photos/seed/queue/400/300"
+            eventName="Sự kiện đang tham gia"
+            status={activeRoom.status}
+            timeLeft={activeRoom.timeLeft}
+            onNavigate={() => {
+              navigate(`/event/${activeRoom.eventId}/room`);
+            }}
+            onCancel={async () => {
+              if (activeRoom) {
+                try {
+                  await roomApi.leaveRoom(activeRoom.eventId);
+                } catch (e) {
+                  console.error("Lỗi leave room:", e);
+                } finally {
+                  clearActiveRoom();
+                }
+              }
+            }}
+          />
+        </div>
+      )}
+    </div >
   );
 };
 
