@@ -91,19 +91,33 @@ const HomePage: React.FC = () => {
   }, []);
 
   const handleEventClick = (id: string) => {
-    navigate(`/event/${id}`);
+    navigate(`/su-kien/${id}`);
+  };
+
+  const handlePrevBanner = () => {
+    if (!activeEvent || bannerEvents.length === 0) return;
+    const currentIndex = bannerEvents.findIndex((e) => e.id === activeEvent.id);
+    const newIndex = (currentIndex - 1 + bannerEvents.length) % bannerEvents.length;
+    setActiveEvent(bannerEvents[newIndex]);
+  };
+
+  const handleNextBanner = () => {
+    if (!activeEvent || bannerEvents.length === 0) return;
+    const currentIndex = bannerEvents.findIndex((e) => e.id === activeEvent.id);
+    const newIndex = (currentIndex + 1) % bannerEvents.length;
+    setActiveEvent(bannerEvents[newIndex]);
   };
 
   return (
     <div className="bg-[#141414] min-h-screen text-white font-roboto pb-16">
       {/* Hero Banner Section */}
-      <section className="relative w-full h-auto lg:h-[650px] flex flex-col pl-20 overflow-hidden">
+      <section className="relative w-full h-auto lg:h-[650px] flex flex-col pl-10 pr-10 pt-5 overflow-hidden">
         
         {/* --- VÙNG 1: BANNERS & TEXT CONTENT --- */}
         <div className="relative w-full flex-grow flex flex-col justify-center min-h-[480px] lg:min-h-0">
             {activeEvent && (
               <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700 ease-in-out"
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700 ease-in-out rounded-xl"
                 style={{ backgroundImage: `url(${activeEvent.bannerUrl || 'https://picsum.photos/seed/hero/1920/1080'})` }}
               />
             )}
@@ -164,9 +178,11 @@ const HomePage: React.FC = () => {
         {/* --- VÙNG 2: CAROUSEL THUMBNAILS --- */}
         {bannerEvents.length > 0 && (
           <div className="relative z-20 w-full bg-[#141414] lg:bg-transparent py-6 lg:py-0 lg:absolute lg:left-auto lg:right-8 lg:bottom-16">
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-0 lg:max-w-none flex items-center justify-center lg:justify-end gap-2 sm:gap-4">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-0 lg:max-w-none flex items-center justify-center lg:justify-end gap-4 sm:gap-6">
               
-              <button className="w-12 h-12 sm:w-12 sm:h-12 rounded-full bg-black/40 flex items-center justify-center text-white hover:bg-black/70 transition-colors backdrop-blur-sm sm:text-base">
+              <button 
+                onClick={handlePrevBanner}
+                className="shrink-0 w-16 h-18 rounded-full flex items-center justify-center text-white text-3xl font-light">
                 &lt;
               </button>
               
@@ -190,7 +206,9 @@ const HomePage: React.FC = () => {
                 ))}
               </div>
               
-              <button className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-black/40 flex items-center justify-center text-white hover:bg-black/70 transition-colors backdrop-blur-sm text-xs sm:text-base">
+              <button 
+                onClick={handleNextBanner}
+                className="shrink-0 w-16 h-18 rounded-full flex items-center justify-center text-white text-3xl font-light">
                 &gt;
               </button>
             </div>
@@ -235,7 +253,10 @@ const HomePage: React.FC = () => {
             <section>
               <div className="flex justify-between items-end mb-6">
                 <h2 className="text-[24px] font-bold text-white">Sắp diễn ra</h2>
-                <button className="text-[#B4B2B2] hover:text-white text-[20px] font-bold transition-colors">
+                <button 
+                  onClick={() => navigate('/su-kien?status=ONCOMING')}
+                  className="text-[#B4B2B2] hover:text-white text-[20px] font-bold transition-colors"
+                >
                   Xem thêm
                 </button>
               </div>
@@ -254,7 +275,10 @@ const HomePage: React.FC = () => {
             <section>
               <div className="flex justify-between items-end mb-6">
                 <h2 className="text-2xl font-bold text-white">Đang diễn ra</h2>
-                <button className="text-[#B4B2B2] hover:text-white text-[20px] font-bold transition-colors">
+                <button 
+                  onClick={() => navigate('/su-kien?status=ONGOING')}
+                  className="text-[#B4B2B2] hover:text-white text-[20px] font-bold transition-colors"
+                >
                   Xem thêm
                 </button>
               </div>
@@ -273,7 +297,10 @@ const HomePage: React.FC = () => {
             <section>
               <div className="flex justify-between items-end mb-6">
                 <h2 className="text-[24px] font-bold text-white">Mới ra mắt</h2>
-                <button className="text-[#B4B2B2] hover:text-white text-[20px] font-bold transition-colors">
+                <button 
+                  onClick={() => navigate('/su-kien')}
+                  className="text-[#B4B2B2] hover:text-white text-[20px] font-bold transition-colors"
+                >
                   Xem thêm
                 </button>
               </div>
