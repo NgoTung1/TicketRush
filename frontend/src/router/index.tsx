@@ -12,6 +12,7 @@ import AdminEventList from '@/pages/event/AdminEventList';
 import AdminCategoryList from '@/pages/event/AdminCategoryList';
 import AdminCreateCategory from '@/pages/event/AdminCreateCategory';
 import AdminCategoryDetail from '@/pages/event/AdminCategoryDetail';
+import AdminEventDetail from '@/pages/event/AdminEventDetail';
 
 /**
  * URL Convention cho EventList:
@@ -84,6 +85,10 @@ const router = createBrowserRouter([
       {
         path: 'event-list',
         element: <AdminEventList />,
+      },
+      {
+        path: 'event/:id',
+        element: <AdminEventDetail />,
       },
       {
         path: 'categories',

@@ -180,22 +180,6 @@ const CreateEventPage: React.FC = () => {
 
   return (
     <div className="bg-[#141414] min-h-screen text-white font-roboto pb-12">
-      {/* Admin Header */}
-      <header className="bg-[#1a1a1a] border-b border-white/5 px-4 sm:px-6 py-3.5 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-6 sm:gap-10">
-          <h1 className="text-[#00a3ff] font-black text-lg sm:text-xl italic tracking-tighter cursor-pointer">
-            TICKETRUSH
-          </h1>
-          <nav className="hidden sm:flex gap-6 text-[13px] font-medium">
-            <a href="#" className="text-white">Quản lý sự kiện</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">Quản lý danh mục</a>
-          </nav>
-        </div>
-        <div className="w-8 h-8 rounded-full bg-gray-500 overflow-hidden border border-white/20 cursor-pointer">
-          <img src="https://picsum.photos/seed/avatar/100" alt="avatar" className="w-full h-full object-cover" />
-        </div>
-      </header>
-
       {/* Main */}
       <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-8">
         <h2 className="text-[32px] font-bold text-white mb-8">Thông tin sự kiện</h2>
