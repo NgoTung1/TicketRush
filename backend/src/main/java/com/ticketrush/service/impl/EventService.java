@@ -133,6 +133,7 @@ public class EventService {
                 .title(event.getTitle())
                 .categoryId(event.getCategory().getId())
                 .organizer(event.getOrganizer())
+                .description(event.getDescription())
                 .address(event.getAddress())
                 .bannerUrl(event.getBannerUrl())
                 .startTime(event.getStartTime())

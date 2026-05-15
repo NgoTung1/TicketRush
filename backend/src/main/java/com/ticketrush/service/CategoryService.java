@@ -68,6 +68,14 @@ public class CategoryService {
     categoryRepository.save(category);
   }
 
+  public CategoryResponse restoreCategory(UUID id) {
+    Category category = categoryRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục!"));
+
+    category.setDeleted(false);
+    return mapToResponse(categoryRepository.save(category));
+  }
+
   private CategoryResponse mapToResponse(Category category) {
     return new CategoryResponse(
         category.getId(),

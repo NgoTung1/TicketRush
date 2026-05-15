@@ -52,4 +52,10 @@ public class CategoryController {
     categoryService.deleteCategory(id);
     return ResponseEntity.ok("Xóa danh mục thành công!");
   }
+
+  @PutMapping("/{id}/restore")
+  @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+  public ResponseEntity<?> restoreCategory(@PathVariable UUID id) {
+    return ResponseEntity.ok(categoryService.restoreCategory(id));
+  }
 }
