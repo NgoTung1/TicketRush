@@ -1,17 +1,18 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import RootLayout from '@/layouts/RootLayout';
+import { AuthPage } from '@/pages/AuthPage';
+import ProfilePage from '@/pages/ProfilePage';
+import OAuthCallback from '@/components/auth/OAuthCallBack';
 import AdminLayout from '@/layouts/AdminLayout';
 import HomePage from '@/pages/event/HomePage';
 import EventList from '@/pages/event/EventList';
 import EventDetail from '@/pages/event/EventDetail';
 import CreateEventPage from '@/pages/event/CreateEventPage';
-import { AuthPage } from '@/pages/AuthPage';
-import ProfilePage from '@/pages/ProfilePage';
-import OAuthCallback from '@/components/auth/OAuthCallBack';
 import AdminEventList from '@/pages/event/AdminEventList';
 import AdminCategoryList from '@/pages/event/AdminCategoryList';
 import AdminCreateCategory from '@/pages/event/AdminCreateCategory';
 import AdminCategoryDetail from '@/pages/event/AdminCategoryDetail';
+import { RoomPage } from '@/pages/RoomPage';
 
 /**
  * URL Convention cho EventList:
@@ -42,9 +43,6 @@ const router = createBrowserRouter([
       },
       {
         path: 'am-nhac',
-        element: <HomePage />,
-        // Trang danh sách sự kiện — filter bằng query params
-        path: 'event',
         element: <EventList />,
       },
       {
@@ -53,7 +51,6 @@ const router = createBrowserRouter([
         element: <EventDetail />,
       },
       {
-        // Legacy paths → redirect về /su-kien
         path: 'am-nhac',
         element: <Navigate to="/event" replace />,
       },
@@ -72,6 +69,10 @@ const router = createBrowserRouter([
       {
         path: 'profile',
         element: <ProfilePage />,
+      },
+      {
+        path: 'event/:id/room',
+        element: <RoomPage />,
       },
       {
         path: '/auth/callback',

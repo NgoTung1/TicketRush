@@ -7,6 +7,9 @@ import LocationFilter from '@/assets/images/LocationIcon.svg';
 import { eventApi, EventResponse } from '../../api/eventApi';
 import { eventSessionApi, EventSessionResponse } from '../../api/eventSessionApi';
 import { seatTypeApi, SeatTypeResponse } from '../../api/seatTypeApi';
+import { roomApi } from '../../api/roomApi';
+import { useRoomStore } from '../../store/RoomStore';
+import NotifyForm from '../../components/ui/NotifyForm';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -74,6 +77,9 @@ const extractList = (res: any): any[] => {
 const EventDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { activeRoom, setActiveRoom, setNotifyOpen, clearActiveRoom } = useRoomStore();
+  const [isSwitchConfirmOpen, setSwitchConfirmOpen] = useState(false);
+  const [blockMessage, setBlockMessage] = useState<string | null>(null);
 
   // ─── State ─────────────────────────────────────────────────────────────────
   const [event, setEvent] = useState<EventResponse | null>(null);
@@ -137,10 +143,67 @@ const EventDetail: React.FC = () => {
             const types = extractList(res);
             setRelatedSeatTypes((prev) => ({ ...prev, [e.id]: types }));
           })
-          .catch(() => {});
+          .catch(() => { });
       });
     });
   }, [id]);
+
+  const performJoinRoom = async () => {
+    if (!id) return;
+    try {
+      const res = await roomApi.joinRoom(id);
+      const status = res.status ? res.status.toString() : '';
+      const message = (res as any).message;
+
+      if (status === 'ACTIVE_ROOM') {
+        setActiveRoom({ eventId: id, status: 'ready', timeLeft: '10:00' });
+        navigate(`/event/${id}/room`);
+      } else if (status === 'WAITING_ROOM') {
+        setActiveRoom({ eventId: id, status: 'waiting' });
+        setNotifyOpen(true); // Hiển thị NotifyForm tại RootLayout
+      } else if (status === 'BLOCKED') {
+        setBlockMessage(message || 'Tài khoản của bạn đã bị chặn do phát hiện hoạt động bất thường.');
+      }
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        alert('Vui lòng đăng nhập để mua vé!');
+        navigate('/auth');
+      } else if (error.response?.data?.message) {
+        alert(error.response.data.message);
+      } else {
+        console.error("Lỗi join room:", error);
+      }
+    }
+  };
+
+  const handleJoinRoom = async () => {
+    if (!id) return;
+
+    if (activeRoom) {
+      if (activeRoom.eventId === id) {
+        navigate(`/event/${id}/room`);
+        return;
+      } else {
+        setSwitchConfirmOpen(true);
+        return;
+      }
+    }
+
+    await performJoinRoom();
+  };
+
+  const confirmSwitchRoom = async () => {
+    if (!id || !activeRoom) return;
+    try {
+      await roomApi.leaveRoom(activeRoom.eventId);
+    } catch (error) {
+      console.error("Lỗi khi rời sự kiện cũ:", error);
+    } finally {
+      clearActiveRoom();
+      setSwitchConfirmOpen(false);
+      await performJoinRoom();
+    }
+  };
 
   // ─── Derived ───────────────────────────────────────────────────────────────
 
@@ -148,15 +211,15 @@ const EventDetail: React.FC = () => {
     event?.status === 'ONCOMING'
       ? 'Sắp diễn ra'
       : event?.status === 'ONGOING'
-      ? 'Đang diễn ra'
-      : 'Đã kết thúc';
+        ? 'Đang diễn ra'
+        : 'Đã kết thúc';
 
   const statusTextColor =
     event?.status === 'ONCOMING'
       ? 'text-[#00a3ff]'
       : event?.status === 'ONGOING'
-      ? 'text-[#00a3ff]'
-      : 'text-gray-500';
+        ? 'text-[#00a3ff]'
+        : 'text-gray-500';
 
   // ─── Loading skeleton ──────────────────────────────────────────────────────
 
@@ -280,6 +343,7 @@ const EventDetail: React.FC = () => {
                     date={session.startAt ? formatSessionDate(session.startAt) : '—'}
                     price={priceLabel}
                     status={itemStatus}
+                    onClick={handleJoinRoom}
                   />
                 );
               })}
@@ -307,15 +371,15 @@ const EventDetail: React.FC = () => {
                       e.status === 'ONCOMING'
                         ? 'Sắp diễn ra'
                         : e.status === 'ONGOING'
-                        ? 'Đang diễn ra'
-                        : 'Đã kết thúc'
+                          ? 'Đang diễn ra'
+                          : 'Đã kết thúc'
                     }
                     statusColor={
                       e.status === 'ONCOMING'
                         ? 'text-[#ffe600]'
                         : e.status === 'ONGOING'
-                        ? 'text-[#00e5ff]'
-                        : 'text-gray-400'
+                          ? 'text-[#00e5ff]'
+                          : 'text-gray-400'
                     }
                     imageUrl={e.bannerUrl || `https://picsum.photos/seed/${e.id}/600/400`}
                   />
@@ -334,6 +398,32 @@ const EventDetail: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Thông báo xác nhận chuyển sự kiện */}
+      <NotifyForm
+        isOpen={isSwitchConfirmOpen}
+        onClose={() => setSwitchConfirmOpen(false)}
+        title="Nhắc nhở"
+        onConfirm={confirmSwitchRoom}
+        confirmText="Tiếp tục"
+      >
+        <p className="font-normal">
+          Bạn đang tham gia hàng chờ của một sự kiện khác. Bạn có chắc chắn muốn hủy hàng đợi hiện tại để tham gia sự kiện này không?
+        </p>
+      </NotifyForm>
+
+      {/* Thông báo khi tài khoản bị Block */}
+      <NotifyForm
+        isOpen={!!blockMessage}
+        onClose={() => setBlockMessage(null)}
+        title="Tài khoản bị hạn chế"
+        confirmText="Đã hiểu"
+      >
+        <p className="font-normal text-center text-red-400">
+          {blockMessage}
+        </p>
+      </NotifyForm>
+
     </div>
   );
 };

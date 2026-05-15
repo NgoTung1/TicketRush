@@ -5,6 +5,7 @@ import AuthInput from '@/components/ui/AuthInput';
 import { authApi } from '@/api/authApi';
 import { setAccessToken } from '@/lib/axios';
 import { useAuthStore } from '@/store/AuthStore';
+import { getRoleFromToken } from '@/helpers/jwt';
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
@@ -33,11 +34,16 @@ const LoginForm: React.FC = () => {
     setLoading(true);
     try {
       const res: any = await authApi.login({ email, password });
-      setAccessToken(res.accessToken);
+      const token = res.accessToken; // Lấy token ra
+      setAccessToken(token);
 
       await fetchUserProfile();
-
-      navigate('/');
+      const role = getRoleFromToken(token);
+      if (role?.toLowerCase() === 'admin') {
+        navigate('/admin/event-list'); // Đẩy vào Dashboard Admin
+      } else {
+        navigate('/'); // Khách bình thường về Trang chủ
+      }
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||
