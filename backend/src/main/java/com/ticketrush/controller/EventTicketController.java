@@ -35,8 +35,13 @@ public class EventTicketController {
     // 1. Kiểm tra Block
     if (blockService.isUserBlocked(userId)) {
       String reason = blockService.getBlockReason(userId);
+      Long unblockAt = blockService.getBlockExpiryTime(userId);
+
       response.put("status", "BLOCKED");
       response.put("message", "Tài khoản của bạn đang bị chặn. Lý do: " + reason);
+      if (unblockAt != null) {
+        response.put("unblockAt", String.valueOf(unblockAt));
+      }
       return ResponseEntity.ok(response);
     }
 
