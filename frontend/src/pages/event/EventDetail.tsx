@@ -250,7 +250,7 @@ const EventDetail: React.FC = () => {
         <div className="text-center space-y-4">
           <p className="text-red-400 font-medium">{error}</p>
           <button
-            onClick={() => navigate('/event')}
+            onClick={() => navigate('/events')}
             className="px-6 py-2 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-sm font-bold rounded-full transition-colors"
           >
             Quay lại danh sách
@@ -346,7 +346,7 @@ const EventDetail: React.FC = () => {
                     date={session.startAt ? formatSessionDate(session.startAt) : '—'}
                     price={priceLabel}
                     status={itemStatus}
-                    onClick={handleJoinRoom}
+                    onActionClick={handleJoinRoom}
                   />
                 );
               })}
@@ -392,7 +392,7 @@ const EventDetail: React.FC = () => {
           </div>
           <div className="mt-10 text-center">
             <button
-              onClick={() => navigate('/event')}
+              onClick={() => navigate('/su-kien')}
               className="text-sm text-gray-400 hover:text-white transition-colors underline underline-offset-4"
             >
               Xem thêm

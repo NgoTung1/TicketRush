@@ -73,12 +73,12 @@ const router = createBrowserRouter([
             element: <EventDetail />,
           },
           {
-            path: 'su-kien',
+            path: 'events',
             element: <EventList />,
           },
           {
             path: 'am-nhac',
-            element: <Navigate to="/su-kien" replace />, 
+            element: <Navigate to="/events" replace />, 
           },
           {
             path: 'profile',
