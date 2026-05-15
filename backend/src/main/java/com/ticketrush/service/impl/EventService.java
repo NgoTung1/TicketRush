@@ -88,6 +88,12 @@ public class EventService {
             existingEvent.setStartTime(request.getStartTime());
         }
 
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy Category!"));
+            existingEvent.setCategory(category);
+        }
+
         if (request.getTitle() != null) existingEvent.setTitle(request.getTitle());
         if (request.getOrganizer() != null) existingEvent.setOrganizer(request.getOrganizer());
         if (request.getDescription() != null) existingEvent.setDescription(request.getDescription());

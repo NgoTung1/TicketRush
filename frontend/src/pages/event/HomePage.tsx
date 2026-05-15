@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import EventItem from '../../components/event/EventItem';
 import { eventApi, EventResponse } from '../../api/eventApi';
 
@@ -17,7 +18,7 @@ function formatDateTime(iso: string): string {
 }
 
 // Helper: map EventResponse → EventItem props
-function toEventItemProps(event: EventResponse) {
+function toEventItemProps(event: EventResponse, onClick: () => void) {
   return {
     title: event.title,
     price: 'Xem chi tiết', // Cần cập nhật nếu API trả về giá
@@ -25,6 +26,7 @@ function toEventItemProps(event: EventResponse) {
     status: event.status === 'ONCOMING' ? 'Sắp diễn ra' : event.status === 'ONGOING' ? 'Đang diễn ra' : 'Đã kết thúc',
     statusColor: event.status === 'ONCOMING' ? 'text-[#ffe600]' : event.status === 'ONGOING' ? 'text-[#00e5ff]' : 'text-gray-400',
     imageUrl: event.bannerUrl || 'https://picsum.photos/seed/default/600/400',
+    onClick
   };
 }
 
@@ -39,6 +41,7 @@ const extractEventsData = (res: any): EventResponse[] => {
 };
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [upcomingEvents, setUpcomingEvents] = useState<EventResponse[]>([]);
   const [ongoingEvents, setOngoingEvents] = useState<EventResponse[]>([]);
   const [newEvents, setNewEvents] = useState<EventResponse[]>([]);
@@ -87,6 +90,10 @@ const HomePage: React.FC = () => {
     fetchEvents();
   }, []);
 
+  const handleEventClick = (id: string) => {
+    navigate(`/event/${id}`);
+  };
+
   return (
     <div className="bg-[#141414] min-h-screen text-white font-roboto pb-16">
       {/* Hero Banner Section */}
@@ -125,10 +132,16 @@ const HomePage: React.FC = () => {
                   </div>
 
                   <div className="flex gap-4">
-                    <button className="px-14 py-2 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-sm font-bold rounded-full transition-colors">
+                    <button 
+                      onClick={() => handleEventClick(activeEvent.id)}
+                      className="px-14 py-2 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-sm font-bold rounded-full transition-colors"
+                    >
                       Mua vé ngay
                     </button>
-                    <button className="px-14 py-2 bg-white/40 hover:bg-white/30 text-white text-sm font-bold rounded-full backdrop-blur-md transition-colors">
+                    <button 
+                      onClick={() => handleEventClick(activeEvent.id)}
+                      className="px-14 py-2 bg-white/40 hover:bg-white/30 text-white text-sm font-bold rounded-full backdrop-blur-md transition-colors"
+                    >
                       Xem chi tiết
                     </button>
                   </div>
@@ -231,7 +244,7 @@ const HomePage: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {upcomingEvents.map((event) => (
-                    <EventItem key={event.id} {...toEventItemProps(event)} />
+                    <EventItem key={event.id} {...toEventItemProps(event, () => handleEventClick(event.id))} />
                   ))}
                 </div>
               )}
@@ -250,7 +263,7 @@ const HomePage: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {ongoingEvents.map((event) => (
-                    <EventItem key={event.id} {...toEventItemProps(event)} />
+                    <EventItem key={event.id} {...toEventItemProps(event, () => handleEventClick(event.id))} />
                   ))}
                 </div>
               )}
@@ -269,7 +282,7 @@ const HomePage: React.FC = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {newEvents.map((event) => (
-                    <EventItem key={event.id} {...toEventItemProps(event)} />
+                    <EventItem key={event.id} {...toEventItemProps(event, () => handleEventClick(event.id))} />
                   ))}
                 </div>
               )}

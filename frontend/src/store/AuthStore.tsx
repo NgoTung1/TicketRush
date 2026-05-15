@@ -19,7 +19,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  isAuthenticated: false,
+  isAuthenticated: !!localStorage.getItem('accessToken'),
 
   fetchUserProfile: async () => {
     try {

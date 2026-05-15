@@ -19,6 +19,7 @@ export interface EventCreateRequest {
 
 export interface EventUpdateRequest {
   title?: string;
+  categoryId?: string;
   organizer?: string;
   description?: string;
   address?: string;

@@ -52,7 +52,7 @@ const AdminCategoryDetail: React.FC = () => {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#141414] px-4 py-8">
-      <div className="max-w-[1200px] mx-auto bg-[#1C1C1C] rounded-2xl min-h-[600px] flex flex-col relative overflow-hidden shadow-xl border border-white/5">
+      <div className="max-w-[1200px] mx-auto rounded-2xl min-h-[600px] flex flex-col relative overflow-hidden">
         <div className="p-8 flex-1">
           <h1 className="text-white font-bold text-[24px] mb-8">Danh mục sự kiện</h1>
           
@@ -62,7 +62,7 @@ const AdminCategoryDetail: React.FC = () => {
               type="text"
               value={category.name}
               disabled
-              className="w-full bg-[#383838] text-[#868686] text-[16px] font-medium rounded-xl px-4 py-3 outline-none cursor-not-allowed border border-transparent"
+              className="w-full bg-[#383838] text-[#868686] text-[16px] font-medium rounded-xl px-4 py-2 outline-none cursor-not-allowed border border-transparent"
             />
           </div>
 
@@ -70,11 +70,11 @@ const AdminCategoryDetail: React.FC = () => {
             <label className="block text-white font-bold text-[16px] mb-2">Trạng thái</label>
             <div>
               {!category.isDeleted ? (
-                <span className="inline-block px-3 py-1 rounded-full border border-[#00FF47] text-[#00FF47] text-[10px] font-bold whitespace-nowrap bg-[#00FF47]/5">
+                <span className="inline-block px-3 py-1 rounded-full border border-[#00FF47] text-[#3CFF4D] text-[10px] font-bold whitespace-nowrap bg-[#375C3A]">
                   Đang hoạt động
                 </span>
               ) : (
-                <span className="inline-block px-3 py-1 rounded-full border border-[#FF3B30] text-[#FF3B30] text-[10px] font-bold whitespace-nowrap bg-[#FF3B30]/5">
+                <span className="inline-block px-3 py-1 rounded-full border border-[#FF3B30] text-[#FF3C3C] text-[10px] font-bold whitespace-nowrap bg-[#5C3737]">
                   Ngừng hoạt động
                 </span>
               )}
@@ -94,7 +94,7 @@ const AdminCategoryDetail: React.FC = () => {
             <button
               onClick={handleToggleStatus}
               disabled={submitting}
-              className="px-6 py-2.5 bg-[#FF3B30] hover:bg-[#FF3B30]/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-[14px] rounded-full transition-colors"
+              className="px-6 py-1 bg-[#FF3B30] hover:bg-[#FF3B30]/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-[14px] rounded-full transition-colors"
             >
               {submitting ? 'Đang xử lý...' : 'Xóa danh mục'}
             </button>
@@ -102,7 +102,7 @@ const AdminCategoryDetail: React.FC = () => {
             <button
               onClick={handleToggleStatus}
               disabled={submitting}
-              className="px-6 py-2.5 bg-[#00a3ff] hover:bg-[#0090FF] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-[14px] rounded-full transition-colors"
+              className="px-6 py-1 bg-[#00a3ff] hover:bg-[#0090FF] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-[14px] rounded-full transition-colors"
             >
               {submitting ? 'Đang xử lý...' : 'Khôi phục'}
             </button>
@@ -110,7 +110,7 @@ const AdminCategoryDetail: React.FC = () => {
 
           <button
             onClick={() => navigate('/admin/categories')}
-            className="px-6 py-2.5 bg-[#5A5A5A] hover:bg-[#666] text-white font-bold text-[14px] rounded-full transition-colors"
+            className="px-6 py-1 bg-[#5A5A5A] hover:bg-[#666] text-white font-bold text-[14px] rounded-full transition-colors"
           >
             Hủy
           </button>

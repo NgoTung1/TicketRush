@@ -2,10 +2,15 @@ import axios from 'axios';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
 
-let accessToken: string | null = null;
+let accessToken: string | null = localStorage.getItem('accessToken');
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
+  if (token) {
+    localStorage.setItem('accessToken', token);
+  } else {
+    localStorage.removeItem('accessToken');
+  }
 };
 
 export const axiosClient = axios.create({
@@ -56,7 +61,7 @@ axiosClient.interceptors.response.use(
           { withCredentials: true }
         );
 
-        accessToken = refreshResponse.data.token;
+        setAccessToken(refreshResponse.data.token);
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
@@ -64,7 +69,7 @@ axiosClient.interceptors.response.use(
 
       } catch (refreshError) {
         console.warn('Phiên đăng nhập hết hạn! Vui lòng đăng nhập lại.');
-        accessToken = null;
+        setAccessToken(null);
         window.location.href = '/auth';
         return Promise.reject(refreshError);
       }

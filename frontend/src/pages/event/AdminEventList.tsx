@@ -381,7 +381,7 @@ const EventList: React.FC = () => {
           {/* Button: Tạo sự kiện mới */}
           <button
             onClick={() => navigate('/admin/create-event')} // Cập nhật route của bạn ở đây
-            className="ml-auto px-5 py-1.5 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-[13px] font-bold rounded-full transition-colors whitespace-nowrap"
+            className="ml-auto px-5 py-1 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-[12px] font-bold rounded-full transition-colors whitespace-nowrap"
           >
             Tạo sự kiện mới
           </button>
@@ -422,7 +422,7 @@ const EventList: React.FC = () => {
             {events.map((event) => (
               <div
                 key={event.id}
-                onClick={() => navigate(`/event/${event.id}`)}
+                onClick={() => navigate(`/admin/event/${event.id}`)}
                 className="cursor-pointer"
               >
                 <EventItem {...toEventItemProps(event)} />

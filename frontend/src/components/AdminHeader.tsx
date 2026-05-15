@@ -112,7 +112,7 @@ const AdminHeader: React.FC = () => {
 
           {/* Logo */}
           <Link
-            to="/admin/create-event"
+            to="/admin/event-list"
             className="flex items-center shrink-0 mr-12 group"
           >
             <span className="text-2xl font-black font-paytone tracking-tight">
@@ -161,7 +161,7 @@ const AdminHeader: React.FC = () => {
                 </div>
                 <div className="py-1">
                   <Link
-                    to="/profile"
+                    to="/admin/profile"
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#FFFFFF] hover:bg-[#2A2A2A] transition-colors duration-200"
                     onClick={() => setIsProfileMenuOpen(false)}
                   >

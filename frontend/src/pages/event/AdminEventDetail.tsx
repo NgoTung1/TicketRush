@@ -458,14 +458,16 @@ const AdminEventDetail: React.FC = () => {
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end">
-            <button
-              onClick={() => navigate(`/admin/event/${id}/edit`)}
-              className="px-8 py-2 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-sm font-bold rounded-full transition-colors"
-            >
-              Cập nhật sự kiện
-            </button>
-          </div>
+          {event?.status === 'ONCOMING' && (
+            <div className="mt-8 flex justify-end">
+              <button
+                onClick={() => navigate(`/admin/event/update/${id}`)}
+                className="px-8 py-2 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-sm font-bold rounded-full transition-colors"
+              >
+                Cập nhật sự kiện
+              </button>
+            </div>
+          )}
         </div>
 
       </div>

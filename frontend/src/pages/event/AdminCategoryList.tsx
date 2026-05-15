@@ -10,7 +10,7 @@ const AdminCategoryList: React.FC = () => {
   const [categories, setCategories] = useState<CategoryResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -68,7 +68,7 @@ const AdminCategoryList: React.FC = () => {
           </div>
           <button
             onClick={() => navigate('/admin/categories/create')}
-            className="px-6 py-2 bg-[#00a3ff] hover:bg-[#0090FF] text-white font-bold rounded-full transition-colors"
+            className="px-6 py-1 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-[12px] font-bold rounded-full transition-colors"
           >
             Tạo danh mục
           </button>
@@ -89,13 +89,13 @@ const AdminCategoryList: React.FC = () => {
                   onClick={() => navigate(`/admin/categories/${category.id}`)}
                   className="bg-[#1C1C1C] hover:bg-[#2A2A2A] cursor-pointer rounded-xl p-5 flex justify-between items-center transition-colors border border-white/5"
                 >
-                  <span className="text-white font-bold text-[16px]">{category.name}</span>
+                  <span className="text-white font-bold text-[14px]">{category.name}</span>
                   {!category.isDeleted ? (
-                    <span className="px-3 py-1 rounded-full border border-[#00FF47] text-[#00FF47] text-[10px] font-bold whitespace-nowrap">
+                    <span className="px-3 py-1 rounded-full border border-[#3CFF4D] bg-[#375C3A] text-[#3CFF4D] text-[10px] font-bold whitespace-nowrap">
                       Đang hoạt động
                     </span>
                   ) : (
-                    <span className="px-3 py-1 rounded-full border border-[#FF3B30] text-[#FF3B30] text-[10px] font-bold whitespace-nowrap">
+                    <span className="px-3 py-1 rounded-full border border-[#FF3C3C] bg-[#5C3737] text-[#FF3C3C] text-[10px] font-bold whitespace-nowrap">
                       Ngừng hoạt động
                     </span>
                   )}
@@ -122,11 +122,10 @@ const AdminCategoryList: React.FC = () => {
                   <button
                     key={idx}
                     onClick={() => setCurrentPage(idx + 1)}
-                    className={`w-8 h-8 flex items-center justify-center rounded text-sm font-bold ${
-                      currentPage === idx + 1
+                    className={`w-8 h-8 flex items-center justify-center rounded text-sm font-bold ${currentPage === idx + 1
                         ? 'bg-white/20 text-white'
                         : 'text-white hover:bg-white/10'
-                    }`}
+                      }`}
                   >
                     {idx + 1}
                   </button>
