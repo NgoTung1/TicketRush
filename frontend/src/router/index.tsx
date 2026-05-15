@@ -1,13 +1,13 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import RootLayout from '@/layouts/RootLayout';
+import { AuthPage } from '@/pages/AuthPage';
+import ProfilePage from '@/pages/ProfilePage';
+import OAuthCallback from '@/components/auth/OAuthCallBack';
 import AdminLayout from '@/layouts/AdminLayout';
 import HomePage from '@/pages/event/HomePage';
 import EventList from '@/pages/event/EventList';
 import EventDetail from '@/pages/event/EventDetail';
 import CreateEventPage from '@/pages/event/CreateEventPage';
-import { AuthPage } from '@/pages/AuthPage';
-import ProfilePage from '@/pages/ProfilePage';
-import OAuthCallback from '@/components/auth/OAuthCallBack';
 import AdminEventList from '@/pages/event/AdminEventList';
 import AdminCategoryList from '@/pages/event/AdminCategoryList';
 import AdminCreateCategory from '@/pages/event/AdminCreateCategory';
@@ -38,8 +38,11 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        // Trang danh sách sự kiện — filter bằng query params
-        path: 'event',
+        path: 'su-kien/:id',
+        element: <EventDetail />,
+      },
+      {
+        path: 'am-nhac',
         element: <EventList />,
       },
       {
@@ -48,7 +51,6 @@ const router = createBrowserRouter([
         element: <EventDetail />,
       },
       {
-        // Legacy paths → redirect về /su-kien
         path: 'am-nhac',
         element: <Navigate to="/event" replace />,
       },

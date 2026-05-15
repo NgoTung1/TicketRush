@@ -82,6 +82,7 @@ const Header: React.FC = () => {
   const handleSearch = (value: string) => {
     console.log('Search:', value);
     setIsMobileSearchOpen(false);
+    setIsMobileSearchOpen(false);
   };
 
   const handleLogout = async () => {
@@ -118,7 +119,7 @@ const Header: React.FC = () => {
     <>
       <header
         id="main-header"
-        className="z-[60] bg-[#141414]"
+        className="bg-[#141414]"
         style={{ height: 'var(--header-height)' }}
       >
         <div className="h-full max-w-[1440px] mx-auto px-2 flex items-center">
@@ -129,6 +130,7 @@ const Header: React.FC = () => {
             className="lg:hidden mr-3 p-1.5 rounded-md text-[#FFFFFF] hover:bg-[#2A2A2A] transition-colors duration-200"
             onClick={() => {
               setIsMobileMenuOpen(!isMobileMenuOpen);
+              setIsMobileSearchOpen(false);
               setIsMobileSearchOpen(false);
             }}
             aria-label="Toggle navigation menu"
@@ -186,6 +188,7 @@ const Header: React.FC = () => {
             aria-label="Toggle search"
             onClick={() => {
               setIsMobileSearchOpen(!isMobileSearchOpen);
+              setIsMobileMenuOpen(false);
               setIsMobileMenuOpen(false);
             }}
           >
@@ -387,7 +390,7 @@ const Header: React.FC = () => {
             </Button>
           </div>
         )}
-      </aside>
+      </aside >
     </>
   );
 };
