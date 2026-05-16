@@ -1,32 +1,34 @@
 import React from 'react';
-
-export type SeatStatus = 'available' | 'selected' | 'vip' | 'booked';
+import { SeatResponse } from '@/api/seatApi';
 
 interface SeatProps {
-  status?: SeatStatus;
-  onClick?: () => void;
+  seat: SeatResponse;
+  color?: string; // Màu sắc từ SeatType
+  isSelected?: boolean; // Trạng thái chọn ở phía client
+  onMouseDown?: (e: React.MouseEvent) => void;
+  onMouseEnter?: (e: React.MouseEvent) => void;
 }
 
-const Seat: React.FC<SeatProps> = ({ status = 'available', onClick }) => {
-  // Ánh xạ trạng thái sang màu sắc tương ứng
-  const getBgColor = () => {
-    switch (status) {
-      case 'vip':
-        return 'bg-[#c6ff00]'; // Màu xanh lá mạ (vàng chanh)
-      case 'selected':
-        return 'bg-[#0000ff]'; // Màu xanh dương
-      case 'booked':
-        return 'bg-gray-700'; // Màu xám đậm cho ghế đã đặt (nếu có)
-      case 'available':
-      default:
-        return 'bg-[#b3b3b3]'; // Màu xám nhạt mặc định
+const Seat: React.FC<SeatProps> = ({ seat, color = '#b3b3b3', isSelected, onMouseDown, onMouseEnter }) => {
+  const isAvailable = seat.status === 'AVAILABLE';
+
+  const getStyle = () => {
+    if (isSelected) {
+      return { backgroundColor: '#0000ff' }; // xanh dương (đang chọn)
     }
+    if (!isAvailable) {
+      return { backgroundColor: '#4b5563', opacity: 0.5 }; // xám (đã bán/đã đặt)
+    }
+    return { backgroundColor: color }; // màu mặc định của loại ghế
   };
 
   return (
     <div
-      onClick={onClick}
-      className={`w-6 h-6 md:w-8 md:h-8 rounded-[4px] md:rounded-md cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-lg ${getBgColor()}`}
+      onMouseDown={onMouseDown}
+      onMouseEnter={onMouseEnter}
+      style={getStyle()}
+      className={`seat-element w-6 h-6 md:w-8 md:h-8 rounded-[4px] md:rounded-md transition-all duration-200 cursor-pointer hover:scale-110 hover:shadow-lg`}
+      title={`Ghế ${seat.rowIndex}-${seat.colIndex}`}
     />
   );
 };
