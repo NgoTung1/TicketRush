@@ -291,7 +291,9 @@ const Header: React.FC = () => {
 
         {/* ── Thanh Tìm Kiếm Dài (Chỉ hiện khi bấm kính lúp ở Mobile) ── */}
         {isMobileSearchOpen && (
-          <div className="absolute top-[var(--header-height)] left-0 w-full p-3 bg-[#141414] sm:hidden pointer-events-auto shadow-lg">
+          <div
+            className="absolute top-[var(--header-height)] left-0 w-full p-3 bg-[#141414] sm:hidden pointer-events-auto"
+          >
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
@@ -327,7 +329,7 @@ const Header: React.FC = () => {
         style={{
           top: 'var(--header-height)',
           height: 'calc(100vh - var(--header-height))',
-          width: 'var(--sidebar-width)',
+          width: 'var(--sidebar-width)'
         }}
         aria-label="Mobile navigation"
       >

@@ -16,6 +16,10 @@ import AdminEventDetail from '@/pages/event/AdminEventDetail';
 import AdminUpdateEvent from '@/pages/event/AdminUpdateEvent';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { RoomPage } from '@/pages/RoomPage';
+import CancelledTicketDetail from '@/pages/CancelledTicketDetail';
+import Checkout from '@/pages/Checkout';
+import Invoices from '@/pages/Invoices';
+import TicketDetail from '@/pages/TicketDetail';
 
 
 /**
@@ -87,6 +91,22 @@ const router = createBrowserRouter([
           {
         path: 'event/:id/room',
         element: <RoomPage />,
+          },
+          {
+            path: 'checkout/:orderId',
+            element: <Checkout />,
+          },
+          {
+            path: 'invoices',
+            element: <Invoices />,
+          },
+          {
+            path: 'ticket/:id',
+            element: <TicketDetail />,
+          },
+          {
+            path: 'ticket/cancelled/:id',
+            element: <CancelledTicketDetail />,
           },
           // Các route Redirect
           {
