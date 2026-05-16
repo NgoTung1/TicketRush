@@ -34,20 +34,20 @@ public class Order {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, length = 50)
     private String code;
 
-    @Column(name = "total_amount", nullable = false)
+    @Column(name = "total_amount", nullable = false, precision = 38, scale = 2)
     private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "status")
     private OrderStatus status;
 
-    @Column(name = "expires_at")
+    @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
     @Column(name = "created_at")
