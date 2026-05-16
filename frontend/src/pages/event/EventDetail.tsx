@@ -10,6 +10,7 @@ import { seatTypeApi, SeatTypeResponse } from '../../api/seatTypeApi';
 import { roomApi } from '../../api/roomApi';
 import { useRoomStore } from '../../store/RoomStore';
 import NotifyForm from '../../components/ui/NotifyForm';
+import { formatUnblockTime } from '@/helpers/time';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -93,6 +94,8 @@ const EventDetail: React.FC = () => {
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [unblockTime, setUnblockTime] = useState<string | null>(null);
+
   // ─── Fetch event + sessions + seatTypes ────────────────────────────────────
   useEffect(() => {
     if (!id) return;
@@ -153,7 +156,6 @@ const EventDetail: React.FC = () => {
     try {
       console.log("AAAA")
       const res = await roomApi.joinRoom(id);
-      console.log("RES: ", res)
       const status = res.status ? res.status.toString() : '';
       const message = (res as any).message;
 
@@ -164,8 +166,13 @@ const EventDetail: React.FC = () => {
         setActiveRoom({ eventId: id, status: 'waiting' });
         setNotifyOpen(true); // Hiển thị NotifyForm tại RootLayout
       } else if (status === 'BLOCKED') {
-        console.log("BLOCK ????")
+        const unblockAt = (res as any).unblockAt
         setBlockMessage(message || 'Tài khoản của bạn đã bị chặn do phát hiện hoạt động bất thường.');
+        if (unblockAt) {
+          setUnblockTime(formatUnblockTime(unblockAt));
+        } else {
+          setUnblockTime(null);
+        }
       }
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -418,13 +425,25 @@ const EventDetail: React.FC = () => {
       {/* Thông báo khi tài khoản bị Block */}
       <NotifyForm
         isOpen={!!blockMessage}
-        onClose={() => setBlockMessage(null)}
+        onClose={() => {
+          setBlockMessage(null);
+          setUnblockTime(null);
+        }}
         title="Tài khoản bị hạn chế"
         confirmText="Đã hiểu"
       >
-        <p className="font-normal">
-          {blockMessage}
-        </p>
+        <div className="font-normal space-y-3">
+          <p className="text-white/90">
+            {blockMessage}
+          </p>
+
+          {unblockTime && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+              <p className="text-red-400 text-sm">Thời gian tự động mở khóa:</p>
+              <p className="text-red-500 font-bold text-lg">{unblockTime}</p>
+            </div>
+          )}
+        </div>
       </NotifyForm>
 
     </div>
