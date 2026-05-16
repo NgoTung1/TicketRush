@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/admin/statistics")
+@RequestMapping("/admin/statistics")
 @RequiredArgsConstructor
 public class AdminStatisticController {
 

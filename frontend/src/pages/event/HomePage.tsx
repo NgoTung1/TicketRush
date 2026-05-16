@@ -254,7 +254,7 @@ const HomePage: React.FC = () => {
               <div className="flex justify-between items-end mb-6">
                 <h2 className="text-[24px] font-bold text-white">Sắp diễn ra</h2>
                 <button 
-                  onClick={() => navigate('/su-kien?status=ONCOMING')}
+                  onClick={() => navigate('/events?status=ONCOMING')}
                   className="text-[#B4B2B2] hover:text-white text-[20px] font-bold transition-colors"
                 >
                   Xem thêm

@@ -21,18 +21,18 @@ export interface DailyRevenue {
 
 export const adminStatisticApi = {
   getGenderStats: async (eventId: string): Promise<GenderStatistic[]> => {
-    const response = await axiosClient.get(`/admin/statistics/events/${eventId}/gender`);
-    return response.data;
+    const response: any = await axiosClient.get(`/admin/statistics/events/${eventId}/gender`);
+    return response?.data ?? response;
   },
 
   getAgeStats: async (eventId: string): Promise<AgeStatistic[]> => {
-    const response = await axiosClient.get(`/admin/statistics/events/${eventId}/age`);
-    return response.data;
+    const response: any = await axiosClient.get(`/admin/statistics/events/${eventId}/age`);
+    return response?.data ?? response;
   },
 
   getTotalRevenue: async (eventId: string): Promise<RevenueStatistic> => {
-    const response = await axiosClient.get(`/admin/statistics/events/${eventId}/revenue/total`);
-    return response.data;
+    const response: any = await axiosClient.get(`/admin/statistics/events/${eventId}/revenue/total`);
+    return response?.data ?? response;
   },
 
   getDailyRevenue: async (
@@ -45,7 +45,7 @@ export const adminStatisticApi = {
     if (endDate) params.append('endDate', endDate);
 
     const queryString = params.toString() ? `?${params.toString()}` : '';
-    const response = await axiosClient.get(`/admin/statistics/events/${eventId}/revenue/daily${queryString}`);
-    return response.data;
+    const response: any = await axiosClient.get(`/admin/statistics/events/${eventId}/revenue/daily${queryString}`);
+    return response?.data ?? response;
   },
 };

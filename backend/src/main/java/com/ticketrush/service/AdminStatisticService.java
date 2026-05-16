@@ -44,6 +44,7 @@ public class AdminStatisticService {
 
   public List<GenderStatisticDTO> getTicketCountByGender(UUID eventId) {
     List<Order> orders = getPaidOrdersForEvent(eventId);
+    System.out.println("======> TÌM ĐƯỢC BAO NHIÊU ĐƠN PAID: " + orders.size());
     Map<Gender, Long> genderCount = new EnumMap<>(Gender.class);
 
     for (Order order : orders) {
@@ -62,6 +63,7 @@ public class AdminStatisticService {
 
   public List<AgeStatisticDTO> getTicketCountByAgeRange(UUID eventId) {
     List<Order> orders = getPaidOrdersForEvent(eventId);
+    System.out.println("======> TÌM ĐƯỢC BAO NHIÊU ĐƠN PAID: " + orders.size());
 
     // Key bây giờ là String (chứa tên các khoảng tuổi)
     Map<String, Long> ageRangeCount = new HashMap<>();
@@ -95,6 +97,7 @@ public class AdminStatisticService {
 
   public RevenueStatisticDTO getTotalRevenue(UUID eventId) {
     List<Order> orders = getPaidOrdersForEvent(eventId);
+    System.out.println("======> TÌM ĐƯỢC BAO NHIÊU ĐƠN PAID: " + orders.size());
     BigDecimal total = BigDecimal.ZERO;
 
     for (Order order : orders) {
@@ -106,6 +109,7 @@ public class AdminStatisticService {
 
   public List<DailyRevenueDTO> getDailyRevenue(UUID eventId, LocalDate startDate, LocalDate endDate) {
     List<Order> orders = getPaidOrdersForEvent(eventId);
+    System.out.println("======> TÌM ĐƯỢC BAO NHIÊU ĐƠN PAID: " + orders.size());
     Map<LocalDate, BigDecimal> dailyRevenueMap = new HashMap<>();
 
     for (Order order : orders) {

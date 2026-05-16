@@ -6,6 +6,7 @@ import LocationFilter from '@/assets/images/LocationIcon.svg';
 import { eventApi, EventResponse } from '../../api/eventApi';
 import { eventSessionApi, EventSessionResponse } from '../../api/eventSessionApi';
 import { seatTypeApi, SeatTypeResponse } from '../../api/seatTypeApi';
+import { adminStatisticApi } from '../../api/adminStatisticApi';
 import { 
   PieChart, Pie, Cell, 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
@@ -73,35 +74,6 @@ const extractList = (res: any): any[] => {
   return [];
 };
 
-// ─── Mock Data for Charts ───────────────────────────────────────────────────
-
-const genderData = [
-  { name: 'Nữ', value: 90, color: '#7a7a7a' },
-  { name: 'Nam', value: 10, color: '#b0b0b0' }
-];
-
-const ageData = [
-  { name: '0 - 9', count: 12045 },
-  { name: '10 - 19', count: 10045 },
-  { name: '20 - 29', count: 11045 },
-  { name: '30 - 39', count: 5045 },
-  { name: '40 - 49', count: 2045 },
-  { name: '50 - 59', count: 2245 },
-  { name: '60 - 69', count: 1045 },
-  { name: '70+', count: 1545 },
-];
-
-const revenueData = [
-  { date: '02/04/2026', value: 3000 },
-  { date: '06/04/2026', value: 5000 },
-  { date: '11/04/2026', value: 8000 },
-  { date: '16/04/2026', value: 12000 },
-  { date: '19/04/2026', value: 6000 },
-  { date: '21/04/2026', value: 4000 },
-  { date: '23/04/2026', value: 5000 },
-  { date: '25/04/2026', value: 7000 },
-];
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const AdminEventDetail: React.FC = () => {
@@ -112,6 +84,12 @@ const AdminEventDetail: React.FC = () => {
   const [event, setEvent] = useState<EventResponse | null>(null);
   const [sessions, setSessions] = useState<EventSessionResponse[]>([]);
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
+
+  // ─── Stats State ───────────────────────────────────────────────────────────
+  const [genderData, setGenderData] = useState<{name: string, value: number, color: string}[]>([]);
+  const [ageData, setAgeData] = useState<{name: string, count: number}[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [revenueData, setRevenueData] = useState<{date: string, value: number}[]>([]);
 
   const [loadingEvent, setLoadingEvent] = useState(true);
   const [loadingSessions, setLoadingSessions] = useState(true);
@@ -146,6 +124,36 @@ const AdminEventDetail: React.FC = () => {
       .then((res: any) => {
         setSeatTypes(extractList(res));
       });
+
+    // Statistics
+    Promise.all([
+      adminStatisticApi.getGenderStats(id),
+      adminStatisticApi.getAgeStats(id),
+      adminStatisticApi.getTotalRevenue(id),
+      adminStatisticApi.getDailyRevenue(id)
+    ]).then(([genderRes, ageRes, totalRevRes, dailyRevRes]) => {
+      const mappedGender = genderRes.map(g => ({
+        name: g.gender === 'FEMALE' ? 'Nữ' : g.gender === 'MALE' ? 'Nam' : 'Khác',
+        value: g.ticketCount,
+        color: g.gender === 'FEMALE' ? '#7a7a7a' : g.gender === 'MALE' ? '#b0b0b0' : '#4a4a4a'
+      }));
+      setGenderData(mappedGender);
+
+      setAgeData(ageRes.map(a => ({
+        name: a.ageRange,
+        count: a.ticketCount
+      })));
+
+      setTotalRevenue(totalRevRes.totalRevenue);
+
+      setRevenueData(dailyRevRes.map(d => {
+        const parts = d.date.split('-');
+        return {
+          date: parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : d.date,
+          value: d.revenue
+        };
+      }));
+    }).catch(err => console.error('Lỗi tải thống kê:', err));
   }, [id]);
 
   // ─── Derived ───────────────────────────────────────────────────────────────
@@ -352,18 +360,13 @@ const AdminEventDetail: React.FC = () => {
                 </ResponsiveContainer>
                 {/* Custom Legend */}
                 <div className="absolute right-0 top-1/4 flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-3 bg-[#b0b0b0] rounded-sm"></div>
-                    <span className="text-xs text-white">nam</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-3 bg-[#7a7a7a] rounded-sm"></div>
-                    <span className="text-xs text-white">nữ</span>
-                  </div>
+                  {genderData.map(g => (
+                    <div key={g.name} className="flex items-center gap-2">
+                      <div className="w-6 h-3 rounded-sm" style={{ backgroundColor: g.color }}></div>
+                      <span className="text-xs text-white lowercase">{g.name}</span>
+                    </div>
+                  ))}
                 </div>
-                {/* Labels on Pie (Mock) */}
-                <div className="absolute font-bold text-xs" style={{ top: '65%', left: '35%' }}>90%</div>
-                <div className="absolute font-bold text-xs" style={{ top: '35%', right: '35%' }}>10%</div>
               </div>
             </div>
 
@@ -405,7 +408,7 @@ const AdminEventDetail: React.FC = () => {
               </div>
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-[40px] font-bold text-white">
-                  12000
+                  {totalRevenue.toLocaleString('vi-VN')}
                 </div>
               </div>
             </div>
@@ -417,7 +420,9 @@ const AdminEventDetail: React.FC = () => {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
               <div className="flex items-center bg-[#3a3a3a] px-3 py-1.5 rounded-lg border border-white/10 cursor-pointer">
                 <img src={DateFilter} alt="Date" className="w-4 h-4 mr-2" />
-                <span className="text-xs text-white font-bold mr-2">02/04/2026 - 25/04/2026</span>
+                <span className="text-xs text-white font-bold mr-2">
+                  {revenueData.length > 0 ? `${revenueData[0].date} - ${revenueData[revenueData.length - 1].date}` : 'Toàn thời gian'}
+                </span>
                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M1 1L5 5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
