@@ -16,9 +16,6 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 0. Bắt lỗi ResponseStatusException (404, 400, ...) để trả về đúng HTTP status
-    // Lưu ý: ResponseStatusException extends RuntimeException, vì vậy cần handler riêng
-    // nếu không nó sẽ bị catch bởi handleRuntimeException và thành 500.
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex,
             HttpServletRequest request) {

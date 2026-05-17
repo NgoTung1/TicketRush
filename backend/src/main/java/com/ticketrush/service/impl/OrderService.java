@@ -6,11 +6,7 @@ import com.ticketrush.dto.response.order.OrderDetailResponse;
 import com.ticketrush.dto.response.order.OrderPayResponse;
 import com.ticketrush.dto.response.order.OrderSeatResponse;
 import com.ticketrush.dto.response.ticket.TicketSummaryResponse;
-import com.ticketrush.entity.Order;
-import com.ticketrush.entity.OrderSeat;
-import com.ticketrush.entity.Seat;
-import com.ticketrush.entity.Ticket;
-import com.ticketrush.entity.User;
+import com.ticketrush.entity.*;
 import com.ticketrush.entity.enums.OrderStatus;
 import com.ticketrush.entity.enums.SeatStatus;
 import com.ticketrush.entity.enums.TicketStatus;
@@ -97,7 +93,7 @@ public class OrderService {
     @Transactional
     public OrderDetailResponse getOrderDetail(UUID userId, UUID orderId) {
         Order order = orderRepository.findByIdAndUser_Id(orderId, userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "hóa đơn không tồn tại"));
 
         if (order.getStatus() == OrderStatus.PENDING && isExpired(order)) {
             cancelOrder(order, LocalDateTime.now());
@@ -121,7 +117,7 @@ public class OrderService {
     @Transactional
     public OrderPayResponse payOrder(UUID userId, UUID orderId) {
         Order order = orderRepository.findByIdAndUser_Id(orderId, userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "hóa đơn không tồn tại"));
 
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order is not payable");
@@ -184,6 +180,11 @@ public class OrderService {
         seatRepository.saveAll(seats);
         orderRepository.save(order);
     }
+
+    // @Transactional
+    // public Event getEventCorrespondToOrder(UUID orderId) {
+
+    // }
 
     private boolean isExpired(Order order) {
         return order.getExpiresAt() != null && order.getExpiresAt().isBefore(LocalDateTime.now());

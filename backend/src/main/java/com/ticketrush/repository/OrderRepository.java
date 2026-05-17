@@ -35,4 +35,7 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 			"JOIN s.seatType st " +
 			"WHERE st.event.id = :eventId AND o.status = :status")
 	List<Order> findByEventIdAndStatusWithDetails(@Param("eventId") UUID eventId, @Param("status") OrderStatus status);
+
+
+
 }
