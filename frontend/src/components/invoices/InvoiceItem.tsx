@@ -21,7 +21,7 @@ export const InvoiceItem: React.FC<InvoiceItemProps> = ({
         <div className="text-sm font-medium">Mã hóa đơn: {id}</div>
         <div className="text-sm">
           <span className="text-gray-400">Tổng chi phí: </span>
-          <span className="text-green-500 font-semibold">
+          <span className={`font-semibold ${status === 'cancelled' ? 'text-red-500 line-through' : 'text-green-500'}`}>
             {amount.toLocaleString('vi-VN')}đ
           </span>
         </div>

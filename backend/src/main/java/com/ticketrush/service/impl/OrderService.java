@@ -107,6 +107,18 @@ public class OrderService {
     }
 
     @Transactional
+    public List<OrderDetailResponse> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        for (Order order : orders) {
+            if (order.getStatus() == OrderStatus.PENDING && isExpired(order)) {
+                cancelOrder(order, LocalDateTime.now());
+            }
+        }
+        return orders.stream().map(this::mapToDetailResponse).toList();
+    }
+
+
+    @Transactional
     public OrderPayResponse payOrder(UUID userId, UUID orderId) {
         Order order = orderRepository.findByIdAndUser_Id(orderId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
