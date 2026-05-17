@@ -17,6 +17,9 @@ export interface OrderDetailResponse {
 }
 
 export const orderApi = {
-  getAllOrders: () =>
-    axiosClient.get<OrderDetailResponse[]>('api/orders'),
+  getAllOrders: (params: { status?: string; from?: string; to?: string }) =>
+    axiosClient.get<OrderDetailResponse[]>('api/orders', { params }),
+
+  getOrderTicketDetail: (orderId: string) =>
+    axiosClient.get<OrderDetailResponse>(`api/orders/${orderId}/ticket-detail`),
 };
