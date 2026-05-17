@@ -13,13 +13,13 @@ const Seat: React.FC<SeatProps> = ({ seat, color = '#b3b3b3', isSelected, onMous
   const isAvailable = seat.status === 'AVAILABLE';
 
   const getStyle = () => {
-    if (isSelected) {
-      return { backgroundColor: '#0000ff' }; // xanh dương (đang chọn)
+    if (seat.status === 'SOLD') {
+      return { backgroundColor: '#000000' };
     }
-    if (!isAvailable) {
-      return { backgroundColor: '#4b5563', opacity: 0.5 }; // xám (đã bán/đã đặt)
+    if (seat.status === 'ORDERED' || seat.status === ('LOCKED' as any)) {
+      return { backgroundColor: '#666666' };
     }
-    return { backgroundColor: color }; // màu mặc định của loại ghế
+    return { backgroundColor: color }; // Màu mặc định của loại ghế
   };
 
   return (
@@ -27,9 +27,13 @@ const Seat: React.FC<SeatProps> = ({ seat, color = '#b3b3b3', isSelected, onMous
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
       style={getStyle()}
-      className={`seat-element w-6 h-6 md:w-8 md:h-8 rounded-[4px] md:rounded-md transition-all duration-200 cursor-pointer hover:scale-110 hover:shadow-lg`}
+      className={`seat-element w-6 h-6 md:w-10 md:h-10 rounded-[4px] transition-all duration-200 cursor-pointer hover:scale-110 hover:shadow-lg flex items-center justify-center`}
       title={`Ghế ${seat.rowIndex}-${seat.colIndex}`}
-    />
+    >
+      {isSelected && (
+        <div className="w-5 h-5 bg-white rounded-full"></div>
+      )}
+    </div>
   );
 };
 

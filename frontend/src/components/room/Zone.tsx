@@ -5,17 +5,28 @@ import { SeatTypeResponse } from '@/api/seatTypeApi';
 
 interface ZoneProps {
   name: string;
-  seatsMatrix: (SeatResponse | null)[][]; // Mảng 2 chiều các ghế, có thể chứa null (ô trống)
-  seatTypes: SeatTypeResponse[]; // Danh sách các loại ghế để lấy màu
-  selectedSeatIds: string[]; // Danh sách ID các ghế đang được chọn
+  seatsMatrix: (SeatResponse | null)[][];
+  seatTypes: SeatTypeResponse[];
+  selectedSeatIds: string[];
+  unselectableStatuses?: string[];
   onSeatSelect?: (seat: SeatResponse, mode: 'add' | 'remove') => void;
+  onNameMouseDown?: (e: React.MouseEvent) => void;
+  onSeatMouseDown?: (e: React.MouseEvent, seat: SeatResponse) => void;
 }
 
-const Zone: React.FC<ZoneProps> = ({ name, seatsMatrix, seatTypes, selectedSeatIds, onSeatSelect }) => {
+const Zone: React.FC<ZoneProps> = ({
+  name,
+  seatsMatrix,
+  seatTypes,
+  selectedSeatIds,
+  unselectableStatuses = [],
+  onSeatSelect,
+  onNameMouseDown,
+  onSeatMouseDown
+}) => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionMode, setSelectionMode] = useState<'add' | 'remove' | null>(null);
 
-  // Theo dõi khi thả chuột ở bất kỳ đâu để kết thúc quét chọn
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       setIsSelecting(false);
@@ -25,8 +36,17 @@ const Zone: React.FC<ZoneProps> = ({ name, seatsMatrix, seatTypes, selectedSeatI
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, []);
 
+  const isSeatSelectable = (seat: SeatResponse) => {
+    return !unselectableStatuses.includes(seat.status);
+  };
+
   const handleSeatMouseDown = (e: React.MouseEvent, seat: SeatResponse) => {
-    if (e.shiftKey) return; // Không quét bôi đen nếu đang giữ shift (để dành cho kéo zone)
+    e.stopPropagation();
+    onSeatMouseDown?.(e, seat);
+
+    if (e.shiftKey) return;
+    if (!isSeatSelectable(seat)) return;
+
     setIsSelecting(true);
     const mode = selectedSeatIds.includes(seat.id) ? 'remove' : 'add';
     setSelectionMode(mode);
@@ -34,52 +54,66 @@ const Zone: React.FC<ZoneProps> = ({ name, seatsMatrix, seatTypes, selectedSeatI
   };
 
   const handleSeatMouseEnter = (e: React.MouseEvent, seat: SeatResponse) => {
-    if (isSelecting && selectionMode && !e.shiftKey) {
+    if (isSelecting && selectionMode && !e.shiftKey && isSeatSelectable(seat)) {
       onSeatSelect?.(seat, selectionMode);
     }
   };
-  // Lấy màu sắc dựa trên seatTypeId
+
   const getSeatColor = (seatTypeId: string | null) => {
-    if (!seatTypeId) return '#b3b3b3'; // Xám mặc định
+    if (!seatTypeId) return '#b3b3b3';
     const type = seatTypes.find(t => t.id === seatTypeId);
     return type?.color || '#b3b3b3';
   };
 
-  // Tính số lượng cột lớn nhất để render Header Cột (1, 2, 3...)
   const maxCols = seatsMatrix.length > 0 ? Math.max(...seatsMatrix.map(row => row.length)) : 0;
   const colHeaders = Array.from({ length: maxCols }, (_, i) => i + 1);
 
   return (
-    <div className="inline-block">
-      <h3 className="text-white text-xl md:text-2xl font-bold mb-4 text-left pointer-events-none">{name}</h3>
-      <div className="flex flex-col gap-2 md:gap-3">
+    // Dùng inline-flex flex-col để bọc toàn bộ khối từ trên xuống dưới
+    <div className="inline-flex flex-col">
+
+      {/* Khối Header Tên Zone: w-full và text-left như bạn yêu cầu */}
+      <div
+        className={`w-full text-left mb-4 select-none ${onNameMouseDown ? 'cursor-grab active:cursor-grabbing hover:text-blue-400 transition-colors' : 'pointer-events-none'}`}
+        onMouseDown={onNameMouseDown}
+      >
+        <h3 className="text-white text-xl md:text-2xl font-bold inline-block">
+          {name}
+        </h3>
+      </div>
+
+      {/* Lưới sơ đồ ghế (Nằm bên dưới title) */}
+      <div className="flex flex-col gap-2.5">
         {/* Header Cột (1, 2, 3...) */}
-        <div className="flex flex-row gap-2 md:gap-3 ml-[2.25rem] md:ml-[2.75rem] mb-2 pointer-events-none">
-            {colHeaders.map(col => (
-                <div key={`col-header-${col}`} className="w-6 md:w-8 flex items-center justify-center text-white font-semibold text-xs md:text-sm select-none">
-                    {col}
-                </div>
-            ))}
+        <div className="flex flex-row gap-2.5 ml-[2.25rem] md:ml-[2.75rem] mb-2 pointer-events-none">
+          {colHeaders.map(col => (
+            <div key={`col-header-${col}`} className="w-10 flex items-center justify-center text-white font-semibold text-xs md:text-[20px] select-none">
+              {col}
+            </div>
+          ))}
         </div>
 
+        {/* Ma trận hàng ghế */}
         {seatsMatrix.map((row, rowIndex) => (
-          <div key={`row-${rowIndex}`} className="flex flex-row gap-2 md:gap-3 items-center">
+          <div key={`row-${rowIndex}`} className="flex flex-row gap-2.5 items-center">
             {/* Header Hàng (A, B, C...) */}
-            <div className="w-6 md:w-8 flex items-center justify-center text-white font-semibold text-xs md:text-sm mr-1 select-none pointer-events-none">
-                {String.fromCharCode(65 + rowIndex)}
+            <div className="w-6 md:w-8 flex items-center justify-center text-white font-semibold text-xs md:text-[20px] mr-1 select-none pointer-events-none">
+              {String.fromCharCode(65 + rowIndex)}
             </div>
 
             {row.map((seat, colIndex) => {
               if (!seat) return <div key={`empty-${rowIndex}-${colIndex}`} className="w-6 h-6 md:w-8 md:h-8" />;
+
               return (
-                <Seat 
-                  key={seat.id} 
-                  seat={seat} 
-                  color={getSeatColor(seat.seatTypeId)}
-                  isSelected={selectedSeatIds.includes(seat.id)}
-                  onMouseDown={(e) => handleSeatMouseDown(e, seat)}
-                  onMouseEnter={(e) => handleSeatMouseEnter(e, seat)}
-                />
+                <div key={seat.id} data-seat-id={seat.id} className="seat-element">
+                  <Seat
+                    seat={seat}
+                    color={getSeatColor(seat.seatTypeId)}
+                    isSelected={selectedSeatIds.includes(seat.id)}
+                    onMouseDown={(e) => handleSeatMouseDown(e, seat)}
+                    onMouseEnter={(e) => handleSeatMouseEnter(e, seat)}
+                  />
+                </div>
               );
             })}
           </div>
