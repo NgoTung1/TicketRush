@@ -1,16 +1,13 @@
 package com.ticketrush.service.impl;
 
 import com.ticketrush.dto.request.order.OrderCreateRequest;
+import com.ticketrush.dto.response.event.EventCreateResponse;
 import com.ticketrush.dto.response.order.OrderCreateResponse;
 import com.ticketrush.dto.response.order.OrderDetailResponse;
 import com.ticketrush.dto.response.order.OrderPayResponse;
 import com.ticketrush.dto.response.order.OrderSeatResponse;
 import com.ticketrush.dto.response.ticket.TicketSummaryResponse;
-import com.ticketrush.entity.Order;
-import com.ticketrush.entity.OrderSeat;
-import com.ticketrush.entity.Seat;
-import com.ticketrush.entity.Ticket;
-import com.ticketrush.entity.User;
+import com.ticketrush.entity.*;
 import com.ticketrush.entity.enums.OrderStatus;
 import com.ticketrush.entity.enums.SeatStatus;
 import com.ticketrush.entity.enums.TicketStatus;
@@ -97,7 +94,7 @@ public class OrderService {
     @Transactional
     public OrderDetailResponse getOrderDetail(UUID userId, UUID orderId) {
         Order order = orderRepository.findByIdAndUser_Id(orderId, userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "hóa đơn không tồn tại"));
 
         if (order.getStatus() == OrderStatus.PENDING && isExpired(order)) {
             cancelOrder(order, LocalDateTime.now());
@@ -107,9 +104,21 @@ public class OrderService {
     }
 
     @Transactional
+    public List<OrderDetailResponse> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        for (Order order : orders) {
+            if (order.getStatus() == OrderStatus.PENDING && isExpired(order)) {
+                cancelOrder(order, LocalDateTime.now());
+            }
+        }
+        return orders.stream().map(this::mapToDetailResponse).toList();
+    }
+
+
+    @Transactional
     public OrderPayResponse payOrder(UUID userId, UUID orderId) {
         Order order = orderRepository.findByIdAndUser_Id(orderId, userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "hóa đơn không tồn tại"));
 
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Order is not payable");
@@ -173,6 +182,29 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+     @Transactional
+     public EventCreateResponse getEventCorrespondToOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Hóa đơn không tồn tại"));
+
+        if (order.getOrderSeats() == null || order.getOrderSeats().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy chỗ ngồi trong hóa đơn");
+        }
+
+        Event event = order.getOrderSeats().get(0).getSeat().getSeatType().getEvent();
+        return EventCreateResponse.builder()
+                .id(event.getId())
+                .title(event.getTitle())
+                .categoryId(event.getCategory() != null ? event.getCategory().getId() : null)
+                .organizer(event.getOrganizer())
+                .description(event.getDescription())
+                .address(event.getAddress())
+                .bannerUrl(event.getBannerUrl())
+                .startTime(event.getStartTime())
+                .status(event.getStatus())
+                .build();
+     }
+
     private boolean isExpired(Order order) {
         return order.getExpiresAt() != null && order.getExpiresAt().isBefore(LocalDateTime.now());
     }
@@ -196,6 +228,14 @@ public class OrderService {
     }
 
     private OrderDetailResponse mapToDetailResponse(Order order) {
+        UUID eventId = null;
+        String eventTitle = null;
+        if (order.getOrderSeats() != null && !order.getOrderSeats().isEmpty()) {
+            Event event = order.getOrderSeats().get(0).getSeat().getSeatType().getEvent();
+            eventId = event.getId();
+            eventTitle = event.getTitle();
+        }
+
         return OrderDetailResponse.builder()
                 .orderId(order.getId())
                 .code(order.getCode())
@@ -203,6 +243,8 @@ public class OrderService {
                 .totalAmount(order.getTotalAmount())
                 .expiresAt(order.getExpiresAt())
                 .createdAt(order.getCreatedAt())
+                .eventId(eventId)
+                .eventTitle(eventTitle)
                 .seats(mapSeats(order.getOrderSeats()))
                 .build();
     }

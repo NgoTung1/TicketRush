@@ -1,32 +1,47 @@
-import React, { useState } from 'react';
-import { X, ArrowLeft, CalendarDays, MapPin, Armchair, Hash, ShieldCheck, CreditCard } from 'lucide-react';
-
-interface SeatInfo {
-  id: string;
-  ticketCode: string;
-  zone: string;
-  row: string;
-  number: string;
-  status: 'valid' | 'used';
-  price: string;
-  qrData: string;
-}
-
-const DUMMY_SEATS: SeatInfo[] = [
-  { id: 't1', ticketCode: 'eksiewp12j3', zone: 'VIP A', row: 'A', number: '1', status: 'valid', price: '1.750.000 VNĐ', qrData: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TicketRush_VIPA_A1_eksiewp12j3' },
-  { id: 't2', ticketCode: 'eksiewp12j3', zone: 'VIP A', row: 'A', number: '1', status: 'valid', price: '1.750.000 VNĐ', qrData: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TicketRush_VIPA_A1_eksiewp12j4' },
-  { id: 't3', ticketCode: 'eksiewp12j3', zone: 'VIP A', row: 'A', number: '1', status: 'valid', price: '1.750.000 VNĐ', qrData: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TicketRush_VIPA_A1_eksiewp12j5' },
-  { id: 't4', ticketCode: 'eksiewp12j3', zone: 'VIP A', row: 'A', number: '1', status: 'valid', price: '1.750.000 VNĐ', qrData: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TicketRush_VIPA_A1_eksiewp12j6' },
-  { id: 't5', ticketCode: 'eksiewp12j3', zone: 'VIP A', row: 'A', number: '1', status: 'valid', price: '1.750.000 VNĐ', qrData: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TicketRush_VIPA_A1_eksiewp12j7' },
-  { id: 't6', ticketCode: 'eksiewp12j3', zone: 'VIP A', row: 'A', number: '1', status: 'valid', price: '1.750.000 VNĐ', qrData: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TicketRush_VIPA_A1_eksiewp12j8' },
-  { id: 't7', ticketCode: 'eksiewp12j3', zone: 'VIP A', row: 'A', number: '1', status: 'valid', price: '1.750.000 VNĐ', qrData: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TicketRush_VIPA_A1_eksiewp12j9' },
-  { id: 't8', ticketCode: 'eksiewp12j3', zone: 'VIP A', row: 'A', number: '1', status: 'valid', price: '1.750.000 VNĐ', qrData: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TicketRush_VIPA_A1_eksiewp12ja' },
-  { id: 't9', ticketCode: 'eksiewp12j3', zone: 'VIP A', row: 'A', number: '1', status: 'valid', price: '1.750.000 VNĐ', qrData: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TicketRush_VIPA_A1_eksiewp12jb' },
-  { id: 't10', ticketCode: 'eksiewp12j3', zone: 'VIP A', row: 'A', number: '1', status: 'valid', price: '1.750.000 VNĐ', qrData: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=TicketRush_VIPA_A1_eksiewp12jc' },
-];
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, CalendarDays, MapPin, Armchair, Hash, ShieldCheck, CreditCard, Loader2 } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { orderApi, TicketInOrderResponse } from '@/api/orderApi';
 
 const SeatsQr: React.FC = () => {
-  const [selectedSeat, setSelectedSeat] = useState<SeatInfo | null>(null);
+  const { id } = useParams<{ id: string }>();
+  const [selectedSeat, setSelectedSeat] = useState<TicketInOrderResponse | null>(null);
+  const [tickets, setTickets] = useState<TicketInOrderResponse[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const response: any = await orderApi.getTicketsByOrder(id);
+        // If response is the array directly (due to interceptor)
+        const ticketsData = Array.isArray(response) ? response : response.data || [];
+        setTickets(ticketsData);
+      } catch (error) {
+        console.error('Failed to fetch tickets', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTickets();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!tickets || tickets.length === 0) {
+    return (
+      <div className="text-center py-10 text-gray-400">
+        Không có vé nào trong hóa đơn này.
+      </div>
+    );
+  }
 
   // Detail view when a seat is selected
   if (selectedSeat) {
@@ -45,7 +60,7 @@ const SeatsQr: React.FC = () => {
         <div className="flex flex-col items-center mb-10">
           <div className="bg-white p-5 rounded-xl w-[280px] h-[280px] flex items-center justify-center shadow-lg">
             <img
-              src={selectedSeat.qrData}
+              src={`data:image/png;base64,${selectedSeat.qrCodeImageBase64}`}
               alt="QR Code"
               className="w-full h-full object-contain"
             />
@@ -87,8 +102,8 @@ const SeatsQr: React.FC = () => {
               <ShieldCheck className="w-4 h-4 mr-3 mt-0.5 text-gray-500 shrink-0" />
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Trạng thái</p>
-                <p className={`font-medium ${selectedSeat.status === 'valid' ? 'text-ticket-green' : 'text-gray-400'}`}>
-                  {selectedSeat.status === 'valid' ? 'Hợp lệ' : 'Đã sử dụng'}
+                <p className={`font-medium ${selectedSeat.status === 'VALID' ? 'text-ticket-green' : 'text-gray-400'}`}>
+                  {selectedSeat.status === 'VALID' ? 'Hợp lệ' : selectedSeat.status === 'USED' ? 'Đã sử dụng' : 'Đã hủy'}
                 </p>
               </div>
             </div>
@@ -97,7 +112,7 @@ const SeatsQr: React.FC = () => {
               <CreditCard className="w-4 h-4 mr-3 mt-0.5 text-gray-500 shrink-0" />
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Giá vé</p>
-                <p className="text-white font-medium">{selectedSeat.price}</p>
+                <p className="text-white font-medium">{selectedSeat.price.toLocaleString('vi-VN')} VNĐ</p>
               </div>
             </div>
 
@@ -105,7 +120,7 @@ const SeatsQr: React.FC = () => {
               <CalendarDays className="w-4 h-4 mr-3 mt-0.5 text-gray-500 shrink-0" />
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wider mb-0.5">Sự kiện</p>
-                <p className="text-white font-medium">SPARK NITE: S.T SƠN THẠCH x NEKO LÊ</p>
+                <p className="text-white font-medium">{selectedSeat.eventTitle}</p>
               </div>
             </div>
           </div>
@@ -125,8 +140,8 @@ const SeatsQr: React.FC = () => {
     <div className="mb-10 w-full">
       <h2 className="text-2xl font-bold text-white mb-6 pt-4">Vé ngồi</h2>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-5">
-        {DUMMY_SEATS.map((seat) => (
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-5">
+        {tickets.map((seat) => (
           <div
             key={seat.id}
             className="bg-panel rounded-lg border border-gray-800 p-3 cursor-pointer hover:border-gray-600 transition-all duration-200 group w-full"
@@ -135,7 +150,7 @@ const SeatsQr: React.FC = () => {
             {/* QR Code */}
             <div className="bg-white rounded-md p-1 mb-3 aspect-square flex items-center justify-center">
               <img
-                src={seat.qrData}
+                src={`data:image/png;base64,${seat.qrCodeImageBase64}`}
                 alt="QR Code"
                 className="w-full h-full object-contain"
               />

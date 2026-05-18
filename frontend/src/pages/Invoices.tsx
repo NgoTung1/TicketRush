@@ -1,36 +1,58 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { InvoiceItem } from '../components/invoices/InvoiceItem';
 import { Pagination } from '../components/invoices/Pagination';
-import { Calendar } from 'lucide-react';
-
-// Mock data
-const generateMockInvoices = (status: 'paid' | 'cancelled', count: number) => {
-  return Array.from({ length: count }).map((_, i) => ({
-    id: `eksiewp12j3%21${23 + i}`,
-    amount: 600000,
-    date: status === 'paid' ? '23:01:53 - 20/04/2026' : '23:01:53 - 20/04/2026',
-    status
-  }));
-};
-
-const mockPaidInvoices = generateMockInvoices('paid', 35);
-const mockCancelledInvoices = generateMockInvoices('cancelled', 15);
+import { Calendar, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useInvoiceStore } from '../store/InvoiceStore';
 
 const ITEMS_PER_PAGE = 7;
 
 const Invoices: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'paid' | 'cancelled'>('paid');
-  const [currentPage, setCurrentPage] = useState(1);
+  const navigate = useNavigate();
+  const {
+    activeTab, setActiveTab,
+    currentPage, setCurrentPage,
+    orders, fetchOrders,
+    loading,
+    startDate, setStartDate,
+    endDate, setEndDate
+  } = useInvoiceStore();
 
-  const currentData = activeTab === 'paid' ? mockPaidInvoices : mockCancelledInvoices;
-  
-  // Actually, to make pagination mock match Figma exactly, we'll pretend there are 50+ pages.
-  // Real logic would calculate totalPages from data length:
-  // const totalPages = Math.ceil(currentData.length / ITEMS_PER_PAGE);
-  const mockTotalPages = 30; // Just for visual similarity to figma (< ... 21 22 23 24 25 ... >)
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
-  // Real data slicing
-  const displayedInvoices = currentData.slice(0, ITEMS_PER_PAGE);
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const time = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const day = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return `${time} - ${day}`;
+  };
+
+  const filteredOrders = orders.filter((order) => {
+    if (order.status.toLowerCase() !== activeTab) return false;
+
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const orderDate = new Date(order.createdAt);
+      if (orderDate < start) return false;
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      const orderDate = new Date(order.createdAt);
+      if (orderDate > end) return false;
+    }
+
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+  const displayedInvoices = filteredOrders.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const handleTabChange = (tab: 'paid' | 'cancelled') => {
     setActiveTab(tab);
@@ -67,26 +89,55 @@ const Invoices: React.FC = () => {
             Đã hủy
           </button>
           
-          <button className="flex items-center gap-2 bg-[#1f2937] text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 transition-colors">
+          <div className="flex items-center gap-2 bg-[#1f2937] text-gray-300 px-4 py-2 rounded-md text-sm font-medium">
             <Calendar size={16} />
-            02/04/2026 - 25/04/2026
-          </button>
+            <input 
+              type="date" 
+              value={startDate} 
+              onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+              className="bg-transparent border-none outline-none text-gray-300 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+            />
+            <span>-</span>
+            <input 
+              type="date" 
+              value={endDate} 
+              onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+              className="bg-transparent border-none outline-none text-gray-300 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+            />
+            {(startDate || endDate) && (
+              <button 
+                onClick={() => { setStartDate(''); setEndDate(''); setCurrentPage(1); }}
+                className="ml-1 text-gray-400 hover:text-red-400 transition-colors rounded-full p-0.5"
+                title="Xóa khoảng thời gian"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Invoices List */}
         <div className="flex flex-col gap-1 min-h-[500px]">
-          {displayedInvoices.map((invoice) => (
-            <InvoiceItem
-              key={invoice.id}
-              id={invoice.id}
-              amount={invoice.amount}
-              date={invoice.date}
-              status={invoice.status}
-              onViewTicket={() => console.log('View ticket', invoice.id)}
-            />
-          ))}
-          
-          {displayedInvoices.length === 0 && (
+          {loading ? (
+            <div className="text-gray-500 text-center py-10">Đang tải...</div>
+          ) : displayedInvoices.length > 0 ? (
+            displayedInvoices.map((invoice) => (
+              <InvoiceItem
+                key={invoice.orderId}
+                id={invoice.code}
+                amount={invoice.totalAmount}
+                date={formatDate(invoice.createdAt)}
+                status={invoice.status.toLowerCase() as 'paid' | 'cancelled'}
+                onViewTicket={() => {
+                  if (invoice.status.toLowerCase() === 'paid') {
+                    navigate(`/ticket/${invoice.orderId}`);
+                  } else {
+                    navigate(`/ticket/cancelled/${invoice.orderId}`);
+                  }
+                }}
+              />
+            ))
+          ) : (
             <div className="text-gray-500 text-center py-10">
               Không có hóa đơn nào.
             </div>
@@ -94,10 +145,10 @@ const Invoices: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        {displayedInvoices.length > 0 && (
+        {displayedInvoices.length > 0 && totalPages > 1 && (
           <Pagination 
             currentPage={currentPage}
-            totalPages={mockTotalPages}
+            totalPages={totalPages}
             onPageChange={(page) => setCurrentPage(page)}
           />
         )}

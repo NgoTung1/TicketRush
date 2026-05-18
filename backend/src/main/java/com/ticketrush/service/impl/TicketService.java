@@ -2,6 +2,7 @@ package com.ticketrush.service.impl;
 
 import com.ticketrush.dto.response.ticket.TicketCheckInResponse;
 import com.ticketrush.dto.response.ticket.TicketDetailResponse;
+import com.ticketrush.dto.response.ticket.TicketInOrderResponse;
 import com.ticketrush.dto.response.ticket.TicketSummaryResponse;
 import com.ticketrush.entity.OrderSeat;
 import com.ticketrush.entity.Seat;
@@ -46,6 +47,29 @@ public class TicketService {
         List<TicketSummaryResponse> responses = new ArrayList<>();
         for (Ticket ticket : tickets) {
             responses.add(mapToSummary(ticket));
+        }
+        return responses;
+    }
+
+    @Transactional(readOnly = true)
+    public List<TicketInOrderResponse> getTicketsByOrder(UUID orderId) {
+        List<Ticket> tickets = ticketRepository.findAllByOrderSeat_Order_Id(orderId);
+        List<TicketInOrderResponse> responses = new ArrayList<>();
+        for (Ticket ticket : tickets) {
+            Seat seat = ticket.getOrderSeat().getSeat();
+            String eventTitle = seat.getZone().getEventSession().getEvent().getTitle();
+            responses.add(TicketInOrderResponse.builder()
+                    .id(ticket.getId())
+                    .ticketCode(ticket.getCode())
+                    .zone(seat.getZone() != null ? seat.getZone().getName() : "ZONE")
+                    .row(seat.getRowIndex() != null ? seat.getRowIndex().toString() : "?")
+                    .number(seat.getSeatNumber() != null ? seat.getSeatNumber().toString() : "?")
+                    .status(ticket.getStatus())
+                    .price(ticket.getOrderSeat().getPriceAtPurchase())
+                    .qrData(ticket.getQrCode())
+                    .qrCodeImageBase64(qrCodeGenerator.generateBase64Png(ticket.getQrCode(), QR_SIZE))
+                    .eventTitle(eventTitle)
+                    .build());
         }
         return responses;
     }

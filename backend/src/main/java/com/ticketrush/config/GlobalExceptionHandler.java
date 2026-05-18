@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 
@@ -14,6 +15,24 @@ import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException ex,
+            HttpServletRequest request) {
+        String message = ex.getReason();
+        if (message == null || message.isBlank()) {
+            message = ex.getMessage();
+        }
+
+        ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
+                ex.getStatusCode().value(),
+                ex.getStatusCode().toString(),
+                message,
+                request.getRequestURI());
+
+        return new ResponseEntity<>(error, ex.getStatusCode());
+    }
 
     // 1. Bắt lỗi riêng cho các cuộc gọi API từ RestTemplate (như Supabase)
     @ExceptionHandler(HttpClientErrorException.class)
