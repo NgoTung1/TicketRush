@@ -281,8 +281,8 @@ export function AdminRoomPage() {
           const seatTypeGroups: Record<string, string[]> = {};
           
           for (const realSeat of realSeats) {
-            const r = realSeat.rowIndex;
-            const c = realSeat.colIndex;
+            const r = realSeat.rowIndex - 1;
+            const c = realSeat.colIndex - 1;
             const localSeat = zone.matrix[r]?.[c];
             if (localSeat && localSeat.seatTypeId) {
               const realTypeId = typeIdMap.get(localSeat.seatTypeId);

@@ -58,8 +58,8 @@ export function AdminRoomDetail() {
           return {
             id: z.id,
             name: z.name,
-            x: 50,
-            y: 50,
+            x: z.xPosition ?? 50,
+            y: z.yPosition ?? 50,
             matrix
           };
         });

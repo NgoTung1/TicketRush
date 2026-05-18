@@ -68,8 +68,8 @@ const AdminUpdateEvent: React.FC = () => {
         const eventRes: any = await eventApi.getEventById(id);
         const e = eventRes?.data ?? eventRes;
 
-        // Nếu status không phải ONCOMING -> Chặn truy cập và redirect về trang danh sách
-        if (e.status !== 'ONCOMING') {
+        // Chặn truy cập nếu sự kiện đã kết thúc hoặc đã hủy
+        if (e.status === 'COMPLETED' || e.status === 'CANCELLED') {
           navigate('/admin/event-list', { replace: true });
           return;
         }
@@ -282,6 +282,18 @@ const AdminUpdateEvent: React.FC = () => {
             value={form.categoryId}
             onChange={handleFormChange('categoryId')}
             options={categories.map((c) => ({ value: c.id, label: c.name }))}
+          />
+          <EventInput
+            label="Trạng thái sự kiện"
+            type="select"
+            value={form.status}
+            onChange={handleFormChange('status')}
+            options={[
+              { value: 'ONCOMING', label: 'Sắp diễn ra' },
+              { value: 'ONGOING', label: 'Đang diễn ra' },
+              { value: 'COMPLETED', label: 'Đã hoàn thành' },
+              { value: 'CANCELLED', label: 'Đã hủy' }
+            ]}
           />
 
           {/* Banner */}

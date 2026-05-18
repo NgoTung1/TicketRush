@@ -463,7 +463,7 @@ const AdminEventDetail: React.FC = () => {
             </div>
           </div>
 
-          {event?.status === 'ONCOMING' && (
+          {(event?.status === 'ONCOMING' || event?.status === 'ONGOING') && (
             <div className="mt-8 flex justify-end">
               <button
                 onClick={() => navigate(`/admin/event/update/${id}`)}

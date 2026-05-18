@@ -91,7 +91,7 @@ const HomePage: React.FC = () => {
   }, []);
 
   const handleEventClick = (id: string) => {
-    navigate(`/su-kien/${id}`);
+    navigate(`/event/${id}`);
   };
 
   const handlePrevBanner = () => {
@@ -276,7 +276,7 @@ const HomePage: React.FC = () => {
               <div className="flex justify-between items-end mb-6">
                 <h2 className="text-2xl font-bold text-white">Đang diễn ra</h2>
                 <button 
-                  onClick={() => navigate('/su-kien?status=ONGOING')}
+                  onClick={() => navigate('/event?status=ONGOING')}
                   className="text-[#B4B2B2] hover:text-white text-[20px] font-bold transition-colors"
                 >
                   Xem thêm
