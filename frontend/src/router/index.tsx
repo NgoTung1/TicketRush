@@ -20,6 +20,7 @@ import CancelledTicketDetail from '@/pages/CancelledTicketDetail';
 import Checkout from '@/pages/Checkout';
 import Invoices from '@/pages/Invoices';
 import TicketDetail from '@/pages/TicketDetail';
+import SeatSelectedPage from '@/pages/SeatSelectedPage';
 
 
 /**
@@ -89,8 +90,12 @@ const router = createBrowserRouter([
             element: <ProfilePage />,
           },
           {
-        path: 'event/:id/room',
-        element: <RoomPage />,
+            path: 'event/:id/room',
+            element: <RoomPage />,
+          },
+          {
+            path: 'event/:id/seat-selected',
+            element: <SeatSelectedPage />,
           },
           {
             path: 'checkout/:orderId',

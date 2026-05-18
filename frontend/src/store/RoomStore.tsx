@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { useToastStore } from './ToastStore';
 
 interface ActiveRoom {
@@ -19,8 +20,10 @@ interface RoomState {
   startTimer: () => void;
 }
 
-export const useRoomStore = create<RoomState>((set, get) => ({
-  activeRoom: null,
+export const useRoomStore = create<RoomState>()(
+  persist(
+    (set, get) => ({
+      activeRoom: null,
   timerId: null,
   isNotifyOpen: false,
 
@@ -100,4 +103,22 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 
     set({ timerId });
   }
-}));
+}),
+    {
+      name: 'room-storage',
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({ activeRoom: state.activeRoom }),
+      onRehydrateStorage: () => (state) => {
+        if (state && state.activeRoom && state.activeRoom.status === 'ready' && state.activeRoom.expiresAt) {
+          if (state.activeRoom.expiresAt <= Date.now()) {
+            state.clearActiveRoom();
+          } else {
+            setTimeout(() => {
+              state.startTimer();
+            }, 0);
+          }
+        }
+      }
+    }
+  )
+);

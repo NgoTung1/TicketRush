@@ -1,5 +1,6 @@
 import React from 'react';
 import { SeatResponse } from '@/api/seatApi';
+import { useAuthStore } from '@/store/AuthStore';
 
 interface SeatProps {
   seat: SeatResponse;
@@ -10,10 +11,11 @@ interface SeatProps {
 }
 
 const Seat: React.FC<SeatProps> = ({ seat, color = '#b3b3b3', isSelected, onMouseDown, onMouseEnter }) => {
-  const isAvailable = seat.status === 'AVAILABLE';
+  const currentUser = useAuthStore(state => state.user);
+  const isPurchasedByUser = seat.status === 'SOLD' && seat.userId && (currentUser?.id || 'mock-user-id') === seat.userId;
 
   const getStyle = () => {
-    if (seat.status === 'SOLD') {
+    if (seat.status === 'SOLD' && !isPurchasedByUser) {
       return { backgroundColor: '#000000' };
     }
     if (seat.status === 'ORDERED' || seat.status === ('LOCKED' as any)) {
@@ -22,16 +24,18 @@ const Seat: React.FC<SeatProps> = ({ seat, color = '#b3b3b3', isSelected, onMous
     return { backgroundColor: color }; // Màu mặc định của loại ghế
   };
 
+  const isUnselectable = (seat.status === 'SOLD' && !isPurchasedByUser) || seat.status === 'ORDERED' || seat.status === ('LOCKED' as any);
+
   return (
     <div
-      onMouseDown={onMouseDown}
-      onMouseEnter={onMouseEnter}
+      onMouseDown={isUnselectable ? undefined : onMouseDown}
+      onMouseEnter={isUnselectable ? undefined : onMouseEnter}
       style={getStyle()}
-      className={`seat-element w-6 h-6 md:w-10 md:h-10 rounded-[4px] transition-all duration-200 cursor-pointer hover:scale-110 hover:shadow-lg flex items-center justify-center`}
+      className={`seat-element w-6 h-6 md:w-10 md:h-10 rounded-[4px] transition-all duration-200 flex items-center justify-center ${isUnselectable ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:scale-110 hover:shadow-lg'}`}
       title={`Ghế ${seat.rowIndex}-${seat.colIndex}`}
     >
-      {isSelected && (
-        <div className="w-5 h-5 bg-white rounded-full"></div>
+      {(isSelected || isPurchasedByUser) && (
+        <div className="w-[24px] h-[24px] bg-white rounded-full shadow-sm"></div>
       )}
     </div>
   );

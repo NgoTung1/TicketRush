@@ -1,18 +1,17 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { roomApi } from '@/api/roomApi';
-import { useRoomStore } from '@/store/RoomStore';
 import ViewPort, { ZoneData } from '@/components/room/ViewPort';
 import { SeatTypeResponse } from '@/api/seatTypeApi';
 import { SeatResponse } from '@/api/seatApi';
 
+// MOCK data
 const MOCK_SEAT_TYPES: SeatTypeResponse[] = [
   { id: 'type-standard', eventId: 'mock', name: 'Standard', price: 200000, label: 'Ghế thường', color: '#b3b3b3' },
   { id: 'type-premium', eventId: 'mock', name: 'Premium', price: 300000, label: 'Ghế có vị trí tốt', color: '#0000ff' },
   { id: 'type-vip', eventId: 'mock', name: 'VIP', price: 500000, label: 'Ghế VIP', color: '#c6ff00' },
 ];
 
-const MOCK_ZONES: ZoneData[] = [
+const getMockZones = (currentUserId?: string): ZoneData[] => [
   {
     id: 'zone-B',
     name: 'Khán đài Trái',
@@ -47,9 +46,16 @@ const MOCK_ZONES: ZoneData[] = [
           if (colIndex === 6 || colIndex === 13) typeId = 'type-premium';
           if (colIndex > 6 && colIndex < 13) typeId = 'type-vip';
         }
+
         let status: any = 'AVAILABLE';
-        if (rowIndex === 0 && colIndex < 5) status = 'SOLD';
-        if (rowIndex === 1 && colIndex < 5) status = 'ORDERED';
+        let userId: string | undefined = undefined;
+
+        // Mock some seats as purchased by this user
+        if (rowIndex === 4 && (colIndex >= 8 && colIndex <= 10)) {
+          status = 'SOLD';
+          userId = currentUserId || 'mock-user-id';
+        }
+
         return {
           id: `seat-A-${rowIndex}-${colIndex}`,
           zoneId: 'zone-A',
@@ -58,77 +64,31 @@ const MOCK_ZONES: ZoneData[] = [
           colIndex,
           seatNumber: colIndex + 1,
           status,
-        };
-      })
-    ),
-  },
-  {
-    id: 'zone-C',
-    name: 'Khán đài Phải',
-    x: 2000,
-    y: -200,
-    matrix: Array.from({ length: 12 }, (_, rowIndex) =>
-      Array.from({ length: 8 }, (_, colIndex) => {
-        let typeId = 'type-standard';
-        if (rowIndex < 4) typeId = 'type-premium';
-        return {
-          id: `seat-C-${rowIndex}-${colIndex}`,
-          zoneId: 'zone-C',
-          seatTypeId: typeId,
-          rowIndex,
-          colIndex,
-          seatNumber: colIndex + 1,
-          status: 'AVAILABLE' as any,
+          userId,
         };
       })
     ),
   },
 ];
 
-export function RoomPage() {
+import { useAuthStore } from '@/store/AuthStore';
+
+export default function SeatSelectedPage() {
   const { id: eventId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { activeRoom, clearActiveRoom } = useRoomStore();
+  const currentUser = useAuthStore(state => state.user);
 
-  useEffect(() => {
-    if (!activeRoom || activeRoom.eventId !== eventId) {
-      navigate(`/event/${eventId}`);
-    }
-  }, [activeRoom, eventId, navigate]);
+  const mockZones = useMemo(() => getMockZones(currentUser?.id), [currentUser?.id]);
 
-  // Cảnh báo người dùng khi họ cố tình F5, đóng tab hoặc tắt trình duyệt
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = ''; // Trình duyệt hiện đại chỉ cần thế này là tự bung popup mặc định
-    };
+  // MOCK: Những ID ghế mà người dùng đã mua
+  const purchasedSeatIds = ['seat-A-4-8', 'seat-A-4-9', 'seat-A-4-10'];
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
-
-  const handleLeaveRoom = async () => {
-    if (!eventId) return;
-    try {
-      await roomApi.leaveRoom(eventId);
-    } catch (err) {
-      console.error("Lỗi leave room:", err);
-    } finally {
-      clearActiveRoom();
-      navigate(`/event/${eventId}`);
-    }
-  };
-
-  const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
-  const [isRulesOpen, setIsRulesOpen] = useState(false);
-
-  // Calculate grouped selected seats
   const groupedSelectedSeats = useMemo(() => {
     const selectedSeatsData: { seat: SeatResponse; zone: ZoneData }[] = [];
-    MOCK_ZONES.forEach(zone => {
+    mockZones.forEach(zone => {
       zone.matrix.forEach(row => {
         row.forEach(seat => {
-          if (seat && selectedSeatIds.includes(seat.id)) {
+          if (seat && purchasedSeatIds.includes(seat.id)) {
             selectedSeatsData.push({ seat, zone });
           }
         });
@@ -148,21 +108,21 @@ export function RoomPage() {
       }
     });
     return groups;
-  }, [selectedSeatIds]);
+  }, []);
 
   const totalPrice = useMemo(() => {
     return groupedSelectedSeats.reduce((sum, group) => sum + group.type.price * group.seats.length, 0);
   }, [groupedSelectedSeats]);
 
-  const getTimerColor = (timeLeft?: string) => {
-    if (!timeLeft) return 'text-[#00ff00]';
-    const parts = timeLeft.split(':');
-    if (parts.length === 2) {
-      const mins = parseInt(parts[0], 10);
-      if (mins < 3) return 'text-[#ff4747]';
-      if (mins < 6) return 'text-yellow-400';
+  const handleCancelInvoice = () => {
+    if (window.confirm("Bạn có chắc chắn muốn hủy hóa đơn này không?")) {
+      alert("Hủy thành công!");
+      navigate(-1);
     }
-    return 'text-[#00ff00]';
+  };
+
+  const handleGoBack = () => {
+    navigate(-1);
   };
 
   return (
@@ -173,19 +133,15 @@ export function RoomPage() {
 
           {/* Left: Viewport */}
           <div className="flex-1 flex flex-col">
-            <div className="flex justify-between items-end mb-3">
-              <h1 className="text-[24px] font-bold">Chọn vị trí</h1>
-              <div className="text-sm font-medium italic mb-1">
-                Vui lòng hoàn tất chọn ghế trong: <span className={`font-bold ml-1 ${getTimerColor(activeRoom?.timeLeft)}`}>{activeRoom?.timeLeft || '10:00'}</span>
-              </div>
-            </div>
+            <h1 className="text-[24px] font-bold mb-3">Chi tiết vé đã đặt và đã được thanh toán</h1>
             <div className="flex-1 bg-[#1E1E1E] rounded-[8px] overflow-hidden relative min-h-[600px]">
               <ViewPort
                 isAdmin={false}
-                zones={MOCK_ZONES}
+                zones={mockZones}
                 seatTypes={MOCK_SEAT_TYPES}
-                onSelectedSeatsChange={setSelectedSeatIds}
+                onSelectedSeatsChange={() => { }}
                 className="!bg-transparent"
+                readOnly={true}
               />
             </div>
           </div>
@@ -204,16 +160,8 @@ export function RoomPage() {
                     </div>
                   ))}
                   <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 bg-[#000000] rounded-[4px] shrink-0"></div>
-                    <span className="whitespace-nowrap">Ghế đã bán</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 bg-[#666666] rounded-[4px] shrink-0"></div>
-                    <span className="whitespace-nowrap">Ghế đang bị giữ</span>
-                  </div>
-                  <div className="flex items-center gap-3">
                     <div className="w-7 h-7 bg-white rounded-full shrink-0"></div>
-                    <span className="whitespace-nowrap">Ghế bạn đang giữ</span>
+                    <span className="whitespace-nowrap">Ghế bạn đã mua</span>
                   </div>
                 </div>
               </div>
@@ -228,12 +176,6 @@ export function RoomPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="mt-auto flex justify-end">
-                <button onClick={() => setIsRulesOpen(true)} className="px-4 py-1.5 bg-white text-[#0090FF] italic text-[10px] font-bold rounded-full hover:bg-gray-200 transition-colors">
-                  Xem nội quy
-                </button>
               </div>
             </div>
           </div>
@@ -262,61 +204,40 @@ export function RoomPage() {
                 </div>
               </div>
             ))}
-
-            {groupedSelectedSeats.length === 0 && (
-              <div className="text-white/60 italic bg-[#1E1E1E] p-5 rounded-xl">
-                Chưa có ghế nào được chọn.
-              </div>
-            )}
           </div>
         </div>
 
         {/* Total & Action Buttons */}
-        <div className="my-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-[22px] font-bold w-full md:w-auto text-center md:text-left">
-            Tổng hóa đơn: <span className="text-[#00ff00] ml-2">{totalPrice.toLocaleString()}đ</span>
+        <div className="my-6 flex flex-col md:flex-row justify-between items-start gap-6">
+          <div className="flex flex-col gap-2">
+            <div className="text-[22px] font-bold w-full md:w-auto text-left flex items-center gap-4">
+              Tổng hóa đơn: <span className="text-[#00ff00] font-bold">{totalPrice.toLocaleString()}đ</span>
+              <span className="text-[12px] px-3 py-1 bg-white text-[#0090FF] rounded-full italic shadow-sm">Đã thanh toán</span>
+            </div>
+            <div className="font-semibold">
+              Mã hóa đơn: <span className="font-bold ml-1">eksiewp12j3%2123</span>
+            </div>
+            <div className="font-semibold">
+              Thời điểm tạo: <span className="font-bold ml-1">23:01:53 - 20/04/2026</span>
+            </div>
           </div>
-          <div className="flex gap-2 w-full md:w-auto">
+          <div className="flex gap-4 w-full md:w-auto mt-4 md:mt-0 items-end h-full">
             <button
-              onClick={handleLeaveRoom}
-              className="flex-1 md:flex-none px-4 py-1.5 bg-[#555] hover:bg-[#666] text-white rounded-full font-bold transition-colors"
+              onClick={handleGoBack}
+              className="px-6 py-2 bg-[#555] hover:bg-[#666] text-white rounded-full font-bold transition-colors"
             >
-              Hủy
+              Quay lại
             </button>
             <button
-              className="flex-1 md:flex-none px-4 py-1.5 bg-[#0088ff] hover:bg-blue-500 text-white rounded-full font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={groupedSelectedSeats.length === 0}
+              onClick={handleCancelInvoice}
+              className="px-6 py-2 bg-[#ff0000] hover:bg-[#cc0000] text-white rounded-full font-bold transition-colors"
             >
-              Thanh toán
+              Hủy hóa đơn
             </button>
           </div>
         </div>
 
       </div>
-
-      {/* Rules Popup */}
-      {isRulesOpen && (
-        <div className="fixed bottom-4 left-4 z-50 w-[800px] max-w-[calc(100vw-32px)] bg-[#333] rounded-[8px] p-5 shadow-2xl animate-in fade-in slide-in-from-bottom-4">
-          <div className="flex justify-between items-start mb-3">
-            <h3 className="font-bold text-[18px] text-white">Quy định đặt vé</h3>
-            <button onClick={() => setIsRulesOpen(false)} className="text-white/80 hover:text-white transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
-            </button>
-          </div>
-          <div className="text-[14px] text-gray-200 space-y-3 leading-relaxed">
-            <p>
-              <strong className="text-white">- Giới hạn thời gian:</strong> Bạn có tối đa <span className="text-[#00ff00]">5</span> phút để chọn ghế và <span className="text-[#00ff00]">10</span> phút để thanh toán. Nếu quá thời gian ở bất kỳ bước nào, hệ thống sẽ tự động hủy giao dịch và nhả ghế lại cho người khác.
-            </p>
-            <div>
-              <strong className="text-white">- Chế tài vi phạm:</strong> Để ngăn chặn hành vi găm vé, tài khoản sẽ bị tạm khóa chức năng mua vé trong <span className="text-[#00ff00]">60 phút</span> nếu thuộc một trong các trường hợp sau:
-              <ul className="list-disc pl-8 mt-1 space-y-1">
-                <li>Để hóa đơn hết hạn thanh toán <span className="text-[#00ff00] font-bold">02</span> lần liên tiếp.</li>
-                <li>Hệ thống phát hiện các thao tác cố tình giữ chỗ/hủy chỗ bất thường gây ảnh hưởng đến hệ thống</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

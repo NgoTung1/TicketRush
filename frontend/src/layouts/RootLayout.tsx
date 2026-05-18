@@ -8,12 +8,10 @@ import { setAccessToken } from '@/lib/axios';
 import axios from 'axios';
 import NotifyForm from '@/components/ui/NotifyForm';
 import ToastContainer from '@/components/ui/ToastContainer';
-import { useToastStore } from '@/store/ToastStore';
 import QueueMiniWidget from '@/components/ui/QueueMiniWidget';
 import { useRoomStore } from '@/store/RoomStore';
 import { useNavigate } from 'react-router-dom';
 import { roomApi } from '@/api/roomApi';
-import ViewPort from '@/components/room/ViewPort';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
 
@@ -25,10 +23,8 @@ const RootLayout: React.FC = () => {
 
   const [isRestoring, setIsRestoring] = useState(true);
   const fetchUserProfile = useAuthStore((state) => state.fetchUserProfile);
-  const addToast = useToastStore((state) => state.addToast);
   const { activeRoom, isNotifyOpen, setNotifyOpen, clearActiveRoom } = useRoomStore();
   const navigate = useNavigate();
-  const [isViewPortOpen, setViewPortOpen] = useState(true);
 
   // Restore session on app mount by trying to refresh token via httpOnly cookie
   useEffect(() => {
@@ -70,7 +66,7 @@ const RootLayout: React.FC = () => {
       <main
         className="relative flex-1 bg-background text-white"
       >
-        <div className="h-full max-w-[1440px] mx-auto px-2 py-8">
+        <div className="h-full max-w-[1440px] mx-auto">
           <Outlet />
         </div>
       </main>
@@ -79,8 +75,6 @@ const RootLayout: React.FC = () => {
       {!hideFooter && <Footer />}
 
       <ToastContainer />
-
-      {isViewPortOpen && <ViewPort />}
 
       <NotifyForm
         isOpen={isNotifyOpen}

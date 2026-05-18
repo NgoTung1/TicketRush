@@ -3,6 +3,7 @@ import Zone from './Zone';
 import { SeatResponse } from '@/api/seatApi';
 import { SeatTypeResponse } from '@/api/seatTypeApi';
 import { useRoomStore } from '@/store/RoomStore';
+import { useToastStore } from '@/store/ToastStore';
 
 export interface ZoneData {
   id: string;
@@ -26,6 +27,7 @@ interface ViewPortProps {
   seatTypes?: SeatTypeResponse[];
   onZonesChange?: (zones: ZoneData[]) => void;
   onSelectedSeatsChange?: (seatIds: string[]) => void;
+  readOnly?: boolean;
 }
 
 const DEFAULT_ZONES: ZoneData[] = [];
@@ -37,7 +39,8 @@ const ViewPort: React.FC<ViewPortProps> = ({
   zones: propZones = DEFAULT_ZONES,
   seatTypes = DEFAULT_SEAT_TYPES,
   onZonesChange,
-  onSelectedSeatsChange
+  onSelectedSeatsChange,
+  readOnly = false
 }) => {
   const { activeRoom } = useRoomStore();
   const eventId = activeRoom?.eventId;
@@ -46,59 +49,10 @@ const ViewPort: React.FC<ViewPortProps> = ({
   const [selectedSeatIds, setInternalSelectedSeatIds] = useState<string[]>([]);
   const [internalSeatTypes, setInternalSeatTypes] = useState<SeatTypeResponse[]>(seatTypes);
 
-  // Khởi tạo Mock Data...
+  // Khởi tạo data từ props
   useEffect(() => {
-    if (propZones.length > 0) {
-      setInternalZones(propZones);
-      setInternalSeatTypes(seatTypes);
-    } else {
-      // Mock data cho việc thử nghiệm
-      const mockSeatTypes: SeatTypeResponse[] = [
-        { id: 'type-standard', eventId: 'mock', name: 'Standard', price: 100, label: 'Thường', color: '#b3b3b3' },
-        { id: 'type-premium', eventId: 'mock', name: 'Premium', price: 200, label: 'Đẹp', color: '#0000ff' },
-        { id: 'type-vip', eventId: 'mock', name: 'VIP', price: 300, label: 'VIP', color: '#c6ff00' },
-      ];
-
-      const mockMatrixA: (SeatResponse | null)[][] = Array.from({ length: 10 }, (_, rowIndex) => {
-        return Array.from({ length: 20 }, (_, colIndex) => {
-          let typeId = 'type-standard';
-          if (rowIndex === 3 && colIndex >= 6 && colIndex <= 13) typeId = 'type-premium';
-          if (rowIndex >= 4 && rowIndex <= 7) {
-            if (colIndex === 6 || colIndex === 13) typeId = 'type-premium';
-            if (colIndex > 6 && colIndex < 13) typeId = 'type-vip';
-          }
-          let status: any = 'AVAILABLE';
-          if (rowIndex === 0 && colIndex < 5) status = 'SOLD';
-          if (rowIndex === 1 && colIndex < 5) status = 'ORDERED';
-          return {
-            id: `seat-A-${rowIndex}-${colIndex}`, zoneId: 'zone-A', seatTypeId: typeId,
-            rowIndex, colIndex, seatNumber: colIndex + 1, status
-          };
-        });
-      });
-
-      const mockMatrixB: (SeatResponse | null)[][] = Array.from({ length: 8 }, (_, rowIndex) => {
-        return Array.from({ length: 10 }, (_, colIndex) => {
-          let typeId = 'type-standard';
-          if (rowIndex >= 0 && rowIndex <= 2) {
-            if (colIndex >= 2 && colIndex <= 6) {
-              typeId = rowIndex === 0 ? 'type-vip' : 'type-premium';
-              if (rowIndex === 0 && colIndex === 2) typeId = 'type-premium';
-            }
-          }
-          return {
-            id: `seat-B-${rowIndex}-${colIndex}`, zoneId: 'zone-B', seatTypeId: typeId,
-            rowIndex, colIndex, seatNumber: colIndex + 1, status: 'AVAILABLE'
-          };
-        });
-      });
-
-      setInternalSeatTypes(mockSeatTypes);
-      setInternalZones([
-        { id: 'zone-A', name: 'Khu vực A', x: 50, y: 350, matrix: mockMatrixA },
-        { id: 'zone-B', name: 'Khu vực B', x: 800, y: 50, matrix: mockMatrixB }
-      ]);
-    }
+    setInternalZones(propZones);
+    setInternalSeatTypes(seatTypes);
   }, [propZones, seatTypes]);
 
   const setZones = (value: React.SetStateAction<ZoneData[]>) => {
@@ -120,6 +74,52 @@ const ViewPort: React.FC<ViewPortProps> = ({
   const [scale, setScale] = useState<number>(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const viewportRef = useRef<HTMLDivElement>(null);
+  const hasAutoCentered = useRef(false);
+
+  // Auto-center and zoom to fit zones
+  useEffect(() => {
+    if (zones.length === 0 || !viewportRef.current || hasAutoCentered.current) return;
+
+    const hasSeats = zones.some(z => z.matrix.length > 0);
+    if (!hasSeats) return;
+
+    const viewport = viewportRef.current;
+    const vpWidth = viewport.clientWidth;
+    const vpHeight = viewport.clientHeight;
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+    zones.forEach(zone => {
+      const rows = zone.matrix.length;
+      const cols = rows > 0 ? zone.matrix[0].length : 0;
+      const zoneWidth = cols * 48; // estimate 48px per cell
+      const zoneHeight = rows * 48;
+
+      if (zone.x < minX) minX = zone.x;
+      if (zone.y < minY) minY = zone.y;
+      if (zone.x + zoneWidth > maxX) maxX = zone.x + zoneWidth;
+      if (zone.y + zoneHeight > maxY) maxY = zone.y + zoneHeight;
+    });
+
+    if (minX === Infinity) return;
+
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+
+    const paddingx = 80;
+    const paddingy = 120;
+
+    const scaleX = (vpWidth - paddingx * 2) / contentWidth;
+    const scaleY = (vpHeight - paddingy * 2) / contentHeight;
+    const newScale = Math.min(scaleX, scaleY, 1); // max scale 1
+
+    const centerX = (vpWidth - contentWidth * newScale) / 2 - minX * newScale;
+    const centerY = (vpHeight - contentHeight * newScale) / 2 - minY * newScale;
+
+    setScale(newScale);
+    setPosition({ x: centerX, y: centerY });
+    hasAutoCentered.current = true;
+  }, [zones]);
 
   // --- LOGIC PHÍM SHIFT ---
   const [isShiftPressed, setIsShiftPressed] = useState(false);
@@ -154,17 +154,25 @@ const ViewPort: React.FC<ViewPortProps> = ({
   const handleMouseDown = (e: React.MouseEvent) => {
     setSelectedZoneId(null);
     if (isShiftPressed) {
-      setDragMode('PAN'); // Giữ Shift -> Kéo màn hình
+      setDragMode('PAN'); // Phải giữ Shift thì mới được kéo màn hình (di chuyển cả khu vực)
       lastPosition.current = { x: e.clientX, y: e.clientY };
     } else {
-      setDragMode('SELECT'); // Không giữ -> Khoanh vùng
-      setSelectionBox({ startX: e.clientX, startY: e.clientY, endX: e.clientX, endY: e.clientY });
+      if (isAdmin) {
+        setDragMode('SELECT'); // Không giữ -> Khoanh vùng
+        setSelectionBox({ startX: e.clientX, startY: e.clientY, endX: e.clientX, endY: e.clientY });
+      }
     }
   };
 
   // Click vào vùng Zone (Khu vực ghế)
   const handleZoneMouseDown = (e: React.MouseEvent, zoneId: string) => {
-    if (!isAdmin) return;
+    if (!isAdmin) {
+      if (isShiftPressed) {
+        setDragMode('PAN'); // User thường phải giữ Shift mới được kéo màn hình
+        lastPosition.current = { x: e.clientX, y: e.clientY };
+      }
+      return;
+    }
     e.stopPropagation();
 
     setSelectedZoneId(zoneId); // Luôn active zone khi được click
@@ -235,14 +243,27 @@ const ViewPort: React.FC<ViewPortProps> = ({
         }
       });
       if (newlySelectedIds.length > 0) {
-        setSelectedSeatIds(prev => Array.from(new Set([...prev, ...newlySelectedIds])));
+        setSelectedSeatIds(prev => {
+          const combined = Array.from(new Set([...prev, ...newlySelectedIds]));
+          if (combined.length > 8) {
+            useToastStore.getState().addToast({ type: 'warning', title: 'Giới hạn ghế', message: 'Bạn chỉ được chọn tối đa 8 ghế.' });
+            return combined.slice(0, 8);
+          }
+          return combined;
+        });
       }
     }
   };
 
   const handleSeatSelect = (seat: SeatResponse, mode: 'add' | 'remove') => {
     setSelectedSeatIds(prev => {
-      if (mode === 'add') return prev.includes(seat.id) ? prev : [...prev, seat.id];
+      if (mode === 'add') {
+        if (prev.length >= 8 && !prev.includes(seat.id)) {
+          useToastStore.getState().addToast({ type: 'warning', title: 'Giới hạn ghế', message: 'Bạn chỉ được chọn tối đa 8 ghế.' });
+          return prev;
+        }
+        return prev.includes(seat.id) ? prev : [...prev, seat.id];
+      }
       else return prev.includes(seat.id) ? prev.filter(id => id !== seat.id) : prev;
     });
   };
@@ -262,7 +283,7 @@ const ViewPort: React.FC<ViewPortProps> = ({
     if (!selectedZoneId) return;
     setZones(prev => prev.map(z => {
       if (z.id !== selectedZoneId) return z;
-      
+
       let newMatrix = [...z.matrix.map(row => [...row])];
       const rows = newMatrix.length;
       const cols = newMatrix[0]?.length || 0;
@@ -305,7 +326,7 @@ const ViewPort: React.FC<ViewPortProps> = ({
       }
 
       // Cập nhật lại rowIndex, colIndex và seatNumber cho khớp với ma trận mới
-      const finalMatrix = newMatrix.map((row, rIdx) => 
+      const finalMatrix = newMatrix.map((row, rIdx) =>
         row.map((seat, cIdx) => {
           if (!seat) return null;
           return {
@@ -328,12 +349,10 @@ const ViewPort: React.FC<ViewPortProps> = ({
     cursorClass = 'cursor-crosshair';
   }
 
-  console.log("DRAG MODE!: ", dragMode)
-
   return (
     <div
       ref={viewportRef}
-      className={`absolute z-20 top-0 left-0 w-full h-full min-h-screen bg-[#1b1b1b] overflow-hidden select-none ${cursorClass} ${className || ''}`}
+      className={`absolute z-20 top-0 left-0 w-full h-full overflow-hidden select-none ${cursorClass} ${className || 'bg-[#1b1b1b]'}`}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUpOrLeave}
@@ -370,7 +389,7 @@ const ViewPort: React.FC<ViewPortProps> = ({
               seatsMatrix={zone.matrix}
               seatTypes={internalSeatTypes}
               selectedSeatIds={selectedSeatIds}
-              unselectableStatuses={[]}
+              unselectableStatuses={readOnly ? ['AVAILABLE', 'SOLD', 'ORDERED', 'LOCKED'] : ['SOLD', 'ORDERED', 'LOCKED']}
               onSeatSelect={handleSeatSelect}
               onNameMouseDown={isAdmin ? (e) => {
                 e.stopPropagation();
@@ -388,44 +407,6 @@ const ViewPort: React.FC<ViewPortProps> = ({
           </div>
         ))}
       </div>
-
-      {isAdmin && (
-        <div
-          className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-[#2a2a2a] px-6 py-4 rounded-xl border border-gray-700 shadow-2xl flex flex-col md:flex-row gap-4 items-center z-50"
-          // FIX LỖI TOOLBAR: Ngăn chặn click truyền ra ngoài làm mất Focus của Zone
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <span className="text-white font-medium text-sm md:text-base whitespace-nowrap">
-            Đang chọn: <strong className="text-[#0000ff] text-lg">{selectedSeatIds.length}</strong> ghế
-          </span>
-          <div className="flex gap-2">
-            <button onClick={() => handleUpdateSelectedSeatsStatus('LOCKED')} className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg text-sm shadow-md whitespace-nowrap">Khóa</button>
-            <button onClick={() => handleUpdateSelectedSeatsStatus('SOLD')} className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm shadow-md whitespace-nowrap">Bán</button>
-            <button onClick={() => handleUpdateSelectedSeatsStatus('AVAILABLE')} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm shadow-md whitespace-nowrap">Mở</button>
-          </div>
-
-          {selectedZoneId && (
-            <>
-              <div className="hidden md:block w-px h-8 bg-gray-600 mx-2"></div>
-              <div className="flex gap-2 items-center">
-                <span className="text-gray-300 text-sm mr-1 hidden md:inline">Zone:</span>
-                <button onClick={() => handleZoneTransform('rotateLeft')} className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm shadow-md flex items-center justify-center" title="Xoay trái 90°">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
-                </button>
-                <button onClick={() => handleZoneTransform('rotateRight')} className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm shadow-md flex items-center justify-center" title="Xoay phải 90°">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /></svg>
-                </button>
-                <button onClick={() => handleZoneTransform('flipVertical')} className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm shadow-md flex items-center justify-center" title="Lật dọc">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3" /><path d="M3 16v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3" /><path d="M20 12h2" /><path d="M14 12h2" /><path d="M8 12h2" /><path d="M2 12h2" /></svg>
-                </button>
-                <button onClick={() => handleZoneTransform('flipHorizontal')} className="p-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm shadow-md flex items-center justify-center" title="Lật ngang">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3" /><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3" /><path d="M12 20v2" /><path d="M12 14v2" /><path d="M12 8v2" /><path d="M12 2v2" /></svg>
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 };

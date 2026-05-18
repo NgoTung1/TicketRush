@@ -69,7 +69,6 @@ const Zone: React.FC<ZoneProps> = ({
   const colHeaders = Array.from({ length: maxCols }, (_, i) => i + 1);
 
   return (
-    // Dùng inline-flex flex-col để bọc toàn bộ khối từ trên xuống dưới
     <div className="inline-flex flex-col">
 
       {/* Khối Header Tên Zone: w-full và text-left như bạn yêu cầu */}
@@ -87,7 +86,7 @@ const Zone: React.FC<ZoneProps> = ({
         {/* Header Cột (1, 2, 3...) */}
         <div className="flex flex-row gap-2.5 ml-[2.25rem] md:ml-[2.75rem] mb-2 pointer-events-none">
           {colHeaders.map(col => (
-            <div key={`col-header-${col}`} className="w-10 flex items-center justify-center text-white font-semibold text-xs md:text-[20px] select-none">
+            <div key={`col-header-${col}`} className="w-6 md:w-10 flex items-center justify-center text-white font-semibold text-xs md:text-[20px] select-none">
               {col}
             </div>
           ))}
