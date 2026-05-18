@@ -181,10 +181,17 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    // @Transactional
-    // public Event getEventCorrespondToOrder(UUID orderId) {
+     @Transactional
+     public Event getEventCorrespondToOrder(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Hóa đơn không tồn tại"));
 
-    // }
+        if (order.getOrderSeats() == null || order.getOrderSeats().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy chỗ ngồi trong hóa đơn");
+        }
+
+        return order.getOrderSeats().get(0).getSeat().getSeatType().getEvent();
+     }
 
     private boolean isExpired(Order order) {
         return order.getExpiresAt() != null && order.getExpiresAt().isBefore(LocalDateTime.now());
@@ -209,6 +216,14 @@ public class OrderService {
     }
 
     private OrderDetailResponse mapToDetailResponse(Order order) {
+        UUID eventId = null;
+        String eventTitle = null;
+        if (order.getOrderSeats() != null && !order.getOrderSeats().isEmpty()) {
+            Event event = order.getOrderSeats().get(0).getSeat().getSeatType().getEvent();
+            eventId = event.getId();
+            eventTitle = event.getTitle();
+        }
+
         return OrderDetailResponse.builder()
                 .orderId(order.getId())
                 .code(order.getCode())
@@ -216,6 +231,8 @@ public class OrderService {
                 .totalAmount(order.getTotalAmount())
                 .expiresAt(order.getExpiresAt())
                 .createdAt(order.getCreatedAt())
+                .eventId(eventId)
+                .eventTitle(eventTitle)
                 .seats(mapSeats(order.getOrderSeats()))
                 .build();
     }

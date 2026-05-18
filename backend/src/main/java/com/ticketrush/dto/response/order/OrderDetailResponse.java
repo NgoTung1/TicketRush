@@ -18,6 +18,7 @@ public class OrderDetailResponse {
     private BigDecimal totalAmount;
     private LocalDateTime expiresAt;
     private LocalDateTime createdAt;
+    private UUID eventId;
+    private String eventTitle;
     private List<OrderSeatResponse> seats;
 }
-
