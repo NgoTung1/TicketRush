@@ -141,6 +141,7 @@ public class SeatService {
                 .colIndex(seat.getColIndex())
                 .seatNumber(seat.getSeatNumber())
                 .status(seat.getStatus())
+                .userId(seat.getSelectedBy() != null ? seat.getSelectedBy().getId() : null)
                 .build();
     }
 }

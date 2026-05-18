@@ -19,7 +19,7 @@ const Seat: React.FC<SeatProps> = ({ seat, color = '#b3b3b3', isSelected, onMous
       return { backgroundColor: '#000000' };
     }
     if (seat.status === 'ORDERED' || seat.status === ('LOCKED' as any)) {
-      return { backgroundColor: '#666666' };
+      return { backgroundColor: '#8D8D8D' };
     }
     return { backgroundColor: color }; // Màu mặc định của loại ghế
   };

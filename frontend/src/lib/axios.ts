@@ -63,11 +63,10 @@ axiosClient.interceptors.response.use(
           { withCredentials: true }
         );
 
-        setAccessToken(refreshResponse.data.token);
+        const newToken = refreshResponse.data.token;
+        setAccessToken(newToken);
 
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
-        return axiosClient(originalRequest);
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
       } catch (refreshError) {
         console.warn('Phiên đăng nhập hết hạn! Vui lòng đăng nhập lại.');

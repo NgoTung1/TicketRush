@@ -16,4 +16,5 @@ public class SeatResponse {
     private Integer colIndex;
     private Integer seatNumber;
     private SeatStatus status;
+    private UUID userId;
 }
