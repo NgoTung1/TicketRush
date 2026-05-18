@@ -1,9 +1,11 @@
 package com.ticketrush.controller;
 
 import com.ticketrush.dto.request.order.OrderCreateRequest;
+import com.ticketrush.dto.response.event.EventCreateResponse;
 import com.ticketrush.dto.response.order.OrderCreateResponse;
 import com.ticketrush.dto.response.order.OrderDetailResponse;
 import com.ticketrush.dto.response.order.OrderPayResponse;
+import com.ticketrush.entity.Event;
 import com.ticketrush.service.impl.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +53,13 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<List<OrderDetailResponse>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
+    }
+
+    @GetMapping("/{orderId}/event")
+    public ResponseEntity<EventCreateResponse> getEventByOrder(
+            @PathVariable UUID orderId
+    ) {
+        return ResponseEntity.ok(orderService.getEventCorrespondToOrder(orderId));
     }
 }
 

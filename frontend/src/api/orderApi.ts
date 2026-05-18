@@ -16,10 +16,25 @@ export interface OrderDetailResponse {
   seats: OrderSeatResponse[];
 }
 
+export interface EventCreateResponse {
+  id: string;
+  title: string;
+  categoryId: string;
+  organizer: string;
+  description: string;
+  address: string;
+  bannerUrl: string;
+  startTime: string;
+  status: string;
+}
+
 export const orderApi = {
   getAllOrders: (params: { status?: string; from?: string; to?: string }) =>
     axiosClient.get<OrderDetailResponse[]>('api/orders', { params }),
 
   getOrderTicketDetail: (orderId: string) =>
     axiosClient.get<OrderDetailResponse>(`api/orders/${orderId}/ticket-detail`),
+
+  getEventByOrder: (orderId: string) =>
+    axiosClient.get<EventCreateResponse>(`api/orders/${orderId}/event`),
 };

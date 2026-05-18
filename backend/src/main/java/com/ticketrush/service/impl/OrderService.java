@@ -1,6 +1,7 @@
 package com.ticketrush.service.impl;
 
 import com.ticketrush.dto.request.order.OrderCreateRequest;
+import com.ticketrush.dto.response.event.EventCreateResponse;
 import com.ticketrush.dto.response.order.OrderCreateResponse;
 import com.ticketrush.dto.response.order.OrderDetailResponse;
 import com.ticketrush.dto.response.order.OrderPayResponse;
@@ -182,7 +183,7 @@ public class OrderService {
     }
 
      @Transactional
-     public Event getEventCorrespondToOrder(UUID orderId) {
+     public EventCreateResponse getEventCorrespondToOrder(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Hóa đơn không tồn tại"));
 
@@ -190,7 +191,18 @@ public class OrderService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy chỗ ngồi trong hóa đơn");
         }
 
-        return order.getOrderSeats().get(0).getSeat().getSeatType().getEvent();
+        Event event = order.getOrderSeats().get(0).getSeat().getSeatType().getEvent();
+        return EventCreateResponse.builder()
+                .id(event.getId())
+                .title(event.getTitle())
+                .categoryId(event.getCategory() != null ? event.getCategory().getId() : null)
+                .organizer(event.getOrganizer())
+                .description(event.getDescription())
+                .address(event.getAddress())
+                .bannerUrl(event.getBannerUrl())
+                .startTime(event.getStartTime())
+                .status(event.getStatus())
+                .build();
      }
 
     private boolean isExpired(Order order) {
