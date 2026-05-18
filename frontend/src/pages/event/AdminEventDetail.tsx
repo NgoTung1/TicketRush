@@ -7,9 +7,9 @@ import { eventApi, EventResponse } from '../../api/eventApi';
 import { eventSessionApi, EventSessionResponse } from '../../api/eventSessionApi';
 import { seatTypeApi, SeatTypeResponse } from '../../api/seatTypeApi';
 import { adminStatisticApi } from '../../api/adminStatisticApi';
-import { 
-  PieChart, Pie, Cell, 
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
+import {
+  PieChart, Pie, Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   AreaChart, Area, CartesianGrid, LabelList
 } from 'recharts';
 
@@ -86,10 +86,10 @@ const AdminEventDetail: React.FC = () => {
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
 
   // ─── Stats State ───────────────────────────────────────────────────────────
-  const [genderData, setGenderData] = useState<{name: string, value: number, color: string}[]>([]);
-  const [ageData, setAgeData] = useState<{name: string, count: number}[]>([]);
+  const [genderData, setGenderData] = useState<{ name: string, value: number, color: string }[]>([]);
+  const [ageData, setAgeData] = useState<{ name: string, count: number }[]>([]);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
-  const [revenueData, setRevenueData] = useState<{date: string, value: number}[]>([]);
+  const [revenueData, setRevenueData] = useState<{ date: string, value: number }[]>([]);
 
   const [loadingEvent, setLoadingEvent] = useState(true);
   const [loadingSessions, setLoadingSessions] = useState(true);
@@ -162,15 +162,15 @@ const AdminEventDetail: React.FC = () => {
     event?.status === 'ONCOMING'
       ? 'Sắp diễn ra'
       : event?.status === 'ONGOING'
-      ? 'Đang diễn ra'
-      : 'Đã kết thúc';
+        ? 'Đang diễn ra'
+        : 'Đã kết thúc';
 
   const statusTextColor =
     event?.status === 'ONCOMING'
       ? 'text-[#00a3ff]'
       : event?.status === 'ONGOING'
-      ? 'text-[#00a3ff]'
-      : 'text-gray-500';
+        ? 'text-[#00a3ff]'
+        : 'text-gray-500';
 
   // ─── Loading skeleton ──────────────────────────────────────────────────────
 
@@ -316,7 +316,7 @@ const AdminEventDetail: React.FC = () => {
                     price={priceLabel}
                     status={itemStatus}
                     actionLabel="Chi tiết ghế"
-                    onActionClick={() => navigate(`/admin/event/${id}/session/${session.id}/seats`)}
+                    onActionClick={() => navigate(`/admin/event/${id}/session/${session.id}/room`)}
                   />
                 );
               })}
@@ -327,9 +327,9 @@ const AdminEventDetail: React.FC = () => {
         {/* Thống kê */}
         <div className="mb-12">
           <h2 className="text-[24px] font-bold mb-6 text-white">Thống kê</h2>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            
+
             {/* Giới tính */}
             <div className="bg-[#2a2a2a] rounded-xl p-6 border border-white/5 flex flex-col h-[300px]">
               <div className="flex justify-between items-start mb-4">
@@ -352,7 +352,7 @@ const AdminEventDetail: React.FC = () => {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{ backgroundColor: '#1a1a1a', border: 'none', borderRadius: '8px', color: '#fff' }}
                       itemStyle={{ color: '#fff' }}
                     />
@@ -379,18 +379,18 @@ const AdminEventDetail: React.FC = () => {
               <div className="flex-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={ageData} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: '#fff', fontSize: 10, fontWeight: 'bold' }} 
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#fff', fontSize: 10, fontWeight: 'bold' }}
                       dy={10}
                     />
                     <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }} />
-                    <Bar 
-                      dataKey="count" 
-                      fill="#7a7a7a" 
-                      radius={[4, 4, 4, 4]} 
+                    <Bar
+                      dataKey="count"
+                      fill="#7a7a7a"
+                      radius={[4, 4, 4, 4]}
                       barSize={20}
                     >
                       <LabelList dataKey="count" position="top" fill="#fff" fontSize={8} fontWeight="bold" />
@@ -424,7 +424,7 @@ const AdminEventDetail: React.FC = () => {
                   {revenueData.length > 0 ? `${revenueData[0].date} - ${revenueData[revenueData.length - 1].date}` : 'Toàn thời gian'}
                 </span>
                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 1L5 5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M1 1L5 5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
               <div className="w-full sm:w-auto flex justify-between items-center">
@@ -438,25 +438,25 @@ const AdminEventDetail: React.FC = () => {
                 <AreaChart data={revenueData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#fff" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#fff" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#fff" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#fff" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis 
-                    dataKey="date" 
-                    axisLine={false} 
-                    tickLine={false} 
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
                     tick={{ fill: '#888', fontSize: 8 }}
                     dy={10}
                   />
                   <Tooltip content={<CustomAreaTooltip />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="#fff" 
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#fff"
                     strokeWidth={2}
-                    fillOpacity={1} 
-                    fill="url(#colorValue)" 
+                    fillOpacity={1}
+                    fill="url(#colorValue)"
                   />
                 </AreaChart>
               </ResponsiveContainer>

@@ -20,8 +20,8 @@ import CancelledTicketDetail from '@/pages/CancelledTicketDetail';
 import Checkout from '@/pages/Checkout';
 import Invoices from '@/pages/Invoices';
 import TicketDetail from '@/pages/TicketDetail';
-
-
+import { AdminRoomPage } from '@/pages/AdminRoomPage';
+import { AdminRoomDetail } from '@/pages/event/AdminRoomDetail';
 /**
  * URL Convention cho EventList:
  *   /su-kien                  → Tất cả sự kiện
@@ -82,15 +82,15 @@ const router = createBrowserRouter([
           },
           {
             path: 'am-nhac',
-            element: <Navigate to="/events" replace />, 
+            element: <Navigate to="/events" replace />,
           },
           {
             path: 'profile',
             element: <ProfilePage />,
           },
           {
-        path: 'event/:id/room',
-        element: <RoomPage />,
+            path: 'event/:id/room',
+            element: <RoomPage />,
           },
           {
             path: 'checkout/:orderId',
@@ -148,6 +148,14 @@ const router = createBrowserRouter([
       {
         path: 'event/update/:id',
         element: <AdminUpdateEvent />,
+      },
+      {
+        path: 'event/room/:id',
+        element: <AdminRoomPage />,
+      },
+      {
+        path: 'event/:eventId/session/:sessionId/room',
+        element: <AdminRoomDetail />,
       },
       {
         path: 'categories',

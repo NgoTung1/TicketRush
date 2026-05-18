@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom'; // Thêm import này
 import EventSessionForm, { SessionFormData } from '../../components/event/EventSessionForm';
 import EventInput from '../../components/event/EventInput';
 import { eventApi, EventCreateRequest } from '../../api/eventApi';
@@ -23,11 +24,11 @@ const makeSession = (): { id: number; data: SessionFormData } => ({
   data: { name: '', startAt: '', endAt: '' },
 });
 
-// (inputCls removed — EventInput handles its own styling)
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const CreateEventPage: React.FC = () => {
+  const navigate = useNavigate(); // Khởi tạo hook điều hướng
+
   // Form state
   const [form, setForm] = useState<FormState>({
     organizer: '',
@@ -56,11 +57,9 @@ const CreateEventPage: React.FC = () => {
   // Submit state
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   // Load categories
   useEffect(() => {
-    // Sửa thành getAllCategories() cho Admin
     categoryApi.getAllCategories().then((res: any) => {
       let list: CategoryResponse[] = [];
       if (Array.isArray(res)) list = res;
@@ -123,14 +122,16 @@ const CreateEventPage: React.FC = () => {
         startTime: new Date(form.startTime).toISOString(),
       };
 
-      // Tạo event (gửi kèm banner file nếu có)
+      // 1. Tạo event (gửi kèm banner file nếu có)
       const createdEvent: any = await eventApi.createEvent(
         eventData,
         bannerFile ?? undefined
       );
+      
+      // Lấy eventId từ response
       const eventId: string = createdEvent?.id ?? createdEvent?.data?.id;
 
-      // Tạo các sessions
+      // 2. Tạo các sessions
       const validSessions = sessions.filter((s) => s.data.name.trim() && s.data.startAt);
       await Promise.all(
         validSessions.map((s) => {
@@ -143,7 +144,9 @@ const CreateEventPage: React.FC = () => {
         })
       );
 
-      setSuccess(true);
+      // 3. CHUYỂN HƯỚNG TỚI TRANG TẠO MA TRẬN GHẾ (KÈM ID SỰ KIỆN VỪA TẠO)
+      navigate(`/admin/event/room/${eventId}`);
+
     } catch (err: any) {
       console.error(err);
       const msg =
@@ -151,30 +154,9 @@ const CreateEventPage: React.FC = () => {
         err?.message ||
         'Tạo sự kiện thất bại. Vui lòng thử lại.';
       setError(msg);
-    } finally {
-      setSubmitting(false);
-    }
+      setSubmitting(false); 
+    } 
   };
-
-  // ─── Success screen ───────────────────────────────────────────────────────────
-
-  if (success) {
-    return (
-      <div className="bg-[#141414] min-h-screen text-white font-roboto flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-[#00a3ff]/20 flex items-center justify-center mx-auto text-3xl">✅</div>
-          <h2 className="text-2xl font-bold">Tạo sự kiện thành công!</h2>
-          <p className="text-white/50 text-sm">Sự kiện đã được tạo và các phiên đã được lưu.</p>
-          <button
-            onClick={() => { setSuccess(false); }}
-            className="px-8 py-2.5 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-sm font-bold rounded-full transition-colors"
-          >
-            Tạo sự kiện khác
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // ─── Render ───────────────────────────────────────────────────────────────────
 

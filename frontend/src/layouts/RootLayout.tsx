@@ -80,7 +80,7 @@ const RootLayout: React.FC = () => {
 
       <ToastContainer />
 
-      {isViewPortOpen && <ViewPort />}
+      {/* {isViewPortOpen && <ViewPort />} */}
 
       <NotifyForm
         isOpen={isNotifyOpen}
