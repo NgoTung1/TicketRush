@@ -12,4 +12,6 @@ public class ZoneResponse {
     private String name;
     private Integer rowsCount;
     private Integer colsCount;
+    private Double xPosition;
+    private Double yPosition;
 }

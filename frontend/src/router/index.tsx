@@ -20,6 +20,8 @@ import CancelledTicketDetail from '@/pages/CancelledTicketDetail';
 import Checkout from '@/pages/Checkout';
 import Invoices from '@/pages/Invoices';
 import TicketDetail from '@/pages/TicketDetail';
+import { AdminRoomPage } from '@/pages/AdminRoomPage';
+import { AdminRoomDetail } from '@/pages/event/AdminRoomDetail';
 import SeatSelectedPage from '@/pages/SeatSelectedPage';
 
 
@@ -83,7 +85,7 @@ const router = createBrowserRouter([
           },
           {
             path: 'am-nhac',
-            element: <Navigate to="/events" replace />, 
+            element: <Navigate to="/events" replace />,
           },
           {
             path: 'profile',
@@ -153,6 +155,14 @@ const router = createBrowserRouter([
       {
         path: 'event/update/:id',
         element: <AdminUpdateEvent />,
+      },
+      {
+        path: 'event/room/:id',
+        element: <AdminRoomPage />,
+      },
+      {
+        path: 'event/:eventId/session/:sessionId/room',
+        element: <AdminRoomDetail />,
       },
       {
         path: 'categories',

@@ -214,7 +214,16 @@ const EventList: React.FC = () => {
 
       setEvents(extracted);
       const tp = extractTotalPages(res, extracted, PAGE_SIZE);
-      setTotalPages(tp > 0 ? tp : 1);
+      if (tp > 0) {
+        setTotalPages(tp);
+      } else {
+        const deduced = currentPage + (extracted.length === PAGE_SIZE ? 1 : 0);
+        if (currentPage === 1) {
+          setTotalPages(deduced);
+        } else {
+          setTotalPages(prev => Math.max(prev, deduced));
+        }
+      }
     } catch (err) {
       console.error('Failed to fetch events:', err);
       setError('Không thể tải danh sách sự kiện. Vui lòng thử lại sau.');

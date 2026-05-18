@@ -75,7 +75,6 @@ const RootLayout: React.FC = () => {
       {!hideFooter && <Footer />}
 
       <ToastContainer />
-
       <NotifyForm
         isOpen={isNotifyOpen}
         onClose={() => setNotifyOpen(false)}

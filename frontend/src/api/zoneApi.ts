@@ -6,15 +6,22 @@ export interface ZoneResponse {
   name: string;
   rowsCount: number;
   colsCount: number;
+  xPosition?: number;
+  yPosition?: number;
 }
 
 export interface ZoneRequest {
   name: string;
   rowsCount: number;
   colsCount: number;
+  xPosition?: number;
+  yPosition?: number;
 }
 
 export const zoneApi = {
+  getZonesBySessionId: (sessionId: string) =>
+    axiosClient.get<ZoneResponse[]>(`/sessions/zones/${sessionId}`),
+
   createZone: (sessionId: string, data: ZoneRequest) =>
     axiosClient.post<ZoneResponse>(`/sessions/zones/${sessionId}`, data),
 

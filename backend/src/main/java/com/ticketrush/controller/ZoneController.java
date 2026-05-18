@@ -17,6 +17,11 @@ public class ZoneController {
 
     private final ZoneService zoneService;
 
+    @GetMapping("/sessions/zones/{sessionId}")
+    public ResponseEntity<java.util.List<ZoneResponse>> getZonesBySessionId(@PathVariable UUID sessionId) {
+        return ResponseEntity.ok(zoneService.getZonesBySessionId(sessionId));
+    }
+
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping("/sessions/zones/{sessionId}")
     public ResponseEntity<ZoneResponse> createZone(

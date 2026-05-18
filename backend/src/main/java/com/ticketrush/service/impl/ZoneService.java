@@ -1,6 +1,5 @@
 package com.ticketrush.service.impl;
 
-import com.ticketrush.dto.request.seat.SeatGenerateRequest;
 import com.ticketrush.dto.request.zone.ZoneRequest;
 import com.ticketrush.dto.response.zone.ZoneResponse;
 import com.ticketrush.entity.EventSession;
@@ -22,6 +21,14 @@ public class ZoneService {
     
     private final SeatService seatService; 
 
+    // Lấy danh sách Zone theo Session ID
+    @Transactional(readOnly = true)
+    public java.util.List<ZoneResponse> getZonesBySessionId(UUID sessionId) {
+        return zoneRepository.findByEventSessionId(sessionId).stream()
+                .map(this::mapToResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     // Tạo Zone và sinh ghế
     @Transactional
     public ZoneResponse createZone(UUID sessionId, ZoneRequest request) {
@@ -33,17 +40,10 @@ public class ZoneService {
         zone.setName(request.getName());
         zone.setRowsCount(request.getRowsCount());
         zone.setColsCount(request.getColsCount());
+        if (request.getXPosition() != null) zone.setXPosition(request.getXPosition());
+        if (request.getYPosition() != null) zone.setYPosition(request.getYPosition());
 
         Zone savedZone = zoneRepository.save(zone);
-
-        if (request.getDefaultSeatTypeId() != null) {
-            SeatGenerateRequest seatGenReq = new SeatGenerateRequest();
-            seatGenReq.setSeatTypeId(request.getDefaultSeatTypeId());
-            
-            seatService.generateSeats(savedZone.getId(), seatGenReq);
-        } else {
-            throw new RuntimeException("Vui lòng cung cấp loại ghế mặc định (defaultSeatTypeId) để sinh sơ đồ!");
-        }
 
         return mapToResponse(savedZone);
     }
@@ -56,6 +56,8 @@ public class ZoneService {
         if (request.getName() != null) zone.setName(request.getName());
         if (request.getRowsCount() != null) zone.setRowsCount(request.getRowsCount());
         if (request.getColsCount() != null) zone.setColsCount(request.getColsCount());
+        if (request.getXPosition() != null) zone.setXPosition(request.getXPosition());
+        if (request.getYPosition() != null) zone.setYPosition(request.getYPosition());
 
         Zone saved = zoneRepository.save(zone);
         return mapToResponse(saved);
@@ -78,6 +80,8 @@ public class ZoneService {
                 .name(zone.getName())
                 .rowsCount(zone.getRowsCount())
                 .colsCount(zone.getColsCount())
+                .xPosition(zone.getXPosition())
+                .yPosition(zone.getYPosition())
                 .build();
     }
 }
