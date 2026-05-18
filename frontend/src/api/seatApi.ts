@@ -10,7 +10,7 @@ export interface SeatResponse {
   colIndex: number;
   seatNumber: number;
   status: SeatStatusEnum;
-  userId?: string; // Tạm thời thêm mock giả định userid
+  userId: string;
 }
 
 export interface SeatGenerateRequest {

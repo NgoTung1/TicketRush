@@ -1,76 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ViewPort, { ZoneData } from '@/components/room/ViewPort';
-import { SeatTypeResponse } from '@/api/seatTypeApi';
-import { SeatResponse } from '@/api/seatApi';
-
-// MOCK data
-const MOCK_SEAT_TYPES: SeatTypeResponse[] = [
-  { id: 'type-standard', eventId: 'mock', name: 'Standard', price: 200000, label: 'Ghế thường', color: '#b3b3b3' },
-  { id: 'type-premium', eventId: 'mock', name: 'Premium', price: 300000, label: 'Ghế có vị trí tốt', color: '#0000ff' },
-  { id: 'type-vip', eventId: 'mock', name: 'VIP', price: 500000, label: 'Ghế VIP', color: '#c6ff00' },
-];
-
-const getMockZones = (currentUserId?: string): ZoneData[] => [
-  {
-    id: 'zone-B',
-    name: 'Khán đài Trái',
-    x: 50,
-    y: 200,
-    matrix: Array.from({ length: 12 }, (_, rowIndex) =>
-      Array.from({ length: 8 }, (_, colIndex) => {
-        let typeId = 'type-standard';
-        if (rowIndex < 4) typeId = 'type-premium';
-        return {
-          id: `seat-B-${rowIndex}-${colIndex}`,
-          zoneId: 'zone-B',
-          seatTypeId: typeId,
-          rowIndex,
-          colIndex,
-          seatNumber: colIndex + 1,
-          status: 'AVAILABLE' as any,
-        };
-      })
-    ),
-  },
-  {
-    id: 'zone-A',
-    name: 'Khu vực Trung tâm',
-    x: 600,
-    y: 300,
-    matrix: Array.from({ length: 10 }, (_, rowIndex) =>
-      Array.from({ length: 20 }, (_, colIndex) => {
-        let typeId = 'type-standard';
-        if (rowIndex === 3 && colIndex >= 6 && colIndex <= 13) typeId = 'type-premium';
-        if (rowIndex >= 4 && rowIndex <= 7) {
-          if (colIndex === 6 || colIndex === 13) typeId = 'type-premium';
-          if (colIndex > 6 && colIndex < 13) typeId = 'type-vip';
-        }
-
-        let status: any = 'AVAILABLE';
-        let userId: string | undefined = undefined;
-
-        // Mock some seats as purchased by this user
-        if (rowIndex === 4 && (colIndex >= 8 && colIndex <= 10)) {
-          status = 'SOLD';
-          userId = currentUserId || 'mock-user-id';
-        }
-
-        return {
-          id: `seat-A-${rowIndex}-${colIndex}`,
-          zoneId: 'zone-A',
-          seatTypeId: typeId,
-          rowIndex,
-          colIndex,
-          seatNumber: colIndex + 1,
-          status,
-          userId,
-        };
-      })
-    ),
-  },
-];
-
+import { SeatTypeResponse, seatTypeApi } from '@/api/seatTypeApi';
+import { SeatResponse, seatApi } from '@/api/seatApi';
+import { zoneApi } from '@/api/zoneApi';
+import { eventSessionApi } from '@/api/eventSessionApi';
 import { useAuthStore } from '@/store/AuthStore';
 
 export default function SeatSelectedPage() {
@@ -78,17 +12,62 @@ export default function SeatSelectedPage() {
   const navigate = useNavigate();
   const currentUser = useAuthStore(state => state.user);
 
-  const mockZones = useMemo(() => getMockZones(currentUser?.id), [currentUser?.id]);
+  const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
+  const [zones, setZones] = useState<ZoneData[]>([]);
 
-  // MOCK: Những ID ghế mà người dùng đã mua
-  const purchasedSeatIds = ['seat-A-4-8', 'seat-A-4-9', 'seat-A-4-10'];
+  console.log("ZONES: ", zones)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!eventId) return;
+      try {
+        const types = (await seatTypeApi.getSeatTypesByEventId(eventId)) as unknown as SeatTypeResponse[];
+        setSeatTypes(types);
+
+        const sessions = (await eventSessionApi.getSessionsByEventId(eventId)) as unknown as any[];
+        if (sessions.length > 0) {
+          const sessionId = sessions[0].id; // Lấy session đầu tiên
+          const zonesData = (await zoneApi.getZonesBySessionId(sessionId)) as unknown as any[];
+          const seatsData = (await seatApi.getSeatsBySession(sessionId)) as unknown as SeatResponse[];
+
+          const finalZones: ZoneData[] = zonesData.map(zone => {
+            const matrix: (SeatResponse | null)[][] = Array.from({ length: zone.rowsCount }, () =>
+              Array(zone.colsCount).fill(null)
+            );
+
+            const zoneSeats = seatsData.filter(seat => seat.zoneId === zone.id);
+            zoneSeats.forEach(seat => {
+              const rIdx = seat.rowIndex - 1;
+              const cIdx = seat.colIndex - 1;
+              if (rIdx >= 0 && rIdx < zone.rowsCount && cIdx >= 0 && cIdx < zone.colsCount) {
+                matrix[rIdx][cIdx] = seat;
+              }
+            });
+
+            return {
+              id: zone.id,
+              name: zone.name,
+              x: zone.xPosition || 0,
+              y: zone.yPosition || 0,
+              matrix,
+            };
+          });
+
+          setZones(finalZones);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
+    };
+    fetchData();
+  }, [eventId, currentUser]);
 
   const groupedSelectedSeats = useMemo(() => {
     const selectedSeatsData: { seat: SeatResponse; zone: ZoneData }[] = [];
-    mockZones.forEach(zone => {
+    zones.forEach(zone => {
       zone.matrix.forEach(row => {
         row.forEach(seat => {
-          if (seat && purchasedSeatIds.includes(seat.id)) {
+          if (seat && seat.userId === currentUser?.id) {
             selectedSeatsData.push({ seat, zone });
           }
         });
@@ -97,7 +76,7 @@ export default function SeatSelectedPage() {
 
     const groups: { type: SeatTypeResponse; zone: ZoneData; seats: SeatResponse[] }[] = [];
     selectedSeatsData.forEach(({ seat, zone }) => {
-      const type = MOCK_SEAT_TYPES.find(t => t.id === seat.seatTypeId);
+      const type = seatTypes.find(t => t.id === seat.seatTypeId);
       if (type) {
         let group = groups.find(g => g.type.id === type.id && g.zone.id === zone.id);
         if (!group) {
@@ -108,7 +87,7 @@ export default function SeatSelectedPage() {
       }
     });
     return groups;
-  }, []);
+  }, [zones, seatTypes, currentUser]);
 
   const totalPrice = useMemo(() => {
     return groupedSelectedSeats.reduce((sum, group) => sum + group.type.price * group.seats.length, 0);
@@ -136,9 +115,8 @@ export default function SeatSelectedPage() {
             <h1 className="text-[24px] font-bold mb-3">Chi tiết vé đã đặt và đã được thanh toán</h1>
             <div className="flex-1 bg-[#1E1E1E] rounded-[8px] overflow-hidden relative min-h-[600px]">
               <ViewPort
-                isAdmin={false}
-                zones={mockZones}
-                seatTypes={MOCK_SEAT_TYPES}
+                zones={zones}
+                seatTypes={seatTypes}
                 onSelectedSeatsChange={() => { }}
                 className="!bg-transparent"
                 readOnly={true}
@@ -153,7 +131,7 @@ export default function SeatSelectedPage() {
               <div>
                 <h3 className="font-semibold mb-2 text-[20px]">Biểu tượng</h3>
                 <div className="flex flex-row flex-wrap xl:flex-col gap-x-4 gap-y-2">
-                  {MOCK_SEAT_TYPES.map(type => (
+                  {seatTypes.map(type => (
                     <div key={`legend-${type.id}`} className="flex items-center gap-3">
                       <div className="w-7 h-7 rounded-[4px] shrink-0" style={{ backgroundColor: type.color }}></div>
                       <span className="whitespace-nowrap">{type.label}</span>
@@ -169,7 +147,7 @@ export default function SeatSelectedPage() {
               <div>
                 <h3 className="font-semibold mb-2 text-[20px]">Giá tiền</h3>
                 <div className="flex flex-row flex-wrap xl:flex-col gap-x-4 gap-y-2">
-                  {MOCK_SEAT_TYPES.map(type => (
+                  {seatTypes.map(type => (
                     <div key={`price-${type.id}`} className="flex items-center gap-3">
                       <div className="w-7 h-7 rounded-[4px] shrink-0" style={{ backgroundColor: type.color }}></div>
                       <span className="text-[#00ff00] italic whitespace-nowrap">{type.price.toLocaleString()}đ</span>
@@ -193,7 +171,7 @@ export default function SeatSelectedPage() {
                     <div className="font-semibold truncate">{group.type.label} - {group.zone.name}</div>
                   </div>
                   <div className="w-full font-bold">
-                    Vị trí: {group.seats.map(s => `${s.colIndex + 1}${String.fromCharCode(65 + s.rowIndex)}`).join(', ')}
+                    Vị trí: {group.seats.map(s => `${s.colIndex}${String.fromCharCode(65 + s.rowIndex - 1)}`).join(', ')}
                   </div>
                 </div>
                 <div className="text-left md:text-right w-full md:w-auto shrink-0 flex flex-row md:flex-col justify-between md:justify-start items-center md:items-end mt-4 md:mt-0">
