@@ -12,6 +12,8 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
 	//tim theo UserId theo thu tu
 	List<Ticket> findAllByOrderSeat_Order_User_Id(UUID userId);
 
+	List<Ticket> findAllByOrderSeat_Order_Id(UUID orderId);
+
 	List<Ticket> findAllByOrderSeat_Order_User_IdAndStatus(UUID userId, TicketStatus status);
 
 	//tim theo ca ticket ID

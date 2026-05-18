@@ -20,11 +20,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.UUID;
 
+import com.ticketrush.service.impl.TicketService;
+
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
+    private final TicketService ticketService;
 
     @PostMapping
     public ResponseEntity<OrderCreateResponse> createOrder(
@@ -60,6 +63,13 @@ public class OrderController {
             @PathVariable UUID orderId
     ) {
         return ResponseEntity.ok(orderService.getEventCorrespondToOrder(orderId));
+    }
+
+    @GetMapping("/{orderId}/tickets")
+    public ResponseEntity<List<com.ticketrush.dto.response.ticket.TicketInOrderResponse>> getTicketsByOrder(
+            @PathVariable UUID orderId
+    ) {
+        return ResponseEntity.ok(ticketService.getTicketsByOrder(orderId));
     }
 }
 

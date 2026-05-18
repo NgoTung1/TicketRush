@@ -28,6 +28,19 @@ export interface EventCreateResponse {
   status: string;
 }
 
+export interface TicketInOrderResponse {
+  id: string;
+  ticketCode: string;
+  zone: string;
+  row: string;
+  number: string;
+  status: 'VALID' | 'USED' | 'CANCELLED';
+  price: number;
+  qrData: string;
+  qrCodeImageBase64: string;
+  eventTitle: string;
+}
+
 export const orderApi = {
   getAllOrders: (params: { status?: string; from?: string; to?: string }) =>
     axiosClient.get<OrderDetailResponse[]>('api/orders', { params }),
@@ -37,4 +50,7 @@ export const orderApi = {
 
   getEventByOrder: (orderId: string) =>
     axiosClient.get<EventCreateResponse>(`api/orders/${orderId}/event`),
+
+  getTicketsByOrder: (orderId: string) =>
+    axiosClient.get<TicketInOrderResponse[]>(`api/orders/${orderId}/tickets`),
 };
