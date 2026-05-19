@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Menu, X, ShoppingCart, LogOut, User } from 'lucide-react';
+import { Search, Menu, X, Receipt, LogOut, User } from 'lucide-react';
 import SearchBar from '@/components/ui/SearchBar';
 import Button from '@/components/ui/Button';
 import { useAuthStore } from '@/store/AuthStore';
@@ -198,14 +198,14 @@ const Header: React.FC = () => {
           {/* ── Authenticated: Cart + Avatar | Unauthenticated: Auth Buttons */}
           {isAuthenticated ? (
             <div className="flex items-center gap-3 shrink-0">
-              {/* Shopping Cart */}
+              {/* Invoice */}
               <Link
-                to="/cart"
+                to="/invoices"
                 id="cart-btn"
                 className="relative p-2 rounded-lg text-[#FFFFFF] hover:bg-[#2A2A2A] transition-colors duration-200"
-                aria-label="Giỏ hàng"
+                aria-label="Hóa đơn"
               >
-                <ShoppingCart size={20} />
+                <Receipt size={20} />
                 {/* Red badge - only visible when cartItemCount > 0 */}
                 {cartItemCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1 leading-none">
