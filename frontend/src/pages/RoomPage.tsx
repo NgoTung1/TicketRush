@@ -7,6 +7,7 @@ import { SeatTypeResponse, seatTypeApi } from '@/api/seatTypeApi';
 import { SeatResponse, seatApi } from '@/api/seatApi';
 import { zoneApi } from '@/api/zoneApi';
 import { eventSessionApi } from '@/api/eventSessionApi';
+import { supabase } from '@/lib/supabase';
 
 export function RoomPage() {
   const { id: eventId } = useParams<{ id: string }>();
@@ -76,6 +77,78 @@ export function RoomPage() {
       }
     };
     fetchData();
+  }, [eventId]);
+
+  useEffect(() => {
+    if (!eventId) return;
+
+    // Tạo kênh lắng nghe riêng cho phòng này để tránh nhiễu tín hiệu
+    const channel = supabase
+      .channel(`room-${eventId}-seats`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'seats'
+        },
+        (payload) => {
+          // payload.new chứa dữ liệu của DB (dùng snake_case: zone_id, row_index, select_by...)
+          const dbSeat = payload.new;
+
+          setZones((prevZones) => {
+            // Kiểm tra xem ghế bị đổi có nằm trong các Zone đang render trên màn hình không
+            const isRelevant = prevZones.some(z => z.id === dbSeat.zone_id);
+            if (!isRelevant) return prevZones;
+
+            return prevZones.map((zone) => {
+              if (zone.id !== dbSeat.zone_id) return zone;
+
+              // Deep copy matrix để React hiểu là có sự thay đổi và kích hoạt re-render
+              const newMatrix = zone.matrix.map(row => [...row]);
+
+              // Map tọa độ DB về index của mảng React (trừ 1 giống logic bạn đã viết)
+              const rIdx = dbSeat.row_index - 1;
+              const cIdx = dbSeat.col_index - 1;
+
+              // Kiểm tra an toàn trước khi gán
+              if (newMatrix[rIdx] && newMatrix[rIdx][cIdx]) {
+                const currentSeat = newMatrix[rIdx][cIdx]!;
+
+                newMatrix[rIdx][cIdx] = {
+                  ...currentSeat,
+                  status: dbSeat.status, // Cập nhật trạng thái mới (ORDERED, SOLD, AVAILABLE)
+                  userId: dbSeat.select_by // Đổi từ select_by (DB) sang userId (Frontend Component)
+                };
+              }
+
+              return { ...zone, matrix: newMatrix };
+            });
+          });
+        }
+      )
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`[Supabase Realtime] Đã kết nối thành công kênh: room-${eventId}-seats`);
+        }
+        
+        if (status === 'CHANNEL_ERROR') {
+          console.error(`[Supabase Realtime] Lỗi kết nối kênh: room-${eventId}-seats`, err);
+        }
+
+        if (status === 'TIMED_OUT') {
+          console.warn(`[Supabase Realtime] Kết nối quá hạn (Timeout) tới kênh: room-${eventId}-seats`);
+        }
+
+        if (status === 'CLOSED') {
+          console.log(`[Supabase Realtime] Đã ngắt kết nối kênh: room-${eventId}-seats`);
+        }
+      });
+
+    // Dọn dẹp websocket khi user rời phòng
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [eventId]);
 
   const handleLeaveRoom = async () => {

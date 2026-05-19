@@ -25,14 +25,14 @@ public class EventTicketController {
   }
 
   @PostMapping("/{eventId}/join")
-  public ResponseEntity<Map<String, String>> joinEvent(
+  public ResponseEntity<Map<String, Object>> joinEvent(
       @PathVariable String eventId,
       @AuthenticationPrincipal Jwt jwt) {
 
     String userId = getUserIdFromToken(jwt);
-    Map<String, String> response = new HashMap<>();
 
-    // 1. Kiểm tra Block
+    Map<String, Object> response = new HashMap<>();
+
     if (blockService.isUserBlocked(userId)) {
       String reason = blockService.getBlockReason(userId);
       Long unblockAt = blockService.getBlockExpiryTime(userId);
@@ -40,17 +40,20 @@ public class EventTicketController {
       response.put("status", "BLOCKED");
       response.put("message", "Tài khoản của bạn đang bị chặn. Lý do: " + reason);
       if (unblockAt != null) {
-        response.put("unblockAt", String.valueOf(unblockAt));
+        response.put("unblockAt", unblockAt);
       }
       return ResponseEntity.ok(response);
     }
 
-    // 2. Đẩy vào luồng xếp hàng
-    String status = queueService.joinEvent(eventId, userId);
+    // 3. GỌI HÀM VÀ DÙNG GETTER
+    var result = queueService.joinEvent(eventId, userId);
+    String status = result.getStatus();
 
     response.put("status", status);
-    if ("ACTIVE_ROOM".equals(status)) {
-      response.put("message", "Đã vào phòng thanh toán. Bạn có 10 phút!");
+    response.put("expireAt", result.getExpireAt());
+
+    if ("ACTIVE_ROOM".equals(status) || "ALREADY_IN_ACTIVE".equals(status)) {
+      response.put("message", "Đã vào phòng thanh toán.");
     } else {
       response.put("message", "Đang ở phòng chờ. Vui lòng giữ màn hình...");
     }

@@ -5,7 +5,6 @@ import com.ticketrush.dto.response.event.EventCreateResponse;
 import com.ticketrush.dto.response.order.OrderCreateResponse;
 import com.ticketrush.dto.response.order.OrderDetailResponse;
 import com.ticketrush.dto.response.order.OrderPayResponse;
-import com.ticketrush.entity.Event;
 import com.ticketrush.service.impl.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,24 +31,21 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderCreateResponse> createOrder(
             @RequestHeader("X-User-Id") UUID userId,
-            @RequestBody OrderCreateRequest request
-    ) {
+            @RequestBody OrderCreateRequest request) {
         return ResponseEntity.ok(orderService.createOrder(userId, request));
     }
 
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderDetailResponse> getOrderDetail(
             @RequestHeader("X-User-Id") UUID userId,
-            @PathVariable UUID orderId
-    ) {
+            @PathVariable UUID orderId) {
         return ResponseEntity.ok(orderService.getOrderDetail(userId, orderId));
     }
 
     @PostMapping("/{orderId}/pay")
     public ResponseEntity<OrderPayResponse> payOrder(
             @RequestHeader("X-User-Id") UUID userId,
-            @PathVariable UUID orderId
-    ) {
+            @PathVariable UUID orderId) {
         return ResponseEntity.ok(orderService.payOrder(userId, orderId));
     }
 
@@ -60,16 +56,13 @@ public class OrderController {
 
     @GetMapping("/{orderId}/event")
     public ResponseEntity<EventCreateResponse> getEventByOrder(
-            @PathVariable UUID orderId
-    ) {
+            @PathVariable UUID orderId) {
         return ResponseEntity.ok(orderService.getEventCorrespondToOrder(orderId));
     }
 
     @GetMapping("/{orderId}/tickets")
     public ResponseEntity<List<com.ticketrush.dto.response.ticket.TicketInOrderResponse>> getTicketsByOrder(
-            @PathVariable UUID orderId
-    ) {
+            @PathVariable UUID orderId) {
         return ResponseEntity.ok(ticketService.getTicketsByOrder(orderId));
     }
 }
-

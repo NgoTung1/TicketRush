@@ -52,7 +52,11 @@ public class OrderService {
         }
 
         for (Seat seat : seats) {
-            if (seat.getStatus() != SeatStatus.AVAILABLE) {
+            boolean isAlreadyHeldByCurrentUser = (seat.getStatus() == SeatStatus.ORDERED) &&
+                    (seat.getSelectedBy() != null) &&
+                    (seat.getSelectedBy().getId().equals(userId));
+
+            if (seat.getStatus() != SeatStatus.AVAILABLE && !isAlreadyHeldByCurrentUser) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Seat already reserved");
             }
         }
@@ -113,7 +117,6 @@ public class OrderService {
         }
         return orders.stream().map(this::mapToDetailResponse).toList();
     }
-
 
     @Transactional
     public OrderPayResponse payOrder(UUID userId, UUID orderId) {
@@ -182,8 +185,8 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-     @Transactional
-     public EventCreateResponse getEventCorrespondToOrder(UUID orderId) {
+    @Transactional
+    public EventCreateResponse getEventCorrespondToOrder(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Hóa đơn không tồn tại"));
 
@@ -203,7 +206,7 @@ public class OrderService {
                 .startTime(event.getStartTime())
                 .status(event.getStatus())
                 .build();
-     }
+    }
 
     private boolean isExpired(Order order) {
         return order.getExpiresAt() != null && order.getExpiresAt().isBefore(LocalDateTime.now());
