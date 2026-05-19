@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { roomApi } from '@/api/roomApi';
 import { useRoomStore } from '@/store/RoomStore';
 import ViewPort, { ZoneData } from '@/components/room/ViewPort';
@@ -11,16 +11,22 @@ import { eventSessionApi } from '@/api/eventSessionApi';
 export function RoomPage() {
   const { id: eventId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { activeRoom, clearActiveRoom } = useRoomStore();
+  const fromDetail = location.state?.fromDetail;
 
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
   const [zones, setZones] = useState<ZoneData[]>([]);
 
   useEffect(() => {
     if (!activeRoom || activeRoom.eventId !== eventId) {
-      navigate(`/event/${eventId}`);
+      if (fromDetail) {
+        navigate(-1);
+      } else {
+        navigate(`/event/${eventId}`, { replace: true });
+      }
     }
-  }, [activeRoom, eventId, navigate]);
+  }, [activeRoom, eventId, navigate, fromDetail]);
 
   // Cảnh báo người dùng khi họ cố tình F5, đóng tab hoặc tắt trình duyệt
   useEffect(() => {
@@ -86,7 +92,6 @@ export function RoomPage() {
       console.error("Lỗi leave room:", err);
     } finally {
       clearActiveRoom();
-      navigate(`/event/${eventId}`);
     }
   };
 

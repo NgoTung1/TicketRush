@@ -10,7 +10,7 @@ export interface SeatResponse {
   colIndex: number;
   seatNumber: number;
   status: SeatStatusEnum;
-  userId: string;
+  userId?: string | null;
 }
 
 export interface SeatGenerateRequest {
@@ -18,7 +18,11 @@ export interface SeatGenerateRequest {
 }
 
 export interface SeatRequest {
-  seatTypeId: string;
+  seatTypeId?: string | null;
+  rowIndex?: number;
+  colIndex?: number;
+  seatNumber?: number;
+  status?: SeatStatusEnum;
 }
 
 export interface SeatBulkUpdateRequest {

@@ -23,7 +23,7 @@ export const EventItem: React.FC<EventItemProps> = ({
     return (
         <div 
             onClick={onClick}
-            className="w-full max-w-[340px] bg-[#1a1a1b] rounded-xl overflow-hidden flex flex-col cursor-pointer transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/50"
+            className="w-full max-w-[340px] bg-[#141414] rounded-xl overflow-hidden flex flex-col cursor-pointer transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/50"
         >
             
             {/* Image Container: Đã fix cứng chiều cao h-[190px] và thêm shrink-0 */}

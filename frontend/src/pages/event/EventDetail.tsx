@@ -161,7 +161,7 @@ const EventDetail: React.FC = () => {
 
       if (status === 'ACTIVE_ROOM') {
         setActiveRoom({ eventId: id, status: 'ready', timeLeft: '10:00' });
-        navigate(`/event/${id}/room`);
+        navigate(`/event/${id}/room`, { state: { fromDetail: true } });
       } else if (status === 'WAITING_ROOM') {
         setActiveRoom({ eventId: id, status: 'waiting' });
         setNotifyOpen(true); // Hiển thị NotifyForm tại RootLayout
@@ -191,7 +191,7 @@ const EventDetail: React.FC = () => {
 
     if (activeRoom) {
       if (activeRoom.eventId === id) {
-        navigate(`/event/${id}/room`);
+        navigate(`/event/${id}/room`, { state: { fromDetail: true } });
         return;
       } else {
         setSwitchConfirmOpen(true);
@@ -399,7 +399,7 @@ const EventDetail: React.FC = () => {
           </div>
           <div className="mt-10 text-center">
             <button
-              onClick={() => navigate('/su-kien')}
+              onClick={() => navigate('/events')}
               className="text-sm text-gray-400 hover:text-white transition-colors underline underline-offset-4"
             >
               Xem thêm

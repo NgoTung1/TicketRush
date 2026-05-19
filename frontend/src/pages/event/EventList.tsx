@@ -55,10 +55,10 @@ const extractEventsData = (res: any): EventResponse[] => {
   return [];
 };
 
-const extractTotalPages = (res: any, events: EventResponse[], pageSize: number): number => {
+const extractTotalPages = (res: any, events: EventResponse[], pageSize: number, currentPage: number): number => {
   if (res?.data?.totalPages) return res.data.totalPages;
   if (res?.totalPages) return res.totalPages;
-  return events.length < pageSize ? 1 : -1;
+  return events.length < pageSize ? currentPage : -1;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -104,8 +104,8 @@ const FilterDropdown: React.FC<DropdownProps> = ({ icon, label, options, value, 
       <button
         onClick={() => setOpen((p) => !p)}
         className={`flex items-center gap-2 px-3 py-1.5 font-bold text-[13px] rounded-md transition-colors border ${isActive
-            ? 'bg-[#00a3ff]/20 border-[#00a3ff]/60 text-[#00a3ff]'
-            : 'bg-[#414141] hover:bg-[#333] text-white border-white/10'
+          ? 'bg-[#00a3ff]/20 border-[#00a3ff]/60 text-[#00a3ff]'
+          : 'bg-[#414141] hover:bg-[#333] text-white border-white/10'
           }`}
       >
         <img src={icon} alt="" className="w-4 h-4 object-contain" />
@@ -121,7 +121,7 @@ const FilterDropdown: React.FC<DropdownProps> = ({ icon, label, options, value, 
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 min-w-[160px] bg-[#242424] border border-white/10 rounded-lg shadow-xl overflow-hidden">
+        <div className="absolute top-full left-0 mt-1 z-50 min-w-[160px] max-h-60 overflow-y-auto bg-[#242424] border border-white/10 rounded-lg shadow-xl">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -130,8 +130,8 @@ const FilterDropdown: React.FC<DropdownProps> = ({ icon, label, options, value, 
                 setOpen(false);
               }}
               className={`w-full text-left px-4 py-2 text-[13px] font-medium transition-colors ${opt.value === value
-                  ? 'bg-[#00a3ff]/20 text-[#00a3ff]'
-                  : 'text-white/80 hover:bg-white/5 hover:text-white'
+                ? 'bg-[#00a3ff]/20 text-[#00a3ff]'
+                : 'text-white/80 hover:bg-white/5 hover:text-white'
                 }`}
             >
               {opt.label}
@@ -163,9 +163,6 @@ const EventList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Search input — realtime, debounced
-  const [searchInput, setSearchInput] = useState(currentKeyword);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   // ─── Load categories once ────────────────────────────────────────────────────
@@ -211,9 +208,13 @@ const EventList: React.FC = () => {
       }
 
       setEvents(extracted);
-      const tp = extractTotalPages(res, extracted, PAGE_SIZE);
+      const tp = extractTotalPages(res, extracted, PAGE_SIZE, currentPage);
       if (tp > 0) {
-        setTotalPages(tp);
+        if (currentPage === 1) {
+          setTotalPages(tp);
+        } else {
+          setTotalPages(prev => Math.max(prev, tp));
+        }
       } else {
         const deduced = currentPage + (extracted.length === PAGE_SIZE ? 1 : 0);
         if (currentPage === 1) {
@@ -234,10 +235,7 @@ const EventList: React.FC = () => {
     fetchEvents();
   }, [fetchEvents]);
 
-  // Sync search input khi URL keyword thay đổi từ ngoài
-  useEffect(() => {
-    setSearchInput(currentKeyword);
-  }, [currentKeyword]);
+
 
   // ─── Handlers ────────────────────────────────────────────────────────────────
 
@@ -251,14 +249,7 @@ const EventList: React.FC = () => {
     setSearchParams(next, { replace: true });
   };
 
-  // Search realtime: debounce 400ms
-  const handleSearchChange = (value: string) => {
-    setSearchInput(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      updateParams({ keyword: value.trim() || null });
-    }, 400);
-  };
+
 
   const handlePageChange = (page: number) => {
     const next = new URLSearchParams(searchParams);
@@ -329,8 +320,8 @@ const EventList: React.FC = () => {
             <button
               onClick={() => dateInputRef.current?.showPicker()}
               className={`flex items-center gap-2 px-3 py-1.5 font-bold text-[13px] rounded-md border transition-colors ${currentDate
-                  ? 'bg-[#00a3ff]/20 border-[#00a3ff]/60 text-[#00a3ff]'
-                  : 'bg-[#414141] hover:bg-[#333] text-white border-white/10'
+                ? 'bg-[#00a3ff]/20 border-[#00a3ff]/60 text-[#00a3ff]'
+                : 'bg-[#414141] hover:bg-[#333] text-white border-white/10'
                 }`}
             >
               <img src={DateFilter} alt="" className="w-4 h-4 object-contain" />
@@ -358,30 +349,31 @@ const EventList: React.FC = () => {
             </button>
           </div>
 
-          {/* Search: realtime */}
+          {/* Search: read-only display */}
           <div className="flex items-center gap-2 ml-auto">
-            <div className="relative flex items-center">
-              <img
-                src={SearchIcon}
-                alt="search"
-                className="absolute left-3 w-4 h-4 object-contain opacity-50 pointer-events-none"
-              />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Tìm kiếm sự kiện..."
-                className="pl-9 pr-8 py-1.5 bg-[#414141] border border-white/10 rounded-md text-[13px] text-white placeholder-white/30 focus:outline-none focus:border-[#00a3ff] transition-colors w-52"
-              />
-              {searchInput && (
-                <button
-                  onClick={() => handleSearchChange('')}
-                  className="absolute right-2 text-white/40 hover:text-white text-xs transition-colors"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+            {!currentKeyword ? (
+              <div className="flex items-center justify-center w-10 h-10 sm:w-9 sm:h-9 bg-[#696969] border border-white/10 rounded-md text-white/50 cursor-default">
+                <img
+                  src={SearchIcon}
+                  alt="search"
+                  className="w-5 h-5 object-contain opacity-55"
+                />
+              </div>
+            ) : (
+              <button
+                onClick={() => updateParams({ keyword: null })}
+                className="flex items-center gap-2 h-8 sm:h-9 px-3 bg-[#414141] hover:bg-[#505050] border border-white/10 rounded-md text-white transition-colors cursor-pointer"
+                title="Nhấp để xóa tìm kiếm"
+              >
+                <img
+                  src={SearchIcon}
+                  alt="search"
+                  className="w-4 h-4 object-contain"
+                />
+                <span className="font-bold text-[16px]">{currentKeyword}</span>
+                <span className="ml-1 text-white/40 hover:text-white text-[11px]">✕</span>
+              </button>
+            )}
           </div>
         </div>
 

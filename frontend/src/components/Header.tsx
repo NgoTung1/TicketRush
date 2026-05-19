@@ -13,10 +13,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Tất Cả', path: '/' },
-  { label: 'Âm nhạc', path: '/am-nhac' },
-  { label: 'Nghệ thuật', path: '/nghe-thuat' },
-  { label: 'Hội thảo', path: '/hoi-thao' },
+  { label: 'Thể thao', path: '/events?category_id=c781fbed-ac15-4923-ad57-062f0d8444a3' },
+  { label: 'Âm nhạc', path: '/events?category_id=d2c4cfdc-17f4-4e81-8eb5-4601e5640aa2' },
+  { label: 'Nghệ thuật', path: '/events?category_id=acf17ba1-6e41-4e23-aa99-5515ffccd78c' },
+  { label: 'Hội thảo', path: '/events?category_id=8b1935e4-1234-4b95-a136-bd1869e578c2' },
 ];
 
 const Header: React.FC = () => {
@@ -79,9 +79,32 @@ const Header: React.FC = () => {
     };
   }, [isMobileMenuOpen]);
 
+  // Sync search input with URL parameter 'keyword'
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const keyword = params.get('keyword') || '';
+    setSearchQuery(keyword);
+  }, [location.search]);
+
   const handleSearch = (value: string) => {
-    console.log('Search:', value);
-    setIsMobileSearchOpen(false);
+    const trimmed = value.trim();
+    const params = new URLSearchParams(location.search);
+    if (trimmed) {
+      params.set('keyword', trimmed);
+    } else {
+      params.delete('keyword');
+    }
+    params.delete('page');
+
+    if (location.pathname === '/events') {
+      navigate(`/events?${params.toString()}`);
+    } else {
+      if (trimmed) {
+        navigate(`/events?keyword=${encodeURIComponent(trimmed)}`);
+      } else {
+        navigate('/events');
+      }
+    }
     setIsMobileSearchOpen(false);
   };
 

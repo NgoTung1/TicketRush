@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, X, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, X, Trash2, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
 import AdminViewPort, { ZoneData } from '@/components/room/AdminViewPort';
 import { SeatTypeResponse } from '@/api/seatTypeApi';
 import { SeatResponse } from '@/api/seatApi';
@@ -38,6 +38,19 @@ export function AdminRoomPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [zones, setZones] = useState<ZoneData[]>([]);
+  const [zonesHistory, setZonesHistory] = useState<ZoneData[][]>([]);
+
+  const saveHistory = (currentZones: ZoneData[]) => {
+    const snapshot = JSON.parse(JSON.stringify(currentZones));
+    setZonesHistory(prev => [...prev, snapshot]);
+  };
+
+  const handleUndo = () => {
+    if (zonesHistory.length === 0) return;
+    const prev = zonesHistory[zonesHistory.length - 1];
+    setZones(prev);
+    setZonesHistory(prevHistory => prevHistory.slice(0, -1));
+  };
 
   // Track expanded state for zones
   const [expandedZones, setExpandedZones] = useState<Record<string, boolean>>({});
@@ -72,6 +85,7 @@ export function AdminRoomPage() {
 
   const handleAssignSeatType = (typeId: string) => {
     if (selectedSeatIds.length === 0) return;
+    saveHistory(zones);
     setZones(prev => prev.map(zone => ({
       ...zone,
       matrix: zone.matrix.map(row => row.map(seat => {
@@ -119,6 +133,7 @@ export function AdminRoomPage() {
       matrix: newMatrix
     };
 
+    saveHistory(zones);
     setZones(prev => [...prev, newZone]);
     setShowAddZoneModal(false);
     setNewZoneName('');
@@ -170,6 +185,7 @@ export function AdminRoomPage() {
       // Nếu danh sách loại ghế trước đó đang trống trơn (bạn vừa xóa hết) 
       // => tự động lấy loại ghế mới tạo này lấp đầy toàn bộ ghế trong tất cả các zone
       if (seatTypes.length === 0) {
+        saveHistory(zones);
         setZones(prev => prev.map(zone => ({
           ...zone,
           matrix: zone.matrix.map(row => row.map(seat => {
@@ -197,6 +213,7 @@ export function AdminRoomPage() {
     const fallbackTypeId = newSeatTypes.length > 0 ? newSeatTypes[0].id : null;
 
     // Quét toàn bộ ghế, nếu ghế nào đang dùng loại vừa bị xóa thì tự động gán sang loại thay thế
+    saveHistory(zones);
     setZones(prev => prev.map(zone => ({
       ...zone,
       matrix: zone.matrix.map(row => row.map(seat => {
@@ -277,23 +294,33 @@ export function AdminRoomPage() {
           });
           const realSeats = Array.isArray(seatsRes) ? seatsRes : seatsRes?.data ?? [];
 
-          // 3c. Map seats to their assigned seat types
+          // 3c. Map seats to their assigned seat types and update non-AVAILABLE statuses
           const seatTypeGroups: Record<string, string[]> = {};
           
           for (const realSeat of realSeats) {
             const r = realSeat.rowIndex - 1;
             const c = realSeat.colIndex - 1;
             const localSeat = zone.matrix[r]?.[c];
-            if (localSeat && localSeat.seatTypeId) {
-              const realTypeId = typeIdMap.get(localSeat.seatTypeId);
-              if (realTypeId) {
-                if (!seatTypeGroups[realTypeId]) seatTypeGroups[realTypeId] = [];
-                seatTypeGroups[realTypeId].push(realSeat.id);
+            if (localSeat) {
+              const realTypeId = localSeat.seatTypeId ? typeIdMap.get(localSeat.seatTypeId) : undefined;
+              
+              if (localSeat.status && localSeat.status !== 'AVAILABLE') {
+                // If status is locked (ORDERED) or sold (SOLD), update both its status and seatTypeId individually
+                await seatApi.updateSeat(realSeat.id, {
+                  seatTypeId: realTypeId || defaultRealTypeId,
+                  status: localSeat.status
+                });
+              } else {
+                // Otherwise, group for bulk update to minimize API requests
+                if (realTypeId) {
+                  if (!seatTypeGroups[realTypeId]) seatTypeGroups[realTypeId] = [];
+                  seatTypeGroups[realTypeId].push(realSeat.id);
+                }
               }
             }
           }
 
-          // 3d. Update seat types in bulk
+          // 3d. Update seat types in bulk for standard AVAILABLE seats
           for (const [realTypeId, seatIds] of Object.entries(seatTypeGroups)) {
             if (seatIds.length > 0) {
               await seatApi.updateMultipleSeats({
@@ -528,7 +555,15 @@ export function AdminRoomPage() {
             )}
           </div>
 
-          <div className="p-4 shrink-0">
+          <div className="p-4 shrink-0 flex flex-col gap-2">
+            {zonesHistory.length > 0 && (
+              <button 
+                onClick={handleUndo}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg w-full text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <Undo2 size={16} /> Hoàn tác ({zonesHistory.length})
+              </button>
+            )}
             <button 
               onClick={handleConfirmClick}
               disabled={isSubmitting}
@@ -555,6 +590,7 @@ export function AdminRoomPage() {
                 selectedSeatIds={selectedSeatIds}
                 onZonesChange={setZones}
                 onSelectedSeatsChange={setSelectedSeatIds}
+                onSaveHistory={() => saveHistory(zones)}
               />
             </div>
           )}

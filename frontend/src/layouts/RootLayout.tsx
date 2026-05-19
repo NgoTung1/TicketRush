@@ -23,6 +23,10 @@ const RootLayout: React.FC = () => {
 
   const [isRestoring, setIsRestoring] = useState(true);
   const fetchUserProfile = useAuthStore((state) => state.fetchUserProfile);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
   const { activeRoom, isNotifyOpen, setNotifyOpen, clearActiveRoom } = useRoomStore();
   const navigate = useNavigate();
 

@@ -55,10 +55,10 @@ const extractEventsData = (res: any): EventResponse[] => {
   return [];
 };
 
-const extractTotalPages = (res: any, events: EventResponse[], pageSize: number): number => {
+const extractTotalPages = (res: any, events: EventResponse[], pageSize: number, currentPage: number): number => {
   if (res?.data?.totalPages) return res.data.totalPages;
   if (res?.totalPages) return res.totalPages;
-  return events.length < pageSize ? 1 : -1;
+  return events.length < pageSize ? currentPage : -1;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ const FilterDropdown: React.FC<DropdownProps> = ({ icon, label, options, value, 
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-50 min-w-[160px] bg-[#242424] border border-white/10 rounded-lg shadow-xl overflow-hidden">
+        <div className="absolute top-full left-0 mt-1 z-50 min-w-[160px] max-h-60 overflow-y-auto bg-[#242424] border border-white/10 rounded-lg shadow-xl">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -213,9 +213,13 @@ const EventList: React.FC = () => {
       }
 
       setEvents(extracted);
-      const tp = extractTotalPages(res, extracted, PAGE_SIZE);
+      const tp = extractTotalPages(res, extracted, PAGE_SIZE, currentPage);
       if (tp > 0) {
-        setTotalPages(tp);
+        if (currentPage === 1) {
+          setTotalPages(tp);
+        } else {
+          setTotalPages(prev => Math.max(prev, tp));
+        }
       } else {
         const deduced = currentPage + (extracted.length === PAGE_SIZE ? 1 : 0);
         if (currentPage === 1) {

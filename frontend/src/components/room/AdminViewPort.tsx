@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import Zone from './Zone';
 import { SeatResponse } from '@/api/seatApi';
 import { SeatTypeResponse } from '@/api/seatTypeApi';
-import { useRoomStore } from '@/store/RoomStore';
 
 export interface ZoneData {
     id: string;
@@ -27,6 +26,7 @@ interface ViewPortProps {
     selectedSeatIds?: string[];
     onZonesChange?: (zones: ZoneData[]) => void;
     onSelectedSeatsChange?: (seatIds: string[]) => void;
+    onSaveHistory?: () => void;
 }
 
 const DEFAULT_ZONES: ZoneData[] = [];
@@ -39,11 +39,9 @@ const ViewPort: React.FC<ViewPortProps> = ({
     seatTypes = DEFAULT_SEAT_TYPES,
     selectedSeatIds: propSelectedSeatIds = [],
     onZonesChange,
-    onSelectedSeatsChange
+    onSelectedSeatsChange,
+    onSaveHistory
 }) => {
-    const { activeRoom } = useRoomStore();
-    const eventId = activeRoom?.eventId;
-
     const [zones, setInternalZones] = useState<ZoneData[]>(propZones);
     const [selectedSeatIds, setInternalSelectedSeatIds] = useState<string[]>([]);
     const [internalSeatTypes, setInternalSeatTypes] = useState<SeatTypeResponse[]>(seatTypes);
@@ -115,7 +113,10 @@ const ViewPort: React.FC<ViewPortProps> = ({
             lastPosition.current = { x: e.clientX, y: e.clientY };
         } else {
             setDragMode('SELECT'); // Khoanh vùng
-            setSelectionBox({ startX: e.clientX, startY: e.clientY, endX: e.clientX, endY: e.clientY });
+            const rect = viewportRef.current?.getBoundingClientRect();
+            const startX = rect ? e.clientX - rect.left : e.clientX;
+            const startY = rect ? e.clientY - rect.top : e.clientY;
+            setSelectionBox({ startX, startY, endX: startX, endY: startY });
         }
     };
 
@@ -127,12 +128,16 @@ const ViewPort: React.FC<ViewPortProps> = ({
         setSelectedZoneId(zoneId); // Luôn active zone khi được click
 
         if (isShiftPressed) {
+            onSaveHistory?.();
             setDragMode('MOVE_ZONE'); // Giữ Shift -> Kéo zone đi chỗ khác
             setDraggingZoneId(zoneId);
             lastPosition.current = { x: e.clientX, y: e.clientY };
         } else {
             setDragMode('SELECT'); // Không giữ Shift -> Quét ghế bên trong zone
-            setSelectionBox({ startX: e.clientX, startY: e.clientY, endX: e.clientX, endY: e.clientY });
+            const rect = viewportRef.current?.getBoundingClientRect();
+            const startX = rect ? e.clientX - rect.left : e.clientX;
+            const startY = rect ? e.clientY - rect.top : e.clientY;
+            setSelectionBox({ startX, startY, endX: startX, endY: startY });
         }
     };
 
@@ -150,7 +155,10 @@ const ViewPort: React.FC<ViewPortProps> = ({
             setPosition((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
         }
         else if (dragMode === 'SELECT' && selectionBox) {
-            setSelectionBox(prev => prev ? { ...prev, endX: e.clientX, endY: e.clientY } : null);
+            const rect = viewportRef.current?.getBoundingClientRect();
+            const currentX = rect ? e.clientX - rect.left : e.clientX;
+            const currentY = rect ? e.clientY - rect.top : e.clientY;
+            setSelectionBox(prev => prev ? { ...prev, endX: currentX, endY: currentY } : null);
         }
     };
 
@@ -162,12 +170,13 @@ const ViewPort: React.FC<ViewPortProps> = ({
     };
 
     const calculateSelection = () => {
-        if (!selectionBox) return;
+        if (!selectionBox || !viewportRef.current) return;
+        const parentRect = viewportRef.current.getBoundingClientRect();
         const rect = {
-            left: Math.min(selectionBox.startX, selectionBox.endX),
-            top: Math.min(selectionBox.startY, selectionBox.endY),
-            right: Math.max(selectionBox.startX, selectionBox.endX),
-            bottom: Math.max(selectionBox.startY, selectionBox.endY),
+            left: Math.min(selectionBox.startX, selectionBox.endX) + parentRect.left,
+            top: Math.min(selectionBox.startY, selectionBox.endY) + parentRect.top,
+            right: Math.max(selectionBox.startX, selectionBox.endX) + parentRect.left,
+            bottom: Math.max(selectionBox.startY, selectionBox.endY) + parentRect.top,
         };
 
         if (rect.right - rect.left > 3 || rect.bottom - rect.top > 3) {
@@ -187,7 +196,7 @@ const ViewPort: React.FC<ViewPortProps> = ({
                             }
                             if (seatData) break;
                         }
-                        if (seatData && seatData.status === 'AVAILABLE') newlySelectedIds.push(id);
+                        if (seatData) newlySelectedIds.push(id);
                     }
                 }
             });
@@ -206,9 +215,13 @@ const ViewPort: React.FC<ViewPortProps> = ({
 
     const handleUpdateSelectedSeatsStatus = async (newStatus: string) => {
         if (selectedSeatIds.length === 0) { alert("Vui lòng chọn ít nhất 1 ghế!"); return; }
+        onSaveHistory?.();
         setZones(prevZones => prevZones.map(zone => ({
             ...zone, matrix: zone.matrix.map(row => row.map(seat => {
-                if (seat && selectedSeatIds.includes(seat.id)) { return { ...seat, status: newStatus as any }; }
+                if (seat && selectedSeatIds.includes(seat.id)) { 
+                    const nextStatus = seat.status === newStatus ? 'AVAILABLE' : newStatus;
+                    return { ...seat, status: nextStatus as any }; 
+                }
                 return seat;
             }))
         })));
@@ -217,6 +230,7 @@ const ViewPort: React.FC<ViewPortProps> = ({
 
     const handleZoneTransform = (action: 'rotateLeft' | 'rotateRight' | 'flipHorizontal' | 'flipVertical') => {
         if (!selectedZoneId) return;
+        onSaveHistory?.();
         setZones(prev => prev.map(z => {
             if (z.id !== selectedZoneId) return z;
 
@@ -332,11 +346,12 @@ const ViewPort: React.FC<ViewPortProps> = ({
                             onNameMouseDown={isAdmin ? (e) => {
                                 e.stopPropagation();
                                 setSelectedZoneId(zone.id);
+                                onSaveHistory?.();
                                 setDragMode('MOVE_ZONE');
                                 setDraggingZoneId(zone.id);
                                 lastPosition.current = { x: e.clientX, y: e.clientY };
                             } : undefined}
-                            onSeatMouseDown={(e) => {
+                            onSeatMouseDown={() => {
                                 if (selectedZoneId !== zone.id) {
                                     setSelectedZoneId(null);
                                 }
@@ -356,9 +371,8 @@ const ViewPort: React.FC<ViewPortProps> = ({
                         Đang chọn: <strong className="text-[#0000ff] text-lg">{selectedSeatIds.length}</strong> ghế
                     </span>
                     <div className="flex gap-2">
-                        <button onClick={() => handleUpdateSelectedSeatsStatus('LOCKED')} className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg text-sm shadow-md whitespace-nowrap">Khóa</button>
+                        <button onClick={() => handleUpdateSelectedSeatsStatus('ORDERED')} className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg text-sm shadow-md whitespace-nowrap">Khóa</button>
                         <button onClick={() => handleUpdateSelectedSeatsStatus('SOLD')} className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm shadow-md whitespace-nowrap">Bán</button>
-                        <button onClick={() => handleUpdateSelectedSeatsStatus('AVAILABLE')} className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm shadow-md whitespace-nowrap">Mở</button>
                     </div>
 
                     {selectedZoneId && (
