@@ -197,11 +197,12 @@ const ViewPort: React.FC<ViewPortProps> = ({
             }}
             onMouseDown={handleZoneMouseDown}
           >
-            <Zone
+              <Zone
               name={zone.name}
               seatsMatrix={zone.matrix}
               seatTypes={internalSeatTypes}
               selectedSeatIds={selectedSeatIds}
+              readOnly={readOnly}
               unselectableStatuses={readOnly ? ['AVAILABLE', 'SOLD', 'ORDERED', 'LOCKED'] : ['SOLD', 'ORDERED', 'LOCKED']}
               onSeatSelect={handleSeatSelect}
             />

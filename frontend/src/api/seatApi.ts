@@ -42,4 +42,10 @@ export const seatApi = {
 
   updateMultipleSeats: (data: SeatBulkUpdateRequest) =>
     axiosClient.put<SeatResponse[]>(`/seats/bulk-update`, data),
+
+  holdSeats: (seatIds: string[]) =>
+    axiosClient.post<SeatResponse[]>(`/seats/hold`, seatIds),
+
+  releaseSeats: (seatIds: string[]) =>
+    axiosClient.post<SeatResponse[]>(`/seats/release`, seatIds),
 };
