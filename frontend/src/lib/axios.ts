@@ -56,17 +56,21 @@ axiosClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-
         const refreshResponse = await axios.post(
           `${baseURL}api/public/auth/refresh`,
           {},
           { withCredentials: true }
         );
 
-        const newToken = refreshResponse.data.token;
+        // SỬA LỖI 1: Đọc đúng tên biến 'accessToken' từ Backend gửi về
+        const newToken = refreshResponse.data.accessToken;
+
         setAccessToken(newToken);
 
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+        // SỬA LỖI 2: Phải return lại AxiosClient cùng với originalRequest để gọi lại API bị tạch trước đó
+        return axiosClient(originalRequest);
 
       } catch (refreshError) {
         console.warn('Phiên đăng nhập hết hạn! Vui lòng đăng nhập lại.');
