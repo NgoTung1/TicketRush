@@ -6,13 +6,14 @@ interface SeatProps {
   seat: SeatResponse;
   color?: string; // Màu sắc từ SeatType
   isSelected?: boolean; // Trạng thái chọn ở phía client
+  readOnly?: boolean;
   onMouseDown?: (e: React.MouseEvent) => void;
   onMouseEnter?: (e: React.MouseEvent) => void;
 }
 
-const Seat: React.FC<SeatProps> = ({ seat, color = '#b3b3b3', isSelected, onMouseDown, onMouseEnter }) => {
+const Seat: React.FC<SeatProps> = ({ seat, color = '#b3b3b3', isSelected, readOnly, onMouseDown, onMouseEnter }) => {
   const currentUser = useAuthStore(state => state.user);
-  const isPurchasedByUser = seat.status === 'SOLD' && seat.userId && (currentUser?.id || 'mock-user-id') === seat.userId;
+  const isPurchasedByUser = readOnly && seat.status === 'SOLD' && seat.userId && (currentUser?.id || 'mock-user-id') === seat.userId;
 
   const getStyle = () => {
     if (seat.status === 'SOLD' && !isPurchasedByUser) {
@@ -47,6 +48,7 @@ export default React.memo(Seat, (prevProps, nextProps) => {
   // 2. Trạng thái được chọn (có chấm trắng hay không) thay đổi
   return (
     prevProps.seat.status === nextProps.seat.status &&
-    prevProps.isSelected === nextProps.isSelected
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.readOnly === nextProps.readOnly
   );
 });

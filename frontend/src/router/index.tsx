@@ -101,7 +101,7 @@ const router = createBrowserRouter([
             element: <SeatSelectedPage />,
           },
           {
-            path: 'checkout/:orderId',
+            path: 'checkout/:eventId',
             element: <Checkout />,
           },
           {

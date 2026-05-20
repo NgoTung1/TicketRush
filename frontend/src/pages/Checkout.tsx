@@ -3,10 +3,11 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PaymentMethodSelector from '../components/checkout/PaymentMethodSelector';
 import InvoiceDetails, { InvoiceItem } from '../components/checkout/InvoiceDetails';
 import { orderApi } from '@/api/orderApi';
+import { seatApi } from '@/api/seatApi';
 import { useRoomStore } from '@/store/RoomStore';
 
 const Checkout: React.FC = () => {
-  const { orderId } = useParams<{ orderId: string }>();
+  const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as {
@@ -14,15 +15,17 @@ const Checkout: React.FC = () => {
     seatIds: string[];
     invoiceData: InvoiceItem[];
     totalAmount: number;
+    eventId: string;
   } | null;
   
   const [selectedMethod, setSelectedMethod] = useState<string>('bank');
   const [isLoadingPayment, setIsLoadingPayment] = useState<boolean>(false);
+  const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const { activeRoom, clearActiveRoom } = useRoomStore();
 
   useEffect(() => {
     if (!state) {
-      navigate('/seats', { replace: true });
+      navigate('/', { replace: true });
     }
   }, [state, navigate]);
 
@@ -33,20 +36,29 @@ const Checkout: React.FC = () => {
     }
   }, [activeRoom, navigate]);
 
-  const handleCancel = () => {
-    clearActiveRoom();
-    navigate('/');
+  const handleCancel = async () => {
+    if (!state?.seatIds || !eventId) return;
+    setIsCancelling(true);
+    try {
+      await seatApi.releaseSeats(state.seatIds);
+    } catch (err) {
+      console.error('Lỗi khi nhả ghế:', err);
+    } finally {
+      setIsCancelling(false);
+      navigate(`/event/${eventId}/room`);
+    }
   };
 
   const handlePayment = async () => {
     if (!state?.sessionId || !state?.seatIds) return;
     setIsLoadingPayment(true);
     try {
-      await orderApi.createOrder({
-        orderId: orderId,
+      const response = await orderApi.createOrder({
         sessionId: state.sessionId,
         seatIds: state.seatIds,
-      });
+      }) as any;
+      const orderId = response.orderId || response.id;
+      clearActiveRoom();
       navigate(`/checkout/success/${orderId}`, { replace: true, state: { invoiceData: state.invoiceData, totalAmount: state.totalAmount } });
     } catch (error) {
       console.error("Payment failed", error);
@@ -83,9 +95,10 @@ const Checkout: React.FC = () => {
             <div className="flex justify-end space-x-4 mt-4">
               <button
                 onClick={handleCancel}
-                className="px-5 py-1 rounded-full bg-gray-500 hover:bg-gray-600 text-white font-medium transition-colors focus:outline-none"
+                disabled={isCancelling}
+                className="px-5 py-1 rounded-full bg-gray-500 hover:bg-gray-600 text-white font-medium transition-colors focus:outline-none disabled:opacity-50"
               >
-                Hủy
+                {isCancelling ? 'Đang hủy...' : 'Hủy'}
               </button>
               <button
                 onClick={handlePayment}

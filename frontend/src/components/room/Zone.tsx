@@ -8,6 +8,7 @@ interface ZoneProps {
   seatsMatrix: (SeatResponse | null)[][];
   seatTypes: SeatTypeResponse[];
   selectedSeatIds: string[];
+  readOnly?: boolean;
   unselectableStatuses?: string[];
   onSeatSelect?: (seat: SeatResponse, mode: 'add' | 'remove') => void;
   onNameMouseDown?: (e: React.MouseEvent) => void;
@@ -19,6 +20,7 @@ const Zone: React.FC<ZoneProps> = ({
   seatsMatrix,
   seatTypes,
   selectedSeatIds,
+  readOnly,
   unselectableStatuses = [],
   onSeatSelect,
   onNameMouseDown,
@@ -109,6 +111,7 @@ const Zone: React.FC<ZoneProps> = ({
                     seat={seat}
                     color={getSeatColor(seat.seatTypeId)}
                     isSelected={selectedSeatIds.includes(seat.id)}
+                    readOnly={readOnly}
                     onMouseDown={(e) => handleSeatMouseDown(e, seat)}
                     onMouseEnter={(e) => handleSeatMouseEnter(e, seat)}
                   />

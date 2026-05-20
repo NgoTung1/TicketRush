@@ -170,9 +170,10 @@ export function RoomPage() {
     }
   };
 
-  const handleCheckout = () => {
-    if (!sessionId || groupedSelectedSeats.length === 0) return;
-    const checkoutId = crypto.randomUUID();
+  const [isHolding, setIsHolding] = useState(false);
+
+  const handleCheckout = async () => {
+    if (!sessionId || !eventId || groupedSelectedSeats.length === 0) return;
     const seatIds = groupedSelectedSeats.flatMap(g => g.seats.map(s => s.id));
     const invoiceData = groupedSelectedSeats.map(g => ({
       type: `${g.type.label} - ${g.zone.name}`,
@@ -181,14 +182,24 @@ export function RoomPage() {
       seats: g.seats.map(s => `${s.colIndex}${String.fromCharCode(65 + s.rowIndex - 1)}`),
     }));
 
-    navigate(`/checkout/${checkoutId}`, { 
-      state: { 
-        sessionId, 
-        seatIds, 
-        invoiceData,
-        totalAmount: totalPrice,
-      } 
-    });
+    setIsHolding(true);
+    try {
+      await seatApi.holdSeats(seatIds);
+      navigate(`/checkout/${eventId}`, { 
+        state: { 
+          sessionId, 
+          seatIds, 
+          invoiceData,
+          totalAmount: totalPrice,
+          eventId,
+        } 
+      });
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || 'Không thể giữ ghế. Vui lòng thử lại.';
+      alert(message);
+    } finally {
+      setIsHolding(false);
+    }
   };
 
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
@@ -356,10 +367,10 @@ export function RoomPage() {
             </button>
             <button
               className="flex-1 md:flex-none px-4 py-1.5 bg-[#0088ff] hover:bg-blue-500 text-white rounded-full font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={groupedSelectedSeats.length === 0}
+              disabled={groupedSelectedSeats.length === 0 || isHolding}
               onClick={handleCheckout}
             >
-              Thanh toán
+              {isHolding ? 'Đang giữ ghế...' : 'Thanh toán'}
             </button>
           </div>
         </div>
