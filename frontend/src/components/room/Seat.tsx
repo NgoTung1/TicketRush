@@ -41,4 +41,12 @@ const Seat: React.FC<SeatProps> = ({ seat, color = '#b3b3b3', isSelected, onMous
   );
 };
 
-export default Seat;
+export default React.memo(Seat, (prevProps, nextProps) => {
+  // Chỉ vẽ lại (re-render) nếu:
+  // 1. Trạng thái của ghế thay đổi (Ví dụ: Từ AVAILABLE -> ORDERED)
+  // 2. Trạng thái được chọn (có chấm trắng hay không) thay đổi
+  return (
+    prevProps.seat.status === nextProps.seat.status &&
+    prevProps.isSelected === nextProps.isSelected
+  );
+});

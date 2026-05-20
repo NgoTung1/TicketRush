@@ -5,8 +5,8 @@ import { useToastStore } from './ToastStore';
 interface ActiveRoom {
   eventId: string;
   status: 'waiting' | 'ready';
-  timeLeft?: string;
-  expiresAt?: number;
+  expiresAt?: number; // Dùng số millisecond làm chuẩn gốc
+  timeLeft?: string;  // Chỉ dùng để show UI (VD: 09:59)
 }
 
 interface RoomState {
@@ -24,97 +24,95 @@ export const useRoomStore = create<RoomState>()(
   persist(
     (set, get) => ({
       activeRoom: null,
-  timerId: null,
-  isNotifyOpen: false,
+      timerId: null,
+      isNotifyOpen: false,
 
-  setActiveRoom: (room) => {
-    const currentTimer = get().timerId;
-    if (currentTimer) {
-      clearInterval(currentTimer);
-    }
+      setActiveRoom: (room) => {
+        const currentTimer = get().timerId;
+        if (currentTimer) clearInterval(currentTimer);
 
-    if (!room) {
-      set({ activeRoom: null, timerId: null });
-      return;
-    }
-
-    if (room.status === 'ready' && !room.expiresAt) {
-      let minutes = 10;
-      let seconds = 0;
-
-      if (room.timeLeft) {
-        const parts = room.timeLeft.split(':');
-        if (parts.length === 2) {
-          const parsedMins = parseInt(parts[0], 10);
-          const parsedSecs = parseInt(parts[1], 10);
-
-          minutes = !isNaN(parsedMins) ? parsedMins : 1;
-          seconds = !isNaN(parsedSecs) ? parsedSecs : 0;
+        if (!room) {
+          set({ activeRoom: null, timerId: null });
+          return;
         }
-      }
 
-      // Tính toán dựa trên giá trị đã parse chính xác
-      room.expiresAt = Date.now() + (minutes * 60 + seconds) * 1000;
-    }
+        // Kiểm tra an toàn: Lỡ Component quên check quá hạn, Store check lại lần nữa
+        if (room.status === 'ready' && room.expiresAt) {
+          if (room.expiresAt <= Date.now()) {
+            set({ activeRoom: null, timerId: null });
+            useToastStore.getState().addToast({
+              type: 'warning',
+              title: 'Hết thời gian',
+              message: 'Phiên của bạn đã hết hạn, vui lòng xếp hàng lại.'
+            });
+            return; // Đuổi luôn, không set vào State
+          }
+        }
 
-    set({ activeRoom: room });
+        set({ activeRoom: room });
 
-    if (room.status === 'ready') {
-      get().startTimer();
-    }
-  },
+        if (room.status === 'ready') {
+          get().startTimer();
+        }
+      },
 
-  clearActiveRoom: () => {
-    const currentTimer = get().timerId;
-    if (currentTimer) {
-      clearInterval(currentTimer);
-    }
-    set({ activeRoom: null, timerId: null });
-  },
-
-  setNotifyOpen: (open) => set({ isNotifyOpen: open }),
-
-  startTimer: () => {
-    const timerId = setInterval(() => {
-      const room = get().activeRoom;
-      if (!room || room.status !== 'ready' || !room.expiresAt) {
-        clearInterval(get().timerId as any);
-        return;
-      }
-
-      const remainingMs = room.expiresAt - Date.now();
-      if (remainingMs <= 0) {
-        clearInterval(get().timerId as any);
+      clearActiveRoom: () => {
+        const currentTimer = get().timerId;
+        if (currentTimer) clearInterval(currentTimer);
         set({ activeRoom: null, timerId: null });
-        useToastStore.getState().addToast({
-          type: 'warning',
-          title: 'Hết thời gian giữ chỗ!',
-          message: 'Thời gian chờ trong phòng thanh toán của bạn đã kết thúc. Vui lòng xếp hàng lại nếu chưa mua được vé.'
-        });
-      } else {
-        const totalSeconds = Math.floor(remainingMs / 1000);
-        const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-        const s = (totalSeconds % 60).toString().padStart(2, '0');
-        set({
-          activeRoom: { ...room, timeLeft: `${m}:${s}` }
-        });
-      }
-    }, 1000);
+      },
 
-    set({ timerId });
-  }
-}),
+      setNotifyOpen: (open) => set({ isNotifyOpen: open }),
+
+      startTimer: () => {
+        const timerId = setInterval(() => {
+          const room = get().activeRoom;
+          // Nếu mất phòng hoặc không có hạn -> Dừng đếm
+          if (!room || room.status !== 'ready' || !room.expiresAt) {
+            clearInterval(get().timerId as any);
+            return;
+          }
+
+          const remainingMs = room.expiresAt - Date.now();
+
+          if (remainingMs <= 0) { // HẾT GIỜ KHI ĐANG MỞ TRANG
+            clearInterval(get().timerId as any);
+            set({ activeRoom: null, timerId: null });
+
+            // Đá người dùng về trang sự kiện chính thông qua React Router ở component, 
+            // hoặc đơn giản là để component tự nhận diện activeRoom == null và đẩy ra.
+            useToastStore.getState().addToast({
+              type: 'warning',
+              title: 'Hết thời gian giữ chỗ!',
+              message: 'Thời gian thanh toán kết thúc. Vui lòng xếp hàng lại.'
+            });
+            // Optional: window.location.href = `/event/${room.eventId}`; (Để ép chuyển trang nếu cần)
+          } else {
+            // Cập nhật chuỗi hiển thị
+            const totalSeconds = Math.floor(remainingMs / 1000);
+            const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            set({
+              activeRoom: { ...room, timeLeft: `${m}:${s}` }
+            });
+          }
+        }, 1000);
+
+        set({ timerId });
+      }
+    }),
     {
       name: 'room-storage',
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({ activeRoom: state.activeRoom }),
       onRehydrateStorage: () => (state) => {
         if (state && state.activeRoom && state.activeRoom.status === 'ready' && state.activeRoom.expiresAt) {
+          // Bắt sự kiện người dùng F5 trang web
           if (state.activeRoom.expiresAt <= Date.now()) {
-            state.clearActiveRoom();
+            state.clearActiveRoom(); // F5 mà hết giờ -> Xóa luôn
           } else {
             setTimeout(() => {
-              state.startTimer();
+              state.startTimer(); // F5 mà còn giờ -> Tiếp tục đếm đồng hồ
             }, 0);
           }
         }

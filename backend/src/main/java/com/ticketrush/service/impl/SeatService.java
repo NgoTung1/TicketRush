@@ -10,8 +10,18 @@ import com.ticketrush.entity.Zone;
 import com.ticketrush.entity.enums.SeatStatus;
 import com.ticketrush.repository.SeatRepository;
 import com.ticketrush.repository.SeatTypeRepository;
+import com.ticketrush.repository.UserRepository;
 import com.ticketrush.repository.ZoneRepository;
+
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
+
+import com.ticketrush.entity.User;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,13 +37,14 @@ public class SeatService {
     private final SeatRepository seatRepository;
     private final ZoneRepository zoneRepository;
     private final SeatTypeRepository seatTypeRepository;
+    private final UserRepository userRepository;
 
     // Tự động sinh ghế sau khi chốt được zone
     @Transactional
     public List<SeatResponse> generateSeats(UUID zoneId, SeatGenerateRequest request) {
         Zone zone = zoneRepository.findById(zoneId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Zone!"));
-        
+
         SeatType seatType = seatTypeRepository.findById(request.getSeatTypeId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy SeatType!"));
 
@@ -48,8 +59,8 @@ public class SeatService {
                 seat.setRowIndex(r);
                 seat.setColIndex(c);
                 seat.setSeatNumber(seatNumber++);
-                seat.setStatus(SeatStatus.AVAILABLE); 
-                
+                seat.setStatus(SeatStatus.AVAILABLE);
+
                 seatsToSave.add(seat);
             }
         }
@@ -78,14 +89,17 @@ public class SeatService {
             seat.setSeatType(seatType);
         }
 
-
-        if (request.getRowIndex() != null) seat.setRowIndex(request.getRowIndex());
-        if (request.getColIndex() != null) seat.setColIndex(request.getColIndex());
-        if (request.getSeatNumber() != null) seat.setSeatNumber(request.getSeatNumber());
-        if (request.getStatus() != null) seat.setStatus(request.getStatus());
+        if (request.getRowIndex() != null)
+            seat.setRowIndex(request.getRowIndex());
+        if (request.getColIndex() != null)
+            seat.setColIndex(request.getColIndex());
+        if (request.getSeatNumber() != null)
+            seat.setSeatNumber(request.getSeatNumber());
+        if (request.getStatus() != null)
+            seat.setStatus(request.getStatus());
 
         Seat savedSeat = seatRepository.save(seat);
-        return mapToResponse(savedSeat); 
+        return mapToResponse(savedSeat);
     }
 
     // Update nhiều seat 1 lúc
@@ -112,15 +126,43 @@ public class SeatService {
     }
 
     @Transactional
-    public List<SeatResponse> holdSeatsForBooking(List<UUID> seatIds) {
+    public List<SeatResponse> holdSeatsForBooking(UUID userId, List<UUID> seatIds) {
+        if (seatIds.size() > 8) {
+            throw new RuntimeException("Bạn chỉ được phép đặt tối đa 8 ghế cho mỗi lần!");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy User!"));
+
         List<Seat> seats = seatRepository.findAvailableSeatsForUpdate(seatIds);
 
         if (seats.size() != seatIds.size()) {
-            throw new RuntimeException("Rất tiếc! Một hoặc nhiều ghế bạn chọn đã bị người khác đặt. Vui lòng chọn ghế khác.");
+            throw new RuntimeException(
+                    "Rất tiếc! Một hoặc nhiều ghế bạn chọn đã bị người khác đặt. Vui lòng chọn ghế khác.");
         }
 
         for (Seat seat : seats) {
             seat.setStatus(SeatStatus.ORDERED);
+            seat.setSelectedBy(user);
+        }
+
+        List<Seat> savedSeats = seatRepository.saveAll(seats);
+        return savedSeats.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<SeatResponse> releaseHeldSeats(UUID userId, List<UUID> seatIds) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy User!"));
+
+        List<Seat> seats = seatRepository.findAllById(seatIds);
+
+        for (Seat seat : seats) {
+            if (seat.getSelectedBy() != null && seat.getSelectedBy().getId().equals(userId)
+                    && seat.getStatus() == SeatStatus.ORDERED) {
+                seat.setStatus(SeatStatus.AVAILABLE);
+                seat.setSelectedBy(null);
+            }
         }
 
         List<Seat> savedSeats = seatRepository.saveAll(seats);
@@ -131,7 +173,7 @@ public class SeatService {
     public void deleteSeatsByZoneId(UUID zoneId) {
         seatRepository.deleteByZoneId(zoneId);
     }
-    
+
     private SeatResponse mapToResponse(Seat seat) {
         return SeatResponse.builder()
                 .id(seat.getId())

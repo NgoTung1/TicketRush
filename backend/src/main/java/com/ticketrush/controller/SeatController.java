@@ -50,4 +50,18 @@ public class SeatController {
             @RequestBody SeatBulkUpdateRequest request) {
         return ResponseEntity.ok(seatService.updateMultipleSeatsType(request));
     }
+
+    @PostMapping("/seats/hold")
+    public ResponseEntity<List<SeatResponse>> holdSeats(
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestBody List<UUID> seatIds) {
+        return ResponseEntity.ok(seatService.holdSeatsForBooking(userId, seatIds));
+    }
+
+    @PostMapping("/seats/release")
+    public ResponseEntity<List<SeatResponse>> releaseSeats(
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestBody List<UUID> seatIds) {
+        return ResponseEntity.ok(seatService.releaseHeldSeats(userId, seatIds));
+    }
 }

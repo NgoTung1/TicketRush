@@ -154,20 +154,28 @@ const EventDetail: React.FC = () => {
   const performJoinRoom = async () => {
     if (!id) return;
     try {
-      console.log("AAAA")
       const res = await roomApi.joinRoom(id);
       const status = res.status ? res.status.toString() : '';
-      const message = (res as any).message;
 
-      if (status === 'ACTIVE_ROOM') {
-        setActiveRoom({ eventId: id, status: 'ready', timeLeft: '10:00' });
-        navigate(`/event/${id}/room`, { state: { fromDetail: true } });
+      if (status === 'ACTIVE_ROOM' || status === 'ALREADY_IN_ACTIVE') {
+
+        const expireAtMs = res.expireAt ? res.expireAt * 1000 : Date.now() + 600000;
+
+        if (Date.now() >= expireAtMs) {
+          alert("Thao tác quá nhanh, vui lòng thử lại trong giây lát!");
+          return;
+        }
+
+        // Truyền hẳn expireAt vào Store
+        setActiveRoom({ eventId: id, status: 'ready', expiresAt: expireAtMs });
+        navigate(`/event/${id}/room`);
+
       } else if (status === 'WAITING_ROOM') {
         setActiveRoom({ eventId: id, status: 'waiting' });
-        setNotifyOpen(true); // Hiển thị NotifyForm tại RootLayout
+        setNotifyOpen(true);
       } else if (status === 'BLOCKED') {
         const unblockAt = (res as any).unblockAt
-        setBlockMessage(message || 'Tài khoản của bạn đã bị chặn do phát hiện hoạt động bất thường.');
+        setBlockMessage('Tài khoản của bạn đã bị chặn do phát hiện hoạt động bất thường.');
         if (unblockAt) {
           setUnblockTime(formatUnblockTime(unblockAt));
         } else {

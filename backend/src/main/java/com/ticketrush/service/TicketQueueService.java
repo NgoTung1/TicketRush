@@ -5,6 +5,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
+import com.ticketrush.dto.JoinResultDTO;
+
 import java.time.Instant;
 import java.time.Duration;
 import java.util.Set;
@@ -29,16 +31,20 @@ public class TicketQueueService {
     return "event:" + eventId + ":active";
   }
 
-  public String joinEvent(String eventId, String userId) {
+  public JoinResultDTO joinEvent(String eventId, String userId) {
     String activeKey = getActiveKey(eventId);
     String waitingKey = getWaitingKey(eventId);
 
-    // Nếu Score khác null tức là họ đang ở trong Active hoặc Waiting
     Double activeScore = redisTemplate.opsForZSet().score(activeKey, userId);
     Double waitingScore = redisTemplate.opsForZSet().score(waitingKey, userId);
 
-    if (activeScore != null || waitingScore != null) {
-      return activeScore != null ? "ALREADY_IN_ACTIVE" : "ALREADY_IN_WAITING";
+    // Đang ở trong Active
+    if (activeScore != null) {
+      return new JoinResultDTO("ALREADY_IN_ACTIVE", activeScore.longValue());
+    }
+    // Đang xếp hàng
+    if (waitingScore != null) {
+      return new JoinResultDTO("ALREADY_IN_WAITING", waitingScore.longValue());
     }
 
     long now = Instant.now().getEpochSecond();
@@ -47,10 +53,10 @@ public class TicketQueueService {
     if (currentActive != null && currentActive < ACTIVE_ROOM_LIMIT) {
       long expireTime = now + PAYMENT_WINDOW_SECONDS;
       redisTemplate.opsForZSet().add(activeKey, userId, expireTime);
-      return "ACTIVE_ROOM";
+      return new JoinResultDTO("ACTIVE_ROOM", expireTime);
     } else {
       redisTemplate.opsForZSet().add(waitingKey, userId, now);
-      return "WAITING_ROOM";
+      return new JoinResultDTO("WAITING_ROOM", now);
     }
   }
 
