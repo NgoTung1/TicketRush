@@ -40,15 +40,15 @@ public class OrderService {
     private final UserRepository userRepository;
 
     @Transactional
-    public OrderCreateResponse createOrder(UUID userId, OrderCreateRequest request) {
+    public OrderPayResponse createAndPayOrder(UUID userId, OrderCreateRequest request) {
         validateRequest(request);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        List<Seat> seats = seatRepository.findForUpdateBySessionAndIds(request.getSessionId(), request.getSeatIds());
+        List<Seat> seats = seatRepository.findForUpdateByIds(request.getSeatIds());
         if (seats.size() != request.getSeatIds().size()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Some seats are not in the session");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Some seats could not be found");
         }
 
         for (Seat seat : seats) {
@@ -63,9 +63,14 @@ public class OrderService {
 
         LocalDateTime now = LocalDateTime.now();
         Order order = new Order();
+        if (request.getOrderId() != null) {
+            order.setId(request.getOrderId());
+        } else {
+            order.setId(UUID.randomUUID());
+        }
         order.setUser(user);
         order.setCode(generateOrderCode());
-        order.setStatus(OrderStatus.PENDING);
+        order.setStatus(OrderStatus.PAID);
         order.setCreatedAt(now);
         order.setUpdatedAt(now);
         order.setExpiresAt(now.plusMinutes(LOCK_MINUTES));
@@ -74,7 +79,7 @@ public class OrderService {
         List<OrderSeat> orderSeats = new ArrayList<>();
 
         for (Seat seat : seats) {
-            seat.setStatus(SeatStatus.ORDERED);
+            seat.setStatus(SeatStatus.SOLD);
             seat.setSelectedBy(user);
 
             OrderSeat orderSeat = new OrderSeat();
@@ -88,11 +93,40 @@ public class OrderService {
 
         order.setTotalAmount(totalAmount);
         Order savedOrder = orderRepository.save(order);
+        
+        for (OrderSeat orderSeat : orderSeats) {
+            orderSeat.setOrder(savedOrder);
+        }
         orderSeatRepository.saveAll(orderSeats);
         seatRepository.saveAll(seats);
         savedOrder.getOrderSeats().addAll(orderSeats);
 
-        return mapToCreateResponse(savedOrder);
+        List<Ticket> tickets = new ArrayList<>();
+        List<TicketSummaryResponse> ticketResponses = new ArrayList<>();
+
+        for (OrderSeat orderSeat : orderSeats) {
+            Ticket ticket = new Ticket();
+            ticket.setOrderSeat(orderSeat);
+            ticket.setCode(generateTicketCode());
+            ticket.setQrCode(generateTicketQrPayload());
+            ticket.setStatus(TicketStatus.VALID);
+            ticket.setCreatedAt(now);
+            ticket.setExpiresAt(orderSeat.getSeat().getZone().getEventSession().getEndAt());
+            tickets.add(ticket);
+        }
+
+        tickets = ticketRepository.saveAll(tickets);
+
+        for (Ticket ticket : tickets) {
+            ticketResponses.add(mapToTicketSummary(ticket));
+        }
+
+        return OrderPayResponse.builder()
+                .orderId(savedOrder.getId())
+                .status(savedOrder.getStatus())
+                .paidAt(now)
+                .tickets(ticketResponses)
+                .build();
     }
 
     @Transactional
@@ -268,11 +302,16 @@ public class OrderService {
     private TicketSummaryResponse mapToTicketSummary(Ticket ticket) {
         Seat seat = ticket.getOrderSeat().getSeat();
         String eventTitle = seat.getZone().getEventSession().getEvent().getTitle();
+        String qrPayload = String.format("Mã vé: %s | ID: %s | Trạng thái: %s | Ghế: %s",
+                ticket.getQrCode(),
+                ticket.getId(),
+                ticket.getStatus(),
+                buildSeatLabel(seat));
         return TicketSummaryResponse.builder()
                 .ticketId(ticket.getId())
                 .eventTitle(eventTitle)
                 .seatLabel(buildSeatLabel(seat))
-                .qrCode(ticket.getQrCode())
+                .qrCode(qrPayload)
                 .expiresAt(ticket.getExpiresAt())
                 .build();
     }
@@ -285,7 +324,12 @@ public class OrderService {
     }
 
     private String generateOrderCode() {
-        return "ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String code;
+        do {
+            int randomNum = 10000 + (int)(Math.random() * 90000);
+            code = "ORD-" + randomNum;
+        } while (orderRepository.existsByCode(code));
+        return code;
     }
 
     private String generateTicketCode() {

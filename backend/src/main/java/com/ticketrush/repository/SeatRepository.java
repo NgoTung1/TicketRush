@@ -35,4 +35,8 @@ public interface SeatRepository extends JpaRepository<Seat, UUID> {
                         "where es.id = :sessionId and s.id in :seatIds")
         List<Seat> findForUpdateBySessionAndIds(@Param("sessionId") UUID sessionId,
                         @Param("seatIds") List<UUID> seatIds);
+
+        @Lock(LockModeType.PESSIMISTIC_WRITE)
+        @Query("select s from Seat s join fetch s.seatType where s.id in :seatIds")
+        List<Seat> findForUpdateByIds(@Param("seatIds") List<UUID> seatIds);
 }

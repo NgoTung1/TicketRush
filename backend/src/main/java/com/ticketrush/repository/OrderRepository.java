@@ -25,6 +25,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 	// tim dua theo id order correspond voi id user
 	Optional<Order> findByIdAndUser_Id(UUID id, UUID userId);
 
+	boolean existsByCode(String code);
+
 	// tim don hang dua tren trang thai cua don hang va het han hay chua
 	List<Order> findAllByStatusAndExpiresAtBefore(OrderStatus status, LocalDateTime time);
 

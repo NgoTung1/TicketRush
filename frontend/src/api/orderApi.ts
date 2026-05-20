@@ -42,6 +42,9 @@ export interface TicketInOrderResponse {
 }
 
 export const orderApi = {
+  createOrder: (data: { orderId?: string; sessionId: string; seatIds: string[] }) =>
+    axiosClient.post<any>('api/orders', data),
+
   getAllOrders: (params: { status?: string; from?: string; to?: string }) =>
     axiosClient.get<OrderDetailResponse[]>('api/orders', { params }),
 

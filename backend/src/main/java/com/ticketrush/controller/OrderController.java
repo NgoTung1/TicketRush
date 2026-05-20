@@ -29,10 +29,11 @@ public class OrderController {
     private final TicketService ticketService;
 
     @PostMapping
-    public ResponseEntity<OrderCreateResponse> createOrder(
+    public ResponseEntity<OrderPayResponse> createOrder(
             @RequestHeader("X-User-Id") UUID userId,
-            @RequestBody OrderCreateRequest request) {
-        return ResponseEntity.ok(orderService.createOrder(userId, request));
+            @RequestBody OrderCreateRequest request
+    ) {
+        return ResponseEntity.ok(orderService.createAndPayOrder(userId, request));
     }
 
     @GetMapping("/{orderId}")
