@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, X, Trash2, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
 import AdminViewPort, { ZoneData } from '@/components/room/AdminViewPort';
@@ -8,6 +8,7 @@ import { eventSessionApi } from '@/api/eventSessionApi';
 import { seatTypeApi } from '@/api/seatTypeApi';
 import { zoneApi } from '@/api/zoneApi';
 import { seatApi } from '@/api/seatApi';
+import { eventApi } from '@/api/eventApi';
 
 const PRESET_COLORS = [
   '#b0b0b0', // Gray
@@ -34,11 +35,34 @@ export function AdminRoomPage() {
   const { id: eventId } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'manage' | 'edit'>('manage');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [zones, setZones] = useState<ZoneData[]>([]);
   const [zonesHistory, setZonesHistory] = useState<ZoneData[][]>([]);
+
+  useEffect(() => {
+    if (!eventId) {
+      setLoading(false);
+      return;
+    }
+
+    eventApi.getEventById(eventId)
+      .then((res: any) => {
+        const event = res?.data ?? res;
+        if (event.status !== 'ONCOMING') {
+          alert('Không thể cấu hình sơ đồ ghế cho sự kiện đã hoặc đang diễn ra.');
+          navigate('/');
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error("Lỗi tải thông tin sự kiện:", err);
+        setLoading(false);
+      });
+  }, [eventId, navigate]);
 
   const saveHistory = (currentZones: ZoneData[]) => {
     const snapshot = JSON.parse(JSON.stringify(currentZones));
@@ -360,6 +384,14 @@ export function AdminRoomPage() {
     setShowConfirmModal(false);
     handleConfirm();
   };
+
+  if (loading) {
+    return (
+      <div className="h-[calc(100vh-64px)] bg-[#141414] text-white flex items-center justify-center font-bold text-lg">
+        Đang tải thông tin sự kiện...
+      </div>
+    );
+  }
 
   return (
     <div className="h-[calc(100vh-64px)] bg-[#141414] text-white flex flex-col">

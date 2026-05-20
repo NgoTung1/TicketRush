@@ -5,6 +5,7 @@ import EventInput from '../../components/event/EventInput';
 import { eventApi, EventUpdateRequest } from '../../api/eventApi';
 import { eventSessionApi, EventSessionCreateRequest, EventSessionUpdateRequest } from '../../api/eventSessionApi';
 import { categoryApi, CategoryResponse } from '../../api/categoryApi';
+import { zoneApi } from '../../api/zoneApi';
 import Loading from '@/components/ui/Loading';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -51,6 +52,8 @@ const AdminUpdateEvent: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [hasSeatMatrix, setHasSeatMatrix] = useState(false);
+  const [firstSessionId, setFirstSessionId] = useState<string>('');
 
   // ─── Initial Load ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -98,6 +101,21 @@ const AdminUpdateEvent: React.FC = () => {
             },
           }))
         );
+
+        // 4. Kiểm tra sơ đồ ghế của sự kiện (lấy khu vực của suất diễn đầu tiên)
+        if (sessList.length > 0) {
+          try {
+            const firstSess = sessList[0];
+            const zonesRes: any = await zoneApi.getZonesBySessionId(firstSess.id);
+            const zoneList = Array.isArray(zonesRes) ? zonesRes : zonesRes?.data ?? [];
+            if (zoneList.length > 0) {
+              setHasSeatMatrix(true);
+              setFirstSessionId(firstSess.id);
+            }
+          } catch (zoneErr) {
+            console.error("Lỗi tải thông tin sơ đồ ghế:", zoneErr);
+          }
+        }
       } catch (err) {
         console.error(err);
         setError('Không thể tải thông tin sự kiện.');
@@ -315,6 +333,16 @@ const AdminUpdateEvent: React.FC = () => {
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <span className="text-white text-sm font-bold bg-black/60 px-4 py-2 rounded-full">Thay đổi banner</span>
                 </div>
+                {/* X button */}
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handleRemoveBanner(); }}
+                  className="absolute top-3 right-3 bg-black/60 hover:bg-black/90 text-white rounded-full p-1.5 backdrop-blur-sm transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             ) : (
               <button
@@ -350,6 +378,41 @@ const AdminUpdateEvent: React.FC = () => {
                   canRemove={sessions.length > 1}
                 />
               ))}
+            </div>
+          </div>
+
+          {/* Sơ đồ ghế */}
+          <div className="pt-6 border-t border-white/5 mt-8">
+            <h3 className="text-white font-bold text-[20px] mb-4">Sơ đồ ghế</h3>
+            <div className="bg-[#1e1e1e] p-4 rounded-xl border border-white/5 flex items-center justify-between">
+              <div>
+                <p className="text-white font-bold text-[16px]">Cấu hình sơ đồ ghế</p>
+                <p className="text-gray-400 text-[13px] mt-1">
+                  {hasSeatMatrix 
+                    ? "Sự kiện này đã có cấu hình sơ đồ ghế." 
+                    : "Sự kiện này chưa có cấu hình sơ đồ ghế. Bạn có thể tạo sơ đồ ghế mới."}
+                </p>
+              </div>
+              <div>
+                {hasSeatMatrix ? (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/admin/event/${id}/session/${firstSessionId}/room`)}
+                    className="px-6 py-2 bg-[#00e676] hover:bg-[#00c853] text-white text-[13px] font-bold rounded-xl transition-colors"
+                  >
+                    Xem chi tiết sơ đồ
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={sessions.length === 0}
+                    onClick={() => navigate(`/admin/event/room/${id}`)}
+                    className="px-6 py-2 bg-[#00a3ff] hover:bg-[#0090FF] disabled:opacity-50 disabled:cursor-not-allowed text-white text-[13px] font-bold rounded-xl transition-colors"
+                  >
+                    Tạo sơ đồ ghế
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

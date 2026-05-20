@@ -5,6 +5,7 @@ import com.ticketrush.dto.response.event.EventCreateResponse;
 import com.ticketrush.dto.request.event.EventUpdateRequest;
 import com.ticketrush.entity.Category;
 import com.ticketrush.entity.Event;
+import com.ticketrush.entity.EventSession;
 import com.ticketrush.entity.enums.EventStatus;
 import com.ticketrush.repository.CategoryRepository;
 import com.ticketrush.repository.EventRepository;
@@ -130,6 +131,31 @@ public class EventService {
                 event.setStatus(EventStatus.ONGOING);
             }
             eventRepository.saveAll(eventsToUpdate);
+        }
+    }
+
+    // Hàm tự động đổi trạng thái sang COMPLETED dựa vào suất diễn cuối cùng đã kết thúc
+    @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
+    public void autoCompleteEvents() {
+        List<Event> ongoingEvents = eventRepository.findByStatus(EventStatus.ONGOING);
+        LocalDateTime now = LocalDateTime.now();
+        
+        for (Event event : ongoingEvents) {
+            if (event.getSessions() == null || event.getSessions().isEmpty()) {
+                continue;
+            }
+            
+            LocalDateTime latestEndAt = event.getSessions().stream()
+                    .map(EventSession::getEndAt)
+                    .filter(endAt -> endAt != null)
+                    .max(LocalDateTime::compareTo)
+                    .orElse(null);
+            
+            if (latestEndAt != null && now.isAfter(latestEndAt)) {
+                event.setStatus(EventStatus.COMPLETED);
+                eventRepository.save(event);
+            }
         }
     }
 

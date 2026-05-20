@@ -42,6 +42,10 @@ public class EventSessionService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Event!"));
 
+        if (request.getStartAt().toLocalDate().isBefore(event.getStartTime().toLocalDate())) {
+            throw new IllegalArgumentException("Thời gian bắt đầu suất diễn không được trước ngày diễn ra sự kiện!");
+        }
+
         EventSession session = new EventSession();
         session.setEvent(event);
         session.setName(request.getName());
@@ -63,6 +67,9 @@ public class EventSessionService {
         if (request.getStartAt() != null) {
             if (request.getStartAt().isBefore(LocalDateTime.now().plusDays(7))) {
                 throw new IllegalArgumentException("Thời gian bắt đầu suất diễn phải cách hiện tại ít nhất 1 tuần!");
+            }
+            if (request.getStartAt().toLocalDate().isBefore(session.getEvent().getStartTime().toLocalDate())) {
+                throw new IllegalArgumentException("Thời gian bắt đầu suất diễn không được trước ngày diễn ra sự kiện!");
             }
             session.setStartAt(request.getStartAt());
         }

@@ -111,6 +111,54 @@ const CreateEventPage: React.FC = () => {
     if (!form.categoryId) return setError('Vui lòng chọn thể loại sự kiện.');
     if (!form.startTime) return setError('Vui lòng chọn thời gian diễn ra.');
 
+    const eventStartTime = new Date(form.startTime);
+    const now = new Date();
+    const minEventStartTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+
+    if (eventStartTime < minEventStartTime) {
+      return setError('Thời gian bắt đầu sự kiện phải ít nhất 7 ngày sau thời điểm hiện tại!');
+    }
+
+    const validSessions = sessions.filter((s) => s.data.name.trim() && s.data.startAt);
+    if (validSessions.length === 0) {
+      return setError('Vui lòng thêm ít nhất một phiên sự kiện hợp lệ.');
+    }
+
+    const eventYear = eventStartTime.getFullYear();
+    const eventMonth = eventStartTime.getMonth();
+    const eventDay = eventStartTime.getDate();
+    const eventDateOnly = new Date(eventYear, eventMonth, eventDay);
+
+    let hasSameDaySession = false;
+
+    for (const session of validSessions) {
+      const sessionStartAt = new Date(session.data.startAt);
+      
+      // Kiểm tra 7 ngày đối với phiên sự kiện
+      if (sessionStartAt < minEventStartTime) {
+        return setError(`Thời gian bắt đầu phiên sự kiện "${session.data.name}" phải cách hiện tại ít nhất 7 ngày.`);
+      }
+
+      const sessionYear = sessionStartAt.getFullYear();
+      const sessionMonth = sessionStartAt.getMonth();
+      const sessionDay = sessionStartAt.getDate();
+      const sessionDateOnly = new Date(sessionYear, sessionMonth, sessionDay);
+
+      // Kiểm tra xem phiên sự kiện có trước ngày diễn ra sự kiện không
+      if (sessionDateOnly < eventDateOnly) {
+        return setError(`Phiên sự kiện "${session.data.name}" không được diễn ra trước ngày bắt đầu sự kiện.`);
+      }
+
+      // Kiểm tra xem phiên có cùng ngày với ngày bắt đầu sự kiện không
+      if (sessionYear === eventYear && sessionMonth === eventMonth && sessionDay === eventDay) {
+        hasSameDaySession = true;
+      }
+    }
+
+    if (!hasSameDaySession) {
+      return setError('Phải có ít nhất 1 phiên sự kiện diễn ra cùng ngày với ngày bắt đầu sự kiện.');
+    }
+
     setSubmitting(true);
     try {
       const eventData: EventCreateRequest = {
@@ -132,7 +180,6 @@ const CreateEventPage: React.FC = () => {
       const eventId: string = createdEvent?.id ?? createdEvent?.data?.id;
 
       // 2. Tạo các sessions
-      const validSessions = sessions.filter((s) => s.data.name.trim() && s.data.startAt);
       await Promise.all(
         validSessions.map((s) => {
           const sessionReq: EventSessionCreateRequest = {

@@ -26,4 +26,6 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     List<Event> findByStatusAndCreatedAtBefore(EventStatus status, LocalDateTime dateTime);
 
     List<Event> findByStatusAndStartTimeLessThanEqual(EventStatus status, LocalDateTime dateTime);
+
+    List<Event> findByStatus(EventStatus status);
 }

@@ -354,6 +354,8 @@ const EventDetail: React.FC = () => {
                   ? `${formatSessionTime(session.startAt)} - ${formatSessionTime(session.endAt)}`
                   : session.name;
 
+                const isEventOncoming = event?.status === 'ONCOMING';
+
                 return (
                   <EventSessionItem
                     key={session.id}
@@ -361,6 +363,8 @@ const EventDetail: React.FC = () => {
                     date={session.startAt ? formatSessionDate(session.startAt) : '—'}
                     price={priceLabel}
                     status={itemStatus}
+                    disabled={isEventOncoming}
+                    actionLabel={isEventOncoming ? "Chưa mở bán" : "Mua vé ngay"}
                     onActionClick={handleJoinRoom}
                   />
                 );
