@@ -4,6 +4,7 @@ import { Pagination } from '../components/invoices/Pagination';
 import { Calendar, X, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInvoiceStore } from '../store/InvoiceStore';
+import { orderApi } from '@/api/orderApi';
 
 const ITEMS_PER_PAGE = 7;
 
@@ -17,6 +18,18 @@ const Invoices: React.FC = () => {
     startDate, setStartDate,
     endDate, setEndDate
   } = useInvoiceStore();
+
+  const handleViewSeats = async (orderId: string) => {
+    try {
+      const response: any = await orderApi.getEventByOrder(orderId);
+      if (response && response.id) {
+        navigate(`/event/${response.id}/seat-selected`, { state: { orderId } });
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi không thể lấy thông tin sự kiện");
+    }
+  };
 
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const datePickerRef = useRef<HTMLDivElement>(null);
@@ -192,6 +205,7 @@ const Invoices: React.FC = () => {
                     navigate(`/ticket/cancelled/${invoice.orderId}`);
                   }
                 }}
+                onViewSeats={() => handleViewSeats(invoice.orderId)}
               />
             ))
           ) : (

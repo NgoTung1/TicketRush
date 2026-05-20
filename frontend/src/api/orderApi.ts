@@ -56,4 +56,7 @@ export const orderApi = {
 
   getTicketsByOrder: (orderId: string) =>
     axiosClient.get<TicketInOrderResponse[]>(`api/orders/${orderId}/tickets`),
+
+  cancelOrder: (orderId: string) =>
+    axiosClient.post<OrderDetailResponse>(`api/orders/${orderId}/cancel`),
 };

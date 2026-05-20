@@ -1,15 +1,18 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import ViewPort, { ZoneData } from '@/components/room/ViewPort';
 import { SeatTypeResponse, seatTypeApi } from '@/api/seatTypeApi';
 import { SeatResponse, seatApi } from '@/api/seatApi';
 import { zoneApi } from '@/api/zoneApi';
 import { eventSessionApi } from '@/api/eventSessionApi';
+import { orderApi } from '@/api/orderApi';
 import { useAuthStore } from '@/store/AuthStore';
 
 export default function SeatSelectedPage() {
   const { id: eventId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const orderId = location.state?.orderId;
   const currentUser = useAuthStore(state => state.user);
 
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
@@ -93,10 +96,20 @@ export default function SeatSelectedPage() {
     return groupedSelectedSeats.reduce((sum, group) => sum + group.type.price * group.seats.length, 0);
   }, [groupedSelectedSeats]);
 
-  const handleCancelInvoice = () => {
+  const handleCancelInvoice = async () => {
+    if (!orderId) {
+      alert("Không tìm thấy mã hóa đơn để hủy!");
+      return;
+    }
     if (window.confirm("Bạn có chắc chắn muốn hủy hóa đơn này không?")) {
-      alert("Hủy thành công!");
-      navigate(-1);
+      try {
+        await orderApi.cancelOrder(orderId);
+        alert("Hủy thành công!");
+        navigate(-1);
+      } catch (err: any) {
+        console.error("Cancel error", err);
+        alert(err?.response?.data?.message || "Lỗi khi hủy hóa đơn!");
+      }
     }
   };
 
@@ -193,10 +206,10 @@ export default function SeatSelectedPage() {
               <span className="text-[12px] px-3 py-1 bg-white text-[#0090FF] rounded-full italic shadow-sm">Đã thanh toán</span>
             </div>
             <div className="font-semibold">
-              Mã hóa đơn: <span className="font-bold ml-1">eksiewp12j3%2123</span>
+              Mã hóa đơn: <span className="font-bold ml-1">{orderId || 'Chưa rõ'}</span>
             </div>
             <div className="font-semibold">
-              Thời điểm tạo: <span className="font-bold ml-1">23:01:53 - 20/04/2026</span>
+              Thời điểm tạo: <span className="font-bold ml-1">---</span>
             </div>
           </div>
           <div className="flex gap-4 w-full md:w-auto mt-4 md:mt-0 items-end h-full">

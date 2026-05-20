@@ -6,6 +6,7 @@ interface InvoiceItemProps {
   date: string;
   status: 'paid' | 'cancelled';
   onViewTicket?: () => void;
+  onViewSeats?: () => void;
 }
 
 export const InvoiceItem: React.FC<InvoiceItemProps> = ({
@@ -13,10 +14,14 @@ export const InvoiceItem: React.FC<InvoiceItemProps> = ({
   amount,
   date,
   status,
-  onViewTicket
+  onViewTicket,
+  onViewSeats
 }) => {
   return (
-    <div className="bg-[#1E1E1E] hover:bg-[#383838] text-white p-4 rounded-xl flex justify-between w-full mb-3 shadow-sm transition-colors duration-200">
+    <div 
+      onClick={status === 'paid' ? onViewSeats : undefined}
+      className={`bg-[#1E1E1E] hover:bg-[#383838] text-white p-4 rounded-xl flex justify-between items-start w-full mb-3 shadow-sm transition-colors duration-200 ${status === 'paid' ? 'cursor-pointer' : ''}`}
+    >
       <div className="flex flex-col gap-1">
         <div className="text-[14px] font-bold">Mã hóa đơn: {id}</div>
         <div className="text-[14px]">
@@ -30,14 +35,15 @@ export const InvoiceItem: React.FC<InvoiceItemProps> = ({
           {date}
         </div>
       </div>
-      <div>
-        <button 
-          onClick={onViewTicket}
-          className="bg-[#0090FF] hover:bg-[#0284c7] text-white text-[12px] font-bold py-1.5 px-4 rounded-full transition-colors"
-        >
-          Thông tin vé
-        </button>
-      </div>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onViewTicket?.();
+        }}
+        className="bg-[#0090FF] hover:bg-[#0284c7] text-white text-[12px] font-bold py-1.5 px-4 rounded-full transition-colors"
+      >
+        Thông tin vé
+      </button>
     </div>
   );
 };

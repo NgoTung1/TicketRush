@@ -66,4 +66,11 @@ public class OrderController {
             @PathVariable UUID orderId) {
         return ResponseEntity.ok(ticketService.getTicketsByOrder(orderId));
     }
+
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<OrderDetailResponse> cancelOrder(
+            @RequestHeader("X-User-Id") UUID userId,
+            @PathVariable UUID orderId) {
+        return ResponseEntity.ok(orderService.cancelOrderByUser(userId, orderId));
+    }
 }

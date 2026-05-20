@@ -216,7 +216,28 @@ public class OrderService {
             seats.add(seat);
         }
         seatRepository.saveAll(seats);
+
+        List<Ticket> tickets = ticketRepository.findAllByOrderSeat_Order_Id(order.getId());
+        for (Ticket ticket : tickets) {
+            ticket.setStatus(TicketStatus.INVALID);
+        }
+        ticketRepository.saveAll(tickets);
+
         orderRepository.save(order);
+    }
+
+    @Transactional
+    public OrderDetailResponse cancelOrderByUser(UUID userId, UUID orderId) {
+        Order order = orderRepository.findByIdAndUser_Id(orderId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Hóa đơn không tồn tại"));
+
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Hóa đơn đã bị hủy trước đó");
+        }
+
+        cancelOrder(order, LocalDateTime.now());
+
+        return mapToDetailResponse(order);
     }
 
     @Transactional
