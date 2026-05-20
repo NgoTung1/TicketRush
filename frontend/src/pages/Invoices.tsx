@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { InvoiceItem } from '../components/invoices/InvoiceItem';
 import { Pagination } from '../components/invoices/Pagination';
-import { Calendar, X } from 'lucide-react';
+import { Calendar, X, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useInvoiceStore } from '../store/InvoiceStore';
 
@@ -18,9 +18,28 @@ const Invoices: React.FC = () => {
     endDate, setEndDate
   } = useInvoiceStore();
 
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const datePickerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
+        setIsDatePickerOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const formatDisplayDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -63,16 +82,16 @@ const Invoices: React.FC = () => {
     <div className="bg-background text-white font-sans">
       <div className="max-w-7xl mx-auto w-full px-8 py-10">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Hóa đơn</h1>
+          <h1 className="text-[32px] font-bold mb-6">Hóa đơn</h1>
         
         {/* Controls: Tabs & DatePicker */}
         <div className="flex flex-wrap items-center gap-3 mb-8">
           <button
             onClick={() => handleTabChange('paid')}
-            className={`px-5 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`px-5 py-2 rounded-md text-[16px] font-bold transition-colors ${
               activeTab === 'paid' 
-                ? 'bg-gray-600 text-white' 
-                : 'bg-[#1f2937] text-gray-400 hover:text-gray-200'
+                ? 'bg-[#5A5A5A] bg-[#1f2937] text-white' 
+                : 'bg-[#414141] text-gray-400 hover:text-gray-200'
             }`}
           >
             Đã thanh toán
@@ -80,38 +99,76 @@ const Invoices: React.FC = () => {
           
           <button
             onClick={() => handleTabChange('cancelled')}
-            className={`px-5 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`px-5 py-2 rounded-md text-[16px] font-bold transition-colors ${
               activeTab === 'cancelled' 
-                ? 'bg-gray-600 text-white' 
-                : 'bg-[#1f2937] text-gray-400 hover:text-gray-200'
+                ? 'bg-[#5A5A5A] text-white' 
+                : 'bg-[#414141] text-gray-400 hover:text-gray-200'
             }`}
           >
             Đã hủy
           </button>
           
-          <div className="flex items-center gap-2 bg-[#1f2937] text-gray-300 px-4 py-2 rounded-md text-sm font-medium">
-            <Calendar size={16} />
-            <input 
-              type="date" 
-              value={startDate} 
-              onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
-              className="bg-transparent border-none outline-none text-gray-300 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
-            />
-            <span>-</span>
-            <input 
-              type="date" 
-              value={endDate} 
-              onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
-              className="bg-transparent border-none outline-none text-gray-300 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
-            />
-            {(startDate || endDate) && (
-              <button 
-                onClick={() => { setStartDate(''); setEndDate(''); setCurrentPage(1); }}
-                className="ml-1 text-gray-400 hover:text-red-400 transition-colors rounded-full p-0.5"
-                title="Xóa khoảng thời gian"
-              >
-                <X size={16} />
-              </button>
+          <div className="relative" ref={datePickerRef}>
+            <button
+              onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
+              className="flex items-center gap-3 bg-[#3F3F3F] hover:bg-[#4E4E4E] text-white px-4 py-2.5 rounded-[12px] text-[14px] font-bold transition-all duration-200 border border-white/5 shadow-md"
+            >
+              <Calendar size={18} className="text-white shrink-0" />
+              <span className="font-roboto tracking-wide">
+                {startDate || endDate ? (
+                  <>
+                    {startDate ? formatDisplayDate(startDate) : '...'}
+                    {' - '}
+                    {endDate ? formatDisplayDate(endDate) : '...'}
+                  </>
+                ) : (
+                  'Chọn khoảng thời gian'
+                )}
+              </span>
+              <ChevronDown size={16} className={`text-white transition-transform duration-200 ${isDatePickerOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isDatePickerOpen && (
+              <div className="absolute top-full left-0 mt-2 z-50 bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl p-4 shadow-2xl flex flex-col gap-3 min-w-[280px] animate-[fadeIn_0.15s_ease-out]">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-gray-400 font-medium">Từ ngày</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="bg-[#2A2A2A] border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-tr-accent w-full [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-gray-400 font-medium">Đến ngày</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="bg-[#2A2A2A] border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-tr-accent w-full [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                  />
+                </div>
+                {(startDate || endDate) && (
+                  <button
+                    onClick={() => {
+                      setStartDate('');
+                      setEndDate('');
+                      setCurrentPage(1);
+                      setIsDatePickerOpen(false);
+                    }}
+                    className="flex items-center justify-center gap-1.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 text-xs font-bold rounded-lg transition-colors border border-red-500/20 w-full"
+                  >
+                    <X size={14} />
+                    Xóa bộ lọc
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>

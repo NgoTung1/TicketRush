@@ -6,7 +6,7 @@ import { categoryApi, CategoryResponse } from '../../api/categoryApi';
 import OngoingFilter from '@/assets/images/OngoingFilter.svg';
 import Filter from '@/assets/images/Filter.svg';
 import DateFilter from '@/assets/images/Date.svg';
-import SearchIcon from '@/assets/images/SearchIcon.svg';
+import SearchBar from '@/components/ui/SearchBar';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -165,9 +165,8 @@ const EventList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Search input — realtime, debounced
+  // Search input — local state
   const [searchInput, setSearchInput] = useState(currentKeyword);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   // ─── Load categories once ────────────────────────────────────────────────────
@@ -189,28 +188,11 @@ const EventList: React.FC = () => {
       };
       if (currentStatus !== 'ALL') params.status = currentStatus;
       if (currentCategoryId) params.category_id = currentCategoryId;
+      if (currentKeyword.trim()) params.keyword = currentKeyword.trim();
+      if (currentDate) params.date = currentDate;
 
       const res = await eventApi.getEvents(params);
       let extracted = extractEventsData(res);
-
-      // Client-side keyword filter
-      if (currentKeyword.trim()) {
-        const kw = currentKeyword.toLowerCase();
-        extracted = extracted.filter(
-          (e) =>
-            e.title.toLowerCase().includes(kw) ||
-            (e.organizer && e.organizer.toLowerCase().includes(kw)) ||
-            (e.address && e.address.toLowerCase().includes(kw))
-        );
-      }
-
-      // Client-side date filter (yyyy-mm-dd)
-      if (currentDate) {
-        extracted = extracted.filter((e) => {
-          const eventDate = new Date(e.startTime).toISOString().slice(0, 10);
-          return eventDate === currentDate;
-        });
-      }
 
       setEvents(extracted);
       const tp = extractTotalPages(res, extracted, PAGE_SIZE, currentPage);
@@ -257,13 +239,16 @@ const EventList: React.FC = () => {
     setSearchParams(next, { replace: true });
   };
 
-  // Search realtime: debounce 400ms
+  // Update local input state (clears URL parameter if input is emptied)
   const handleSearchChange = (value: string) => {
     setSearchInput(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      updateParams({ keyword: value.trim() || null });
-    }, 400);
+    if (!value.trim()) {
+      updateParams({ keyword: null });
+    }
+  };
+
+  const handleSearchSubmit = (value: string) => {
+    updateParams({ keyword: value.trim() || null });
   };
 
   const handlePageChange = (page: number) => {
@@ -365,30 +350,16 @@ const EventList: React.FC = () => {
             </button>
           </div>
 
-          {/* Search: realtime (Đã xoá bỏ ml-auto để nút "Tạo sự kiện mới" được đẩy qua phải) */}
+          {/* Search: realtime */}
           <div className="flex items-center gap-2">
-            <div className="relative flex items-center">
-              <img
-                src={SearchIcon}
-                alt="search"
-                className="absolute left-3 w-4 h-4 object-contain opacity-50 pointer-events-none"
-              />
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Tìm kiếm sự kiện..."
-                className="pl-9 pr-8 py-1.5 bg-[#414141] border border-white/10 rounded-md text-[13px] text-white placeholder-white/30 focus:outline-none focus:border-[#00a3ff] transition-colors w-52"
-              />
-              {searchInput && (
-                <button
-                  onClick={() => handleSearchChange('')}
-                  className="absolute right-2 text-white/40 hover:text-white text-xs transition-colors"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+            <SearchBar
+              value={searchInput}
+              onChange={handleSearchChange}
+              onSubmit={handleSearchSubmit}
+              placeholder="Tìm kiếm sự kiện..."
+              className="bg-[#414141] border-white/10 rounded-md w-52"
+              inputClassName="py-1.5 text-[13px]"
+            />
           </div>
 
           {/* Button: Tạo sự kiện mới */}
