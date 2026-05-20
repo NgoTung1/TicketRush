@@ -1,46 +1,84 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import InvoiceDetails, { InvoiceItem } from '../components/checkout/InvoiceDetails';
+import { useRoomStore } from '@/store/RoomStore';
 
 const CheckoutSuccess: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as {
+    invoiceData: InvoiceItem[];
+    totalAmount: number;
+  } | null;
+
+  const { clearActiveRoom } = useRoomStore();
+
+  useEffect(() => {
+    // Clear room state so timer stops, seats are freed locally if needed, etc.
+    clearActiveRoom();
+
+    if (!state) {
+      navigate('/invoices', { replace: true });
+    }
+  }, [state, navigate, clearActiveRoom]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-      <div className="bg-[#00ff00] rounded-full p-4 mb-6 shadow-[0_0_20px_rgba(0,255,0,0.4)]">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      
-      <h1 className="text-3xl font-bold text-white mb-2">Thanh toán thành công!</h1>
-      <p className="text-gray-300 mb-6 text-lg">Cảm ơn bạn đã đặt vé. Hóa đơn của bạn đã được thanh toán.</p>
-      
-      <div className="bg-[#1E1E1E] rounded-xl p-4 shadow-md w-full max-w-md mb-8 border border-[#333]">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-gray-400">Mã hóa đơn:</span>
-          <span className="text-white font-mono font-bold text-sm break-all">{id}</span>
+    <div className="w-full">
+        <div className="flex justify-between items-end mb-8">
+          <h1 className="text-3xl font-bold">Hoàn tất đơn hàng</h1>
+          <div className="text-[#00ff00] font-medium text-lg flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            Thanh toán thành công!
+          </div>
         </div>
-        <div className="flex justify-between items-center">
-          <span className="text-gray-400">Trạng thái:</span>
-          <span className="text-[#00ff00] font-bold uppercase">PAID</span>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column: Success message & actions */}
+          <div className="flex flex-col space-y-6">
+            <div className="bg-[#1E1E1E] rounded-xl p-8 border border-[#333] flex flex-col items-center justify-center text-center h-full min-h-[400px]">
+              <div className="bg-[#00ff00] rounded-full p-4 mb-6 shadow-[0_0_20px_rgba(0,255,0,0.4)]">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-3">Đặt vé thành công!</h2>
+              <p className="text-gray-300 mb-6 text-lg">
+                Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của TicketRush.<br />
+                Mã hóa đơn của bạn: <span className="text-[#00ff00] font-mono font-bold break-all ml-1">{id}</span>
+              </p>
+              
+              <div className="flex flex-wrap gap-4 justify-center">
+                <button
+                  onClick={() => navigate('/')}
+                  className="px-6 py-2.5 rounded-full bg-gray-500 hover:bg-gray-600 text-white font-bold transition-colors focus:outline-none"
+                >
+                  Về trang chủ
+                </button>
+                <button
+                  onClick={() => navigate('/invoices')}
+                  className="px-6 py-2.5 rounded-full bg-ticket-blue hover:bg-blue-600 text-white font-bold transition-colors focus:outline-none shadow-[0_0_15px_rgba(33,150,243,0.5)]"
+                >
+                  Xem hóa đơn
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Invoice Details */}
+          <div className="flex flex-col space-y-6 items-end">
+            {state && (
+              <div className="w-full">
+                <InvoiceDetails 
+                  invoiceData={state.invoiceData} 
+                  totalAmount={state.totalAmount} 
+                />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-      
-      <div className="flex space-x-4">
-        <button
-          onClick={() => navigate('/')}
-          className="px-6 py-2 rounded-full border border-gray-500 hover:bg-gray-700 text-white font-medium transition-colors focus:outline-none"
-        >
-          Về trang chủ
-        </button>
-        <button
-          onClick={() => navigate('/invoices')}
-          className="px-6 py-2 rounded-full bg-[#0088ff] hover:bg-blue-600 text-white font-medium transition-colors focus:outline-none shadow-[0_0_15px_rgba(0,136,255,0.5)]"
-        >
-          Xem hóa đơn
-        </button>
-      </div>
     </div>
   );
 };

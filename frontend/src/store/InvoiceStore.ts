@@ -34,8 +34,6 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
   resetDateRange: () => set({ startDate: '', endDate: '', currentPage: 1 }),
 
   fetchOrders: async () => {
-    if (get().hasFetched) return;
-    
     set({ loading: true });
     try {
       const data = await orderApi.getAllOrders();

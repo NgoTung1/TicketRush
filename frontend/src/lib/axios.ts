@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getIdFromToken } from '@/helpers/jwt';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
 
@@ -30,6 +31,10 @@ axiosClient.interceptors.request.use(
   (config) => {
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+      const userId = getIdFromToken(accessToken);
+      if (userId) {
+        config.headers['X-User-Id'] = userId;
+      }
     }
     return config;
   },

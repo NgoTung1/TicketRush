@@ -30,11 +30,11 @@ public class OrderController {
     private final TicketService ticketService;
 
     @PostMapping
-    public ResponseEntity<OrderCreateResponse> createOrder(
+    public ResponseEntity<OrderPayResponse> createOrder(
             @RequestHeader("X-User-Id") UUID userId,
             @RequestBody OrderCreateRequest request
     ) {
-        return ResponseEntity.ok(orderService.createOrder(userId, request));
+        return ResponseEntity.ok(orderService.createAndPayOrder(userId, request));
     }
 
     @GetMapping("/{orderId}")
@@ -45,13 +45,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderDetail(userId, orderId));
     }
 
-    @PostMapping("/{orderId}/pay")
-    public ResponseEntity<OrderPayResponse> payOrder(
-            @RequestHeader("X-User-Id") UUID userId,
-            @PathVariable UUID orderId
-    ) {
-        return ResponseEntity.ok(orderService.payOrder(userId, orderId));
-    }
+
 
     @GetMapping
     public ResponseEntity<List<OrderDetailResponse>> getAllOrders() {

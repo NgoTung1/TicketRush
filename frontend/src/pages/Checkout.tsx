@@ -42,15 +42,12 @@ const Checkout: React.FC = () => {
     if (!state?.sessionId || !state?.seatIds) return;
     setIsLoadingPayment(true);
     try {
-      const createRes = await orderApi.createOrder({
+      await orderApi.createOrder({
+        orderId: orderId,
         sessionId: state.sessionId,
         seatIds: state.seatIds,
       });
-      const newOrderId = createRes.data.orderId;
-
-      await orderApi.payOrder(newOrderId);
-      clearActiveRoom();
-      navigate(`/checkout/success/${newOrderId}`, { replace: true });
+      navigate(`/checkout/success/${orderId}`, { replace: true, state: { invoiceData: state.invoiceData, totalAmount: state.totalAmount } });
     } catch (error) {
       console.error("Payment failed", error);
       alert('Thanh toán thất bại, vui lòng thử lại');
