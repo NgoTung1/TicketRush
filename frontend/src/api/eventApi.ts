@@ -13,7 +13,7 @@ export interface EventCreateRequest {
   description?: string;
   address: string;
   bannerUrl?: string;
-  startTime: string; 
+  startTime: string;
   status?: EventStatus;
 }
 
@@ -43,15 +43,13 @@ export interface EventResponse {
 export interface EventSearchParams {
   category_id?: string;
   status?: EventStatus;
-  keyword?: string;   // Tìm kiếm theo tên / từ khoá (nếu backend hỗ trợ)
+  keyword?: string;
+  date?: string;      // Thêm dòng này để truyền yyyy-mm-dd
   page?: number;
   size?: number;
 }
 
-
-
 const EVENT_BASE = '/events';
-const TICKET_BASE = '/api/tickets';
 
 export const eventApi = {
   /**
@@ -65,6 +63,12 @@ export const eventApi = {
    */
   getEventById: (id: string) =>
     axiosClient.get<EventResponse>(`${EVENT_BASE}/${id}`),
+
+  /**
+   * [PUBLIC] Lấy danh sách sự kiện gợi ý khi đang gõ chữ
+   */
+  getHotSuggestions: (keyword: string) =>
+    axiosClient.get<EventResponse[]>(`${EVENT_BASE}/suggestions`, { params: { keyword } }),
 
   /**
    * [ADMIN] Tạo sự kiện mới (multipart/form-data: "data" + "banner")

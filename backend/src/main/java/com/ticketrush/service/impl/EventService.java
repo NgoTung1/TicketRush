@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +34,7 @@ public class EventService {
     private final FileStorageService fileStorageService;
 
     @Transactional
-    public EventCreateResponse createEvent(EventCreateRequest request, MultipartFile bannerFile) { 
+    public EventCreateResponse createEvent(EventCreateRequest request, MultipartFile bannerFile) {
         // Check thời gian bắt đầu phải >= 1 tuần kể từ hiện tại
         if (request.getStartTime() == null || request.getStartTime().isBefore(LocalDateTime.now().plusDays(7))) {
             throw new IllegalArgumentException("Thời gian bắt đầu sự kiện phải ít nhất 1 tuần sau thời điểm hiện tại!");
@@ -51,32 +53,56 @@ public class EventService {
             newEvent.setBannerUrl(bannerUrl);
         }
         newEvent.setStartTime(request.getStartTime());
-        newEvent.setStatus(EventStatus.ONCOMING); 
-        newEvent.setCategory(category); 
-        
+        newEvent.setStatus(EventStatus.ONCOMING);
+        newEvent.setCategory(category);
+
         Event savedEvent = eventRepository.save(newEvent);
 
         return mapToResponse(savedEvent);
     }
 
     @Transactional(readOnly = true)
-    public EventCreateResponse getEventById(UUID id) { 
+    public EventCreateResponse getEventById(UUID id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Event!"));
         return mapToResponse(event);
     }
 
     @Transactional(readOnly = true)
-    public Page<EventCreateResponse> searchEvents(UUID categoryId, EventStatus status, int page, int size) {
+    public Page<EventCreateResponse> searchEvents(UUID categoryId, EventStatus status, String keyword, LocalDate date,
+            int page, int size) {
+        LocalDateTime startDate = null;
+        LocalDateTime endDate = null;
+
+        // Xử lý mốc thời gian nếu có truyền param date
+        if (date != null) {
+            startDate = date.atStartOfDay(); // 00:00:00
+            endDate = date.atTime(LocalTime.MAX); // 23:59:59.999999999
+        }
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<Event> eventPage = eventRepository.searchEvents(categoryId, status, pageable);
+        Page<Event> eventPage = eventRepository.searchEvents(categoryId, status, keyword, startDate, endDate, pageable);
         return eventPage.map(this::mapToResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventCreateResponse> getHotSuggestions(String keyword) {
+        // Giới hạn lấy 4 sự kiện
+        Pageable limit = PageRequest.of(0, 4);
+
+        // Liệt kê các trạng thái hợp lệ
+        List<EventStatus> validStatuses = List.of(EventStatus.ONCOMING, EventStatus.ONGOING);
+
+        // Truyền cả keyword và danh sách trạng thái xuống Repo
+        List<Event> list = eventRepository.findHotSuggestions(keyword, validStatuses, limit);
+
+        return list.stream().map(this::mapToResponse).toList();
     }
 
     @Transactional
     public EventCreateResponse updateEvent(UUID id, EventUpdateRequest request, MultipartFile bannerFile) {
         Event existingEvent = eventRepository.findById(id)
-              .orElseThrow(() -> new RuntimeException("Không tìm thấy Event!"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Event!"));
 
         if (existingEvent.getStatus() != EventStatus.ONCOMING) {
             throw new IllegalStateException("Chỉ có thể cập nhật các sự kiện đang ở trạng thái ONCOMING!");
@@ -84,7 +110,8 @@ public class EventService {
 
         if (request.getStartTime() != null) {
             if (request.getStartTime().isBefore(LocalDateTime.now().plusDays(7))) {
-                throw new IllegalArgumentException("Thời gian bắt đầu sự kiện phải ít nhất 1 tuần sau thời điểm hiện tại!");
+                throw new IllegalArgumentException(
+                        "Thời gian bắt đầu sự kiện phải ít nhất 1 tuần sau thời điểm hiện tại!");
             }
             existingEvent.setStartTime(request.getStartTime());
         }
@@ -95,37 +122,43 @@ public class EventService {
             existingEvent.setCategory(category);
         }
 
-        if (request.getTitle() != null) existingEvent.setTitle(request.getTitle());
-        if (request.getOrganizer() != null) existingEvent.setOrganizer(request.getOrganizer());
-        if (request.getDescription() != null) existingEvent.setDescription(request.getDescription());
-        if (request.getAddress() != null)  existingEvent.setAddress(request.getAddress());
-        
-        if (bannerFile != null && !bannerFile.isEmpty() ) {
+        if (request.getTitle() != null)
+            existingEvent.setTitle(request.getTitle());
+        if (request.getOrganizer() != null)
+            existingEvent.setOrganizer(request.getOrganizer());
+        if (request.getDescription() != null)
+            existingEvent.setDescription(request.getDescription());
+        if (request.getAddress() != null)
+            existingEvent.setAddress(request.getAddress());
+
+        if (bannerFile != null && !bannerFile.isEmpty()) {
             String bannerUrl = fileStorageService.uploadFile(bannerFile, "banners");
             existingEvent.setBannerUrl(bannerUrl);
         }
-        if (request.getStatus() != null) existingEvent.setStatus(request.getStatus());
+        if (request.getStatus() != null)
+            existingEvent.setStatus(request.getStatus());
 
         Event updatedEvent = eventRepository.save(existingEvent);
-        
+
         return mapToResponse(updatedEvent);
     }
 
     @Transactional
     public void deleteEvent(UUID id) {
         Event existingEvent = eventRepository.findById(id)
-              .orElseThrow(() -> new RuntimeException("Không tìm thấy Event!"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Event!"));
         eventRepository.delete(existingEvent);
     }
 
-    // Hàm này để tự động chạy để chuyển status event từ oncoming sang ongoing sau 3 ngày
-    @Scheduled(cron = "0 0 0 * * ?") 
+    // Hàm này để tự động chạy để chuyển status event từ oncoming sang ongoing sau 3
+    // ngày
+    @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void autoUpdateEventStatus() {
         LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
-        
+
         List<Event> eventsToUpdate = eventRepository.findByStatusAndCreatedAtBefore(EventStatus.ONCOMING, threeDaysAgo);
-        
+
         if (!eventsToUpdate.isEmpty()) {
             for (Event event : eventsToUpdate) {
                 event.setStatus(EventStatus.ONGOING);
@@ -134,24 +167,25 @@ public class EventService {
         }
     }
 
-    // Hàm tự động đổi trạng thái sang COMPLETED dựa vào suất diễn cuối cùng đã kết thúc
+    // Hàm tự động đổi trạng thái sang COMPLETED dựa vào suất diễn cuối cùng đã kết
+    // thúc
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void autoCompleteEvents() {
         List<Event> ongoingEvents = eventRepository.findByStatus(EventStatus.ONGOING);
         LocalDateTime now = LocalDateTime.now();
-        
+
         for (Event event : ongoingEvents) {
             if (event.getSessions() == null || event.getSessions().isEmpty()) {
                 continue;
             }
-            
+
             LocalDateTime latestEndAt = event.getSessions().stream()
                     .map(EventSession::getEndAt)
                     .filter(endAt -> endAt != null)
                     .max(LocalDateTime::compareTo)
                     .orElse(null);
-            
+
             if (latestEndAt != null && now.isAfter(latestEndAt)) {
                 event.setStatus(EventStatus.COMPLETED);
                 eventRepository.save(event);
@@ -159,8 +193,8 @@ public class EventService {
         }
     }
 
-    private EventCreateResponse mapToResponse(Event event) { 
-        return EventCreateResponse.builder() 
+    private EventCreateResponse mapToResponse(Event event) {
+        return EventCreateResponse.builder()
                 .id(event.getId())
                 .title(event.getTitle())
                 .categoryId(event.getCategory().getId())

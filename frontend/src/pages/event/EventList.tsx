@@ -182,32 +182,25 @@ const EventList: React.FC = () => {
         page: currentPage - 1,
         size: PAGE_SIZE,
       };
+
       if (currentStatus !== 'ALL') params.status = currentStatus;
       if (currentCategoryId) params.category_id = currentCategoryId;
 
-      const res = await eventApi.getEvents(params);
-      let extracted = extractEventsData(res);
-
-      // Client-side keyword filter
+      // Đẩy thẳng từ khóa xuống Backend
       if (currentKeyword.trim()) {
-        const kw = currentKeyword.toLowerCase();
-        extracted = extracted.filter(
-          (e) =>
-            e.title.toLowerCase().includes(kw) ||
-            (e.organizer && e.organizer.toLowerCase().includes(kw)) ||
-            (e.address && e.address.toLowerCase().includes(kw))
-        );
+        params.keyword = currentKeyword.trim();
       }
 
-      // Client-side date filter (yyyy-mm-dd)
+      // Đẩy thẳng ngày xuống Backend (định dạng 'YYYY-MM-DD')
       if (currentDate) {
-        extracted = extracted.filter((e) => {
-          const eventDate = new Date(e.startTime).toISOString().slice(0, 10);
-          return eventDate === currentDate;
-        });
+        params.date = currentDate;
       }
+
+      const res = await eventApi.getEvents(params);
+      const extracted = extractEventsData(res);
 
       setEvents(extracted);
+
       const tp = extractTotalPages(res, extracted, PAGE_SIZE, currentPage);
       if (tp > 0) {
         if (currentPage === 1) {

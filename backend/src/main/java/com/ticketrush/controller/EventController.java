@@ -7,6 +7,8 @@ import com.ticketrush.dto.request.event.EventUpdateRequest;
 import com.ticketrush.dto.response.event.EventCreateResponse;
 import com.ticketrush.entity.enums.EventStatus;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import com.ticketrush.service.impl.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +16,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-
 
 @RestController
 @RequestMapping("/events")
@@ -29,14 +31,14 @@ public class EventController {
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<?> createEvent(
             @RequestPart("data") String dataJson,
-            @RequestPart(value = "banner", required = false) MultipartFile file) { 
-        
+            @RequestPart(value = "banner", required = false) MultipartFile file) {
+
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule()); 
+            objectMapper.registerModule(new JavaTimeModule());
 
             EventCreateRequest request = objectMapper.readValue(dataJson, EventCreateRequest.class);
-            
+
             EventCreateResponse response = eventService.createEvent(request, file);
             return ResponseEntity.ok(response);
 
@@ -49,27 +51,36 @@ public class EventController {
     public ResponseEntity<List<EventCreateResponse>> searchEvents(
             @RequestParam(name = "category_id", required = false) UUID categoryId,
             @RequestParam(name = "status", required = false) EventStatus status,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-    
-        Page<EventCreateResponse> eventPage = eventService.searchEvents(categoryId, status, page, size);
-        
+
+        Page<EventCreateResponse> eventPage = eventService.searchEvents(categoryId, status, keyword, date, page, size);
+
         return ResponseEntity.ok(eventPage.getContent());
-    }   
+    }
+
+    @GetMapping("/suggestions")
+    public ResponseEntity<List<EventCreateResponse>> getHotSuggestions(
+            @RequestParam(name = "keyword") String keyword) {
+        List<EventCreateResponse> suggestions = eventService.getHotSuggestions(keyword);
+        return ResponseEntity.ok(suggestions);
+    }
 
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping(value = "/update/{id}", consumes = "multipart/form-data")
     public ResponseEntity<?> updateEvent(
-            @PathVariable UUID id, 
+            @PathVariable UUID id,
             @RequestPart("data") String dataJson,
             @RequestPart(value = "banner", required = false) MultipartFile file) {
-        
+
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
-            
+
             EventUpdateRequest request = objectMapper.readValue(dataJson, EventUpdateRequest.class);
-            
+
             EventCreateResponse response = eventService.updateEvent(id, request, file);
             return ResponseEntity.ok(response);
 
@@ -84,9 +95,9 @@ public class EventController {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
     }
-    
+
     @GetMapping("/{id}")
-    public ResponseEntity<EventCreateResponse> getEvent(@PathVariable UUID id) { 
+    public ResponseEntity<EventCreateResponse> getEvent(@PathVariable UUID id) {
         EventCreateResponse response = eventService.getEventById(id);
         return ResponseEntity.ok(response);
     }
