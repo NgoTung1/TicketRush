@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.UUID;
 
 import com.ticketrush.service.impl.TicketService;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.ticketrush.entity.enums.OrderStatus;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -51,6 +54,15 @@ public class OrderController {
     }
 
     @GetMapping
+    public ResponseEntity<List<OrderDetailResponse>> getMyOrders(
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestParam(value = "status", required = false) OrderStatus status
+    ) {
+        return ResponseEntity.ok(orderService.getMyOrders(userId, status));
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<OrderDetailResponse>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
     }

@@ -38,7 +38,23 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 			"WHERE st.event.id = :eventId AND o.status = :status")
 	List<Order> findByEventIdAndStatusWithDetails(@Param("eventId") UUID eventId, @Param("status") OrderStatus status);
 
+	@EntityGraph(attributePaths = {
+			"orderSeats",
+			"orderSeats.seat",
+			"orderSeats.seat.zone",
+			"orderSeats.seat.zone.eventSession",
+			"orderSeats.seat.seatType",
+			"orderSeats.seat.seatType.event"
+	})
+	List<Order> findByUser_Id(UUID userId);
 
-
-
+	@EntityGraph(attributePaths = {
+			"orderSeats",
+			"orderSeats.seat",
+			"orderSeats.seat.zone",
+			"orderSeats.seat.zone.eventSession",
+			"orderSeats.seat.seatType",
+			"orderSeats.seat.seatType.event"
+	})
+	List<Order> findByUser_IdAndStatus(UUID userId, OrderStatus status);
 }

@@ -34,9 +34,11 @@ export const useInvoiceStore = create<InvoiceState>((set, get) => ({
   resetDateRange: () => set({ startDate: '', endDate: '', currentPage: 1 }),
 
   fetchOrders: async () => {
+    const { activeTab } = get();
     set({ loading: true });
     try {
-      const data = await orderApi.getAllOrders();
+      const status = activeTab === 'paid' ? 'PAID' : 'CANCELLED';
+      const data = await orderApi.getAllOrders({ status });
       set({ orders: (data as any) || [], hasFetched: true });
     } catch (error) {
       console.error('Failed to fetch orders:', error);
