@@ -22,6 +22,7 @@ import Invoices from '@/pages/Invoices';
 import TicketDetail from '@/pages/TicketDetail';
 import { AdminRoomPage } from '@/pages/AdminRoomPage';
 import { AdminRoomDetail } from '@/pages/event/AdminRoomDetail';
+import CheckoutSuccess from '@/pages/CheckoutSuccess';
 import SeatSelectedPage from '@/pages/SeatSelectedPage';
 
 
@@ -102,6 +103,10 @@ const router = createBrowserRouter([
           {
             path: 'checkout/:orderId',
             element: <Checkout />,
+          },
+          {
+            path: 'checkout/success/:id',
+            element: <CheckoutSuccess />,
           },
           {
             path: 'invoices',

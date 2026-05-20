@@ -66,8 +66,8 @@ public class TicketService {
                     .number(seat.getSeatNumber() != null ? seat.getSeatNumber().toString() : "?")
                     .status(ticket.getStatus())
                     .price(ticket.getOrderSeat().getPriceAtPurchase())
-                    .qrData(ticket.getQrCode())
-                    .qrCodeImageBase64(qrCodeGenerator.generateBase64Png(ticket.getQrCode(), QR_SIZE))
+                    .qrData(generateQrPayload(ticket))
+                    .qrCodeImageBase64(qrCodeGenerator.generateBase64Png(generateQrPayload(ticket), QR_SIZE))
                     .eventTitle(eventTitle)
                     .build());
         }
@@ -89,8 +89,8 @@ public class TicketService {
                 .eventTitle(eventTitle)
                 .sessionName(sessionName)
                 .seatLabel(buildSeatLabel(seat))
-                .qrCodePayload(ticket.getQrCode())
-                .qrCodeImageBase64(qrCodeGenerator.generateBase64Png(ticket.getQrCode(), QR_SIZE))
+                .qrCodePayload(generateQrPayload(ticket))
+                .qrCodeImageBase64(qrCodeGenerator.generateBase64Png(generateQrPayload(ticket), QR_SIZE))
                 .expiresAt(ticket.getExpiresAt())
                 .checkedInAt(ticket.getCheckedInAt())
                 .build();
@@ -118,8 +118,9 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketCheckInResponse checkIn(String qrCode) {
-        Ticket ticket = ticketRepository.findByQrCode(qrCode)
+    public TicketCheckInResponse checkIn(String payload) {
+        String actualQrCode = extractQrCode(payload);
+        Ticket ticket = ticketRepository.findByQrCode(actualQrCode)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ticket not found"));
 
         if (ticket.getStatus() != TicketStatus.VALID) {
@@ -161,7 +162,7 @@ public class TicketService {
                 .ticketId(ticket.getId())
                 .eventTitle(eventTitle)
                 .seatLabel(buildSeatLabel(seat))
-                .qrCode(ticket.getQrCode())
+                .qrCode(generateQrPayload(ticket))
                 .expiresAt(ticket.getExpiresAt())
                 .build();
     }
@@ -171,5 +172,31 @@ public class TicketService {
         String row = seat.getRowIndex() != null ? seat.getRowIndex().toString() : "?";
         String number = seat.getSeatNumber() != null ? seat.getSeatNumber().toString() : "?";
         return zoneName + "-R" + row + "-S" + number;
+    }
+
+    private String generateQrPayload(Ticket ticket) {
+        Seat seat = ticket.getOrderSeat().getSeat();
+        return String.format("Mã vé: %s | ID: %s | Trạng thái: %s | Ghế: %s",
+                ticket.getQrCode(),
+                ticket.getId(),
+                ticket.getStatus(),
+                buildSeatLabel(seat));
+    }
+
+    private String extractQrCode(String payload) {
+        if (payload != null && payload.startsWith("Mã vé: ")) {
+            int endIndex = payload.indexOf(" |");
+            if (endIndex != -1) {
+                return payload.substring(7, endIndex).trim();
+            }
+        }
+        // Fallback for previous format
+        if (payload != null && payload.startsWith("QrCode: ")) {
+            int endIndex = payload.indexOf('\n');
+            if (endIndex != -1) {
+                return payload.substring(8, endIndex).trim();
+            }
+        }
+        return payload != null ? payload.trim() : null;
     }
 }

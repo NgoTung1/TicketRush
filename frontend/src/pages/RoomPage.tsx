@@ -15,6 +15,7 @@ export function RoomPage() {
 
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
   const [zones, setZones] = useState<ZoneData[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!activeRoom || activeRoom.eventId !== eventId) {
@@ -42,9 +43,10 @@ export function RoomPage() {
 
         const sessions = (await eventSessionApi.getSessionsByEventId(eventId)) as unknown as any[];
         if (sessions.length > 0) {
-          const sessionId = sessions[0].id; // Lấy session đầu tiên
-          const zonesData = (await zoneApi.getZonesBySessionId(sessionId)) as unknown as any[];
-          const seatsData = (await seatApi.getSeatsBySession(sessionId)) as unknown as SeatResponse[];
+          const fetchedSessionId = sessions[0].id; // Lấy session đầu tiên
+          setSessionId(fetchedSessionId);
+          const zonesData = (await zoneApi.getZonesBySessionId(fetchedSessionId)) as unknown as any[];
+          const seatsData = (await seatApi.getSeatsBySession(fetchedSessionId)) as unknown as SeatResponse[];
 
           const finalZones: ZoneData[] = zonesData.map(zone => {
             const matrix: (SeatResponse | null)[][] = Array.from({ length: zone.rowsCount }, () =>
@@ -88,6 +90,27 @@ export function RoomPage() {
       clearActiveRoom();
       navigate(`/event/${eventId}`);
     }
+  };
+
+  const handleCheckout = () => {
+    if (!sessionId || groupedSelectedSeats.length === 0) return;
+    const checkoutId = crypto.randomUUID();
+    const seatIds = groupedSelectedSeats.flatMap(g => g.seats.map(s => s.id));
+    const invoiceData = groupedSelectedSeats.map(g => ({
+      type: `${g.type.label} - ${g.zone.name}`,
+      price: g.type.price,
+      quantity: g.seats.length,
+      seats: g.seats.map(s => `${s.colIndex}${String.fromCharCode(65 + s.rowIndex - 1)}`),
+    }));
+
+    navigate(`/checkout/${checkoutId}`, { 
+      state: { 
+        sessionId, 
+        seatIds, 
+        invoiceData,
+        totalAmount: totalPrice,
+      } 
+    });
   };
 
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
@@ -256,6 +279,7 @@ export function RoomPage() {
             <button
               className="flex-1 md:flex-none px-4 py-1.5 bg-[#0088ff] hover:bg-blue-500 text-white rounded-full font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={groupedSelectedSeats.length === 0}
+              onClick={handleCheckout}
             >
               Thanh toán
             </button>

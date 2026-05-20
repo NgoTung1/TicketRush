@@ -1,29 +1,18 @@
 import React from 'react';
 
-const invoiceData = [
-  {
-    type: 'Ghế thường',
-    price: 100000,
-    quantity: 3,
-    seats: ['A3', 'A4', 'A5'],
-  },
-  {
-    type: 'Ghế có vị trí tốt',
-    price: 200000,
-    quantity: 3,
-    seats: ['B3', 'B4', 'B5'],
-  },
-  {
-    type: 'Ghế VIP',
-    price: 500000,
-    quantity: 3,
-    seats: ['C3', 'C4', 'C5'],
-  },
-];
+export interface InvoiceItem {
+  type: string;
+  price: number;
+  quantity: number;
+  seats: string[];
+}
 
-const InvoiceDetails: React.FC = () => {
-  const totalAmount = invoiceData.reduce((sum, item) => sum + item.price * item.quantity, 0);
+interface InvoiceDetailsProps {
+  invoiceData: InvoiceItem[];
+  totalAmount: number;
+}
 
+const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ invoiceData, totalAmount }) => {
   const formatCurrency = (amount: number) => {
     return amount.toLocaleString('vi-VN') + 'đ';
   };
