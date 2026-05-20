@@ -144,6 +144,14 @@ public class OrderService {
     @Transactional
     public List<OrderDetailResponse> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
+        return orders.stream().map(this::mapToDetailResponse).toList();
+    }
+
+    @Transactional
+    public List<OrderDetailResponse> getMyOrders(UUID userId, OrderStatus status) {
+        List<Order> orders = status != null
+                ? orderRepository.findByUser_IdAndStatus(userId, status)
+                : orderRepository.findByUser_Id(userId);
         for (Order order : orders) {
             if (order.getStatus() == OrderStatus.PENDING && isExpired(order)) {
                 cancelOrder(order, LocalDateTime.now());

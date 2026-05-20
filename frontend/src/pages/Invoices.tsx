@@ -36,7 +36,7 @@ const Invoices: React.FC = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [fetchOrders]);
+  }, [fetchOrders, activeTab]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
