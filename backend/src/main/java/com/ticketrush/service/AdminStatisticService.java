@@ -30,15 +30,29 @@ public class AdminStatisticService {
   }
 
   private long countEventTicketsInOrder(Order order, UUID eventId) {
+    if (order == null || order.getOrderSeats() == null || eventId == null) {
+      return 0;
+    }
     return order.getOrderSeats().stream()
-        .filter(os -> os.getSeat().getSeatType().getEvent().getId().equals(eventId))
+        .filter(os -> os != null 
+            && os.getSeat() != null 
+            && os.getSeat().getSeatType() != null 
+            && os.getSeat().getSeatType().getEvent() != null 
+            && eventId.equals(os.getSeat().getSeatType().getEvent().getId()))
         .count();
   }
 
   private BigDecimal sumEventRevenueInOrder(Order order, UUID eventId) {
+    if (order == null || order.getOrderSeats() == null || eventId == null) {
+      return BigDecimal.ZERO;
+    }
     return order.getOrderSeats().stream()
-        .filter(os -> os.getSeat().getSeatType().getEvent().getId().equals(eventId))
-        .map(OrderSeat::getPriceAtPurchase)
+        .filter(os -> os != null 
+            && os.getSeat() != null 
+            && os.getSeat().getSeatType() != null 
+            && os.getSeat().getSeatType().getEvent() != null 
+            && eventId.equals(os.getSeat().getSeatType().getEvent().getId()))
+        .map(os -> os.getPriceAtPurchase() != null ? os.getPriceAtPurchase() : BigDecimal.ZERO)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
@@ -48,6 +62,8 @@ public class AdminStatisticService {
     Map<Gender, Long> genderCount = new EnumMap<>(Gender.class);
 
     for (Order order : orders) {
+      if (order == null || order.getUser() == null)
+        continue;
       Gender gender = order.getUser().getGender();
       if (gender == null)
         continue;
@@ -65,32 +81,25 @@ public class AdminStatisticService {
     List<Order> orders = getPaidOrdersForEvent(eventId);
     System.out.println("======> TÌM ĐƯỢC BAO NHIÊU ĐƠN PAID: " + orders.size());
 
-    // Key bây giờ là String (chứa tên các khoảng tuổi)
     Map<String, Long> ageRangeCount = new HashMap<>();
     int currentYear = LocalDate.now().getYear();
 
     for (Order order : orders) {
+      if (order == null || order.getUser() == null)
+        continue;
       LocalDate birthDate = order.getUser().getBirthDate();
       if (birthDate == null)
         continue;
 
       int exactAge = currentYear - birthDate.getYear();
-
-      // GỌI HÀM QUY ĐỔI Ở ĐÂY
       String ageRange = getAgeRangeLabel(exactAge);
 
       long ticketCount = countEventTicketsInOrder(order, eventId);
-
-      // Vẫn dùng hàm merge thần thánh, nhưng lúc này nó sẽ bỏ vào các rổ "11-20",
-      // "21-30"...
       ageRangeCount.merge(ageRange, ticketCount, Long::sum);
     }
 
-    // Chuyển Map thành List DTO trả về cho Frontend
     return ageRangeCount.entrySet().stream()
         .map(e -> new AgeStatisticDTO(e.getKey(), e.getValue()))
-        // Mẹo: Sắp xếp theo tên khoảng tuổi (String) để UI hiển thị theo thứ tự từ bé
-        // đến lớn
         .sorted(Comparator.comparing(AgeStatisticDTO::getAgeRange))
         .collect(Collectors.toList());
   }
@@ -101,7 +110,12 @@ public class AdminStatisticService {
     BigDecimal total = BigDecimal.ZERO;
 
     for (Order order : orders) {
-      total = total.add(sumEventRevenueInOrder(order, eventId));
+      if (order == null)
+        continue;
+      BigDecimal orderRevenue = sumEventRevenueInOrder(order, eventId);
+      if (orderRevenue != null) {
+        total = total.add(orderRevenue);
+      }
     }
 
     return new RevenueStatisticDTO(total);
@@ -113,6 +127,8 @@ public class AdminStatisticService {
     Map<LocalDate, BigDecimal> dailyRevenueMap = new HashMap<>();
 
     for (Order order : orders) {
+      if (order == null || order.getCreatedAt() == null)
+        continue;
       LocalDate orderDate = order.getCreatedAt().toLocalDate();
 
       if (startDate != null && orderDate.isBefore(startDate))
@@ -121,7 +137,9 @@ public class AdminStatisticService {
         continue;
 
       BigDecimal orderRevenue = sumEventRevenueInOrder(order, eventId);
-      dailyRevenueMap.merge(orderDate, orderRevenue, BigDecimal::add);
+      if (orderRevenue != null) {
+        dailyRevenueMap.merge(orderDate, orderRevenue, BigDecimal::add);
+      }
     }
 
     return dailyRevenueMap.entrySet().stream()

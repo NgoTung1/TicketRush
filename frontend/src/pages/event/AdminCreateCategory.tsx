@@ -25,10 +25,10 @@ const AdminCreateCategory: React.FC = () => {
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#141414] px-4 py-8">
-      <div className="max-w-[1200px] mx-auto bg-[#1C1C1C] rounded-2xl min-h-[600px] flex flex-col relative overflow-hidden shadow-xl border border-white/5">
+      <div className="max-w-[1200px] mx-auto bg-[#141414] rounded-2xl min-h-[600px] flex flex-col relative overflow-hidden">
         <div className="p-8 flex-1">
           <h1 className="text-white font-bold text-[24px] mb-8">Danh mục sự kiện</h1>
-          
+
           <div className="mb-6 max-w-full">
             <label className="block text-white font-bold text-[16px] mb-2">Tên danh mục</label>
             <input

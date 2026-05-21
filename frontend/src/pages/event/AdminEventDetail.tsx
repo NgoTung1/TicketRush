@@ -133,32 +133,47 @@ const AdminEventDetail: React.FC = () => {
 
     // Statistics
     Promise.all([
-      adminStatisticApi.getGenderStats(id),
-      adminStatisticApi.getAgeStats(id),
-      adminStatisticApi.getTotalRevenue(id),
-      adminStatisticApi.getDailyRevenue(id)
+      adminStatisticApi.getGenderStats(id).catch(err => {
+        console.error('Lỗi tải thống kê giới tính:', err);
+        return [];
+      }),
+      adminStatisticApi.getAgeStats(id).catch(err => {
+        console.error('Lỗi tải thống kê độ tuổi:', err);
+        return [];
+      }),
+      adminStatisticApi.getTotalRevenue(id).catch(err => {
+        console.error('Lỗi tải thống kê tổng doanh thu:', err);
+        return { totalRevenue: 0 };
+      }),
+      adminStatisticApi.getDailyRevenue(id).catch(err => {
+        console.error('Lỗi tải thống kê doanh thu hàng ngày:', err);
+        return [];
+      })
     ]).then(([genderRes, ageRes, totalRevRes, dailyRevRes]) => {
-      const mappedGender = genderRes.map(g => ({
-        name: g.gender === 'FEMALE' ? 'Nữ' : g.gender === 'MALE' ? 'Nam' : 'Khác',
-        value: g.ticketCount,
-        color: g.gender === 'FEMALE' ? '#7a7a7a' : g.gender === 'MALE' ? '#b0b0b0' : '#4a4a4a'
-      }));
+      const mappedGender = Array.isArray(genderRes) ? genderRes.map(g => ({
+        name: g?.gender === 'FEMALE' ? 'Nữ' : g?.gender === 'MALE' ? 'Nam' : 'Khác',
+        value: g?.ticketCount || 0,
+        color: g?.gender === 'FEMALE' ? '#7a7a7a' : g?.gender === 'MALE' ? '#b0b0b0' : '#4a4a4a'
+      })) : [];
       setGenderData(mappedGender);
 
-      setAgeData(ageRes.map(a => ({
-        name: a.ageRange,
-        count: a.ticketCount
-      })));
+      const mappedAge = Array.isArray(ageRes) ? ageRes.map(a => ({
+        name: a?.ageRange || 'Khác',
+        count: a?.ticketCount || 0
+      })) : [];
+      setAgeData(mappedAge);
 
-      setTotalRevenue(totalRevRes.totalRevenue);
+      setTotalRevenue(totalRevRes?.totalRevenue || 0);
 
-      setRevenueData(dailyRevRes.map(d => {
-        const parts = d.date.split('-');
+      const mappedDaily = Array.isArray(dailyRevRes) ? dailyRevRes.map(d => {
+        const dateStr = d?.date || '';
+        const parts = dateStr.split('-');
         return {
-          date: parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : d.date,
-          value: d.revenue
+          date: parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr,
+          value: d?.revenue || 0
         };
-      }));
+      }) : [];
+      setRevenueData(mappedDaily);
     }).catch(err => console.error('Lỗi tải thống kê:', err));
   }, [id]);
 
