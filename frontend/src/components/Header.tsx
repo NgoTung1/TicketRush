@@ -13,10 +13,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Thể thao', path: '/events?category_id=c781fbed-ac15-4923-ad57-062f0d8444a3' },
-  { label: 'Âm nhạc', path: '/events?category_id=d2c4cfdc-17f4-4e81-8eb5-4601e5640aa2' },
-  { label: 'Nghệ thuật', path: '/events?category_id=acf17ba1-6e41-4e23-aa99-5515ffccd78c' },
-  { label: 'Hội thảo', path: '/events?category_id=8b1935e4-1234-4b95-a136-bd1869e578c2' },
+  { label: 'Thể thao', path: '/events?category_id=357cbca4-6b37-4dee-80d1-9baec32cb4a7' },
+  { label: 'Âm nhạc', path: '/events?category_id=f7d40e2c-ecbd-4051-a30e-84dab991d194' },
+  { label: 'Nghệ thuật', path: '/events?category_id=56e9ba8e-3972-428b-8aa0-63a8a5d023ce' },
+  { label: 'Hội nghị', path: '/events?category_id=8954b823-43c3-4d4c-bd2a-6125188dda25' },
 ];
 
 const Header: React.FC = () => {
