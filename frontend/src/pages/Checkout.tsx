@@ -24,7 +24,7 @@ const Checkout: React.FC = () => {
   const [isLoadingPayment, setIsLoadingPayment] = useState<boolean>(false);
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const { activeRoom, clearActiveRoom } = useRoomStore();
-  const { addToast } = useToastStore();
+  const isNavigatingAway = useRef(false);
 
   useEffect(() => {
     if (!state) {
@@ -33,7 +33,7 @@ const Checkout: React.FC = () => {
   }, [state, navigate]);
 
   useEffect(() => {
-    if (!activeRoom) {
+    if (!activeRoom && !isNavigatingAway.current) {
       // Time expired or room cleared
       navigate('/', { replace: true, state: { message: 'Thời gian thanh toán đã hết.' } });
     }
@@ -66,6 +66,7 @@ const Checkout: React.FC = () => {
       console.error('Lỗi khi nhả ghế:', err);
     } finally {
       setIsCancelling(false);
+      isNavigatingAway.current = true;
       navigate(`/event/${eventId}/room`);
     }
   };
@@ -86,6 +87,7 @@ const Checkout: React.FC = () => {
           console.error("Failed to leave room", e);
         }
       }
+      isNavigatingAway.current = true;
       clearActiveRoom();
       addToast({ type: 'success', title: 'Thành công', message: 'Thanh toán thành công!' });
       navigate(`/checkout/success/${orderId}`, { replace: true, state: { invoiceData: state.invoiceData, totalAmount: state.totalAmount } });
