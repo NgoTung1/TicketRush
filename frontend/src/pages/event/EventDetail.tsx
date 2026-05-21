@@ -170,7 +170,7 @@ const EventDetail: React.FC = () => {
         setActiveRoom({ eventId: id, status: 'ready', expiresAt: expireAtMs });
         navigate(`/event/${id}/room`);
 
-      } else if (status === 'WAITING_ROOM') {
+      } else if (status === 'WAITING_ROOM' || status === 'ALREADY_IN_WAITING') {
         setActiveRoom({ eventId: id, status: 'waiting' });
         setNotifyOpen(true);
       } else if (status === 'BLOCKED') {

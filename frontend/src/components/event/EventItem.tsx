@@ -21,11 +21,11 @@ export const EventItem: React.FC<EventItemProps> = ({
     onClick
 }) => {
     return (
-        <div 
+        <div
             onClick={onClick}
-            className="w-full max-w-[340px] bg-[#141414] rounded-xl overflow-hidden flex flex-col cursor-pointer transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/50"
+            className="w-full h-[330px] max-w-[340px] rounded-xl overflow-hidden flex flex-col cursor-pointer transition-transform duration-300 hover:-translate-y-1"
         >
-            
+
             {/* Image Container: Đã fix cứng chiều cao h-[190px] và thêm shrink-0 */}
             <div className="relative w-full h-[190px] shrink-0">
                 <img
@@ -36,9 +36,9 @@ export const EventItem: React.FC<EventItemProps> = ({
             </div>
 
             {/* Content Container */}
-            <div className="p-4 flex flex-col flex-1">
+            <div className="px-2 py-3 flex flex-col flex-1">
                 {/* Title */}
-                <h3 className="text-white text-[18px] font-bold leading-tight mb-2 line-clamp-2 min-h-[40px]">
+                <h3 className="text-white text-[18px] font-bold leading-tight mb-1 line-clamp-2">
                     {title}
                 </h3>
 
