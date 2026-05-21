@@ -32,9 +32,9 @@ function toEventItemProps(event: EventResponse) {
     date: formatDateTime(event.startTime),
     status:
       event.status === 'ONCOMING'
-        ? 'Sắp diễn ra'
+        ? 'Đang chuẩn bị'
         : event.status === 'ONGOING'
-        ? 'Đang diễn ra'
+        ? 'Đang mở bán'
         : 'Đã kết thúc',
     statusColor:
       event.status === 'ONCOMING'
@@ -69,8 +69,8 @@ type StatusFilter = 'ALL' | EventStatus;
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'ALL', label: 'Tất cả' },
-  { value: 'ONCOMING', label: 'Sắp diễn ra' },
-  { value: 'ONGOING', label: 'Đang diễn ra' },
+  { value: 'ONCOMING', label: 'Đang chuẩn bị' },
+  { value: 'ONGOING', label: 'Đang mở bán' },
   { value: 'COMPLETED', label: 'Đã kết thúc' },
 ];
 
@@ -301,7 +301,7 @@ const EventList: React.FC = () => {
           {/* Filter 2: Status */}
           <FilterDropdown
             icon={OngoingFilter}
-            label="Đang diễn ra"
+            label="Trạng thái"
             options={STATUS_OPTIONS}
             value={currentStatus}
             onChange={(v) => updateParams({ status: v === 'ALL' ? null : v })}

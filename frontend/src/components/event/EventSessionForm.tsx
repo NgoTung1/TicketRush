@@ -54,42 +54,49 @@ const EventSessionForm: React.FC<SessionProps> = ({ index, data, onChange, onRem
         </div>
 
         {/* Bắt đầu lúc */}
-        <div className="flex items-center gap-3">
-          <label className="text-white text-[14px] font-bold w-24 shrink-0">Bắt đầu lúc:</label>
-          <div className="flex-1 sm:max-w-[220px] relative">
-            <img
-              src={DateIcon}
-              alt=""
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 object-contain pointer-events-none z-10"
-            />
-            
-            {/* Nếu chưa có dữ liệu, đè cái placeholder này lên */}
-            {!data.startAt && (
-              <span className="absolute left-8 top-1/2 -translate-y-1/2 text-white/40 text-[12px] font-bold pointer-events-none z-10">
-                Chọn mốc thời gian
+        <div className="flex items-start gap-3">
+          <label className="text-white text-[14px] font-bold w-24 shrink-0 mt-2">Bắt đầu lúc:</label>
+          <div className="flex-1 flex flex-col gap-1">
+            <div className="sm:max-w-[220px] w-full relative">
+              <img
+                src={DateIcon}
+                alt=""
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 object-contain pointer-events-none z-10"
+              />
+              
+              {/* Nếu chưa có dữ liệu, đè cái placeholder này lên */}
+              {!data.startAt && (
+                <span className="absolute left-8 top-1/2 -translate-y-1/2 text-white/40 text-[12px] font-bold pointer-events-none z-10">
+                  Chọn mốc thời gian
+                </span>
+              )}
+
+              <input
+                type="datetime-local"
+                value={data.startAt}
+                onChange={handle('startAt')}
+                className={`${inputCls} pl-8 pr-8 [color-scheme:dark] 
+                  ${!data.startAt ? 'text-transparent [&::-webkit-datetime-edit]:text-transparent' : ''} 
+                  [&::-webkit-calendar-picker-indicator]:opacity-0 
+                  [&::-webkit-calendar-picker-indicator]:absolute 
+                  [&::-webkit-calendar-picker-indicator]:inset-0 
+                  [&::-webkit-calendar-picker-indicator]:w-full 
+                  [&::-webkit-calendar-picker-indicator]:h-full 
+                  [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
+              />
+
+              {/* Chevron bên phải */}
+              <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none z-10">
+                <svg className="w-3.5 h-3.5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            {data.startAt && new Date(data.startAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
+              <span className="text-red-400 text-[11px] font-bold">
+                ⚠️ Thời gian bắt đầu phiên phải cách hiện tại ít nhất 1 tuần (7 ngày)!
               </span>
             )}
-
-            <input
-              type="datetime-local"
-              value={data.startAt}
-              onChange={handle('startAt')}
-              className={`${inputCls} pl-8 pr-8 [color-scheme:dark] 
-                ${!data.startAt ? 'text-transparent [&::-webkit-datetime-edit]:text-transparent' : ''} 
-                [&::-webkit-calendar-picker-indicator]:opacity-0 
-                [&::-webkit-calendar-picker-indicator]:absolute 
-                [&::-webkit-calendar-picker-indicator]:inset-0 
-                [&::-webkit-calendar-picker-indicator]:w-full 
-                [&::-webkit-calendar-picker-indicator]:h-full 
-                [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
-            />
-
-            {/* Chevron bên phải */}
-            <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none z-10">
-              <svg className="w-3.5 h-3.5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
           </div>
         </div>
 
