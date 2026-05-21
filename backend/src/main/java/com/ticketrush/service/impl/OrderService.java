@@ -148,6 +148,13 @@ public class OrderService {
     }
 
     @Transactional
+    public List<OrderSeatResponse> getOrderSeatsByOrderId(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "hóa đơn không tồn tại"));
+        return mapSeats(order.getOrderSeats());
+    }
+
+    @Transactional
     public List<OrderDetailResponse> getMyOrders(UUID userId, OrderStatus status) {
         List<Order> orders = status != null
                 ? orderRepository.findByUser_IdAndStatus(userId, status)
@@ -320,9 +327,12 @@ public class OrderService {
         for (OrderSeat orderSeat : orderSeats) {
             Seat seat = orderSeat.getSeat();
             responses.add(OrderSeatResponse.builder()
+                    .id(orderSeat.getId())
+                    .orderId(orderSeat.getOrder() != null ? orderSeat.getOrder().getId() : null)
                     .seatId(seat.getId())
                     .seatLabel(buildSeatLabel(seat))
                     .priceAtPurchase(orderSeat.getPriceAtPurchase())
+                    .status(seat.getStatus())
                     .build());
         }
         return responses;

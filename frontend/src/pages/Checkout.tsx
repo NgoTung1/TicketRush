@@ -4,6 +4,7 @@ import PaymentMethodSelector from '../components/checkout/PaymentMethodSelector'
 import InvoiceDetails, { InvoiceItem } from '../components/checkout/InvoiceDetails';
 import { orderApi } from '@/api/orderApi';
 import { seatApi } from '@/api/seatApi';
+import { roomApi } from '@/api/roomApi';
 import { useRoomStore } from '@/store/RoomStore';
 
 const Checkout: React.FC = () => {
@@ -58,6 +59,13 @@ const Checkout: React.FC = () => {
         seatIds: state.seatIds,
       }) as any;
       const orderId = response.orderId || response.id;
+      if (eventId) {
+        try {
+          await roomApi.leaveRoom(eventId);
+        } catch (e) {
+          console.error("Failed to leave room", e);
+        }
+      }
       clearActiveRoom();
       navigate(`/checkout/success/${orderId}`, { replace: true, state: { invoiceData: state.invoiceData, totalAmount: state.totalAmount } });
     } catch (error) {

@@ -54,6 +54,9 @@ export const orderApi = {
   getEventByOrder: (orderId: string) =>
     axiosClient.get<EventCreateResponse>(`api/orders/${orderId}/event`),
 
+  getOrderSeats: (orderId: string) =>
+    axiosClient.get<any[]>(`api/orders/${orderId}/order-seats`),
+
   getTicketsByOrder: (orderId: string) =>
     axiosClient.get<TicketInOrderResponse[]>(`api/orders/${orderId}/tickets`),
 

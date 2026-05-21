@@ -17,8 +17,7 @@ export default function SeatSelectedPage() {
 
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
   const [zones, setZones] = useState<ZoneData[]>([]);
-
-  console.log("ZONES: ", zones)
+  const [orderSeatIds, setOrderSeatIds] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,6 +32,23 @@ export default function SeatSelectedPage() {
           const zonesData = (await zoneApi.getZonesBySessionId(sessionId)) as unknown as any[];
           const seatsData = (await seatApi.getSeatsBySession(sessionId)) as unknown as SeatResponse[];
 
+          let fetchedOrderSeatIds: string[] = [];
+          if (orderId) {
+            try {
+              const orderSeats: any = await orderApi.getOrderSeats(orderId);
+              if (orderSeats && Array.isArray(orderSeats)) {
+                fetchedOrderSeatIds = orderSeats.map((s: any) => s.seatId);
+                setOrderSeatIds(fetchedOrderSeatIds);
+              } else if (orderSeats && orderSeats.data && Array.isArray(orderSeats.data)) {
+                // In case interceptor doesn't extract data automatically here
+                fetchedOrderSeatIds = orderSeats.data.map((s: any) => s.seatId);
+                setOrderSeatIds(fetchedOrderSeatIds);
+              }
+            } catch (error) {
+              console.error("Failed to fetch order seats", error);
+            }
+          }
+
           const finalZones: ZoneData[] = zonesData.map(zone => {
             const matrix: (SeatResponse | null)[][] = Array.from({ length: zone.rowsCount }, () =>
               Array(zone.colsCount).fill(null)
@@ -43,7 +59,14 @@ export default function SeatSelectedPage() {
               const rIdx = seat.rowIndex - 1;
               const cIdx = seat.colIndex - 1;
               if (rIdx >= 0 && rIdx < zone.rowsCount && cIdx >= 0 && cIdx < zone.colsCount) {
-                matrix[rIdx][cIdx] = seat;
+                const displaySeat = { ...seat };
+
+                if (orderId && !fetchedOrderSeatIds.includes(displaySeat.id)) {
+                  displaySeat.status = 'AVAILABLE'; // Trả về màu mặc định
+                  displaySeat.userId = null;        // Xóa dấu vết để không bị hiện chấm trắng và không bị cộng nhầm tiền
+                }
+
+                matrix[rIdx][cIdx] = displaySeat;
               }
             });
 
@@ -70,8 +93,14 @@ export default function SeatSelectedPage() {
     zones.forEach(zone => {
       zone.matrix.forEach(row => {
         row.forEach(seat => {
-          if (seat && seat.userId === currentUser?.id) {
-            selectedSeatsData.push({ seat, zone });
+          if (seat) {
+            if (orderId) {
+              if (orderSeatIds.includes(seat.id)) {
+                selectedSeatsData.push({ seat, zone });
+              }
+            } else if (seat.userId === currentUser?.id) {
+              selectedSeatsData.push({ seat, zone });
+            }
           }
         });
       });
@@ -130,6 +159,7 @@ export default function SeatSelectedPage() {
               <ViewPort
                 zones={zones}
                 seatTypes={seatTypes}
+                selectedSeatIds={orderSeatIds}
                 onSelectedSeatsChange={() => { }}
                 className="!bg-transparent"
                 readOnly={true}

@@ -17,6 +17,7 @@ interface ViewPortProps {
   className?: string;
   zones?: ZoneData[];
   seatTypes?: SeatTypeResponse[];
+  selectedSeatIds?: string[];
   onSelectedSeatsChange?: (seatIds: string[]) => void;
   readOnly?: boolean;
 }
@@ -28,20 +29,22 @@ const ViewPort: React.FC<ViewPortProps> = ({
   className,
   zones: propZones = DEFAULT_ZONES,
   seatTypes = DEFAULT_SEAT_TYPES,
+  selectedSeatIds: propSelectedSeatIds = [],
   onSelectedSeatsChange,
   readOnly = false
 }) => {
   const { activeRoom } = useRoomStore();
 
   const [zones, setInternalZones] = useState<ZoneData[]>(propZones);
-  const [selectedSeatIds, setInternalSelectedSeatIds] = useState<string[]>([]);
+  const [selectedSeatIds, setInternalSelectedSeatIds] = useState<string[]>(propSelectedSeatIds);
   const [internalSeatTypes, setInternalSeatTypes] = useState<SeatTypeResponse[]>(seatTypes);
 
   // Khởi tạo data từ props
   useEffect(() => {
     setInternalZones(propZones);
     setInternalSeatTypes(seatTypes);
-  }, [propZones, seatTypes]);
+    setInternalSelectedSeatIds(propSelectedSeatIds);
+  }, [propZones, seatTypes, propSelectedSeatIds]);
 
   const setSelectedSeatIds = (value: React.SetStateAction<string[]>) => {
     setInternalSelectedSeatIds(prev => {
@@ -197,7 +200,7 @@ const ViewPort: React.FC<ViewPortProps> = ({
             }}
             onMouseDown={handleZoneMouseDown}
           >
-              <Zone
+            <Zone
               name={zone.name}
               seatsMatrix={zone.matrix}
               seatTypes={internalSeatTypes}

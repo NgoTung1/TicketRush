@@ -24,8 +24,12 @@ const TicketDetail: React.FC = () => {
 
     return(
         <div className="w-full flex flex-col items-center">
-            <div className="w-full flex justify-between items-center mb-6">
+            <div className="w-full flex justify-between items-center mb-2">
                 <div></div>
+            </div>
+            <EventOfTicket />
+            <SeatsQr />
+            <div className="w-full flex justify-end mt-4 mb-10">
                 <button
                     onClick={handleCancelInvoice}
                     className="px-6 py-2 bg-[#ff0000] hover:bg-[#cc0000] text-white rounded-full font-bold transition-colors"
@@ -33,8 +37,6 @@ const TicketDetail: React.FC = () => {
                     Hủy hóa đơn
                 </button>
             </div>
-            <EventOfTicket />
-            <SeatsQr />
         </div>
     )
 };

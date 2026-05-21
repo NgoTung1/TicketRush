@@ -5,6 +5,7 @@ import com.ticketrush.dto.response.event.EventCreateResponse;
 import com.ticketrush.dto.response.order.OrderCreateResponse;
 import com.ticketrush.dto.response.order.OrderDetailResponse;
 import com.ticketrush.dto.response.order.OrderPayResponse;
+import com.ticketrush.dto.response.order.OrderSeatResponse;
 import com.ticketrush.service.impl.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,8 +35,7 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderPayResponse> createOrder(
             @RequestHeader("X-User-Id") UUID userId,
-            @RequestBody OrderCreateRequest request
-    ) {
+            @RequestBody OrderCreateRequest request) {
         return ResponseEntity.ok(orderService.createAndPayOrder(userId, request));
     }
 
@@ -56,8 +56,7 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<List<OrderDetailResponse>> getMyOrders(
             @RequestHeader("X-User-Id") UUID userId,
-            @RequestParam(value = "status", required = false) OrderStatus status
-    ) {
+            @RequestParam(value = "status", required = false) OrderStatus status) {
         return ResponseEntity.ok(orderService.getMyOrders(userId, status));
     }
 
@@ -71,6 +70,12 @@ public class OrderController {
     public ResponseEntity<EventCreateResponse> getEventByOrder(
             @PathVariable UUID orderId) {
         return ResponseEntity.ok(orderService.getEventCorrespondToOrder(orderId));
+    }
+
+    @GetMapping("/{orderId}/order-seats")
+    public ResponseEntity<List<OrderSeatResponse>> getOrderSeatsByOrderId(
+            @PathVariable UUID orderId) {
+        return ResponseEntity.ok(orderService.getOrderSeatsByOrderId(orderId));
     }
 
     @GetMapping("/{orderId}/tickets")
