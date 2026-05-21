@@ -8,6 +8,21 @@ import { eventSessionApi } from '@/api/eventSessionApi';
 import { orderApi } from '@/api/orderApi';
 import { useAuthStore } from '@/store/AuthStore';
 
+function formatDateTime(iso: string): string {
+  if (!iso) return '---';
+  try {
+    const d = new Date(iso);
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    const dd = d.getDate().toString().padStart(2, '0');
+    const mo = (d.getMonth() + 1).toString().padStart(2, '0');
+    const yy = d.getFullYear();
+    return `${hh}:${mm} - ${dd}/${mo}/${yy}`;
+  } catch {
+    return iso;
+  }
+}
+
 export default function SeatSelectedPage() {
   const { id: eventId } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -18,6 +33,7 @@ export default function SeatSelectedPage() {
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
   const [zones, setZones] = useState<ZoneData[]>([]);
   const [orderSeatIds, setOrderSeatIds] = useState<string[]>([]);
+  const [orderCreatedAt, setOrderCreatedAt] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,8 +60,13 @@ export default function SeatSelectedPage() {
                 fetchedOrderSeatIds = orderSeats.data.map((s: any) => s.seatId);
                 setOrderSeatIds(fetchedOrderSeatIds);
               }
+              const orderDetail: any = await orderApi.getOrderDetail(orderId);
+              const detailData = orderDetail?.data || orderDetail;
+              if (detailData?.createdAt) {
+                setOrderCreatedAt(detailData.createdAt);
+              }
             } catch (error) {
-              console.error("Failed to fetch order seats", error);
+              console.error("Failed to fetch order details", error);
             }
           }
 
@@ -239,7 +260,7 @@ export default function SeatSelectedPage() {
               Mã hóa đơn: <span className="font-bold ml-1">{orderId || 'Chưa rõ'}</span>
             </div>
             <div className="font-semibold">
-              Thời điểm tạo: <span className="font-bold ml-1">---</span>
+              Thời điểm tạo: <span className="font-bold ml-1">{orderCreatedAt ? formatDateTime(orderCreatedAt) : '---'}</span>
             </div>
           </div>
           <div className="flex gap-4 w-full md:w-auto mt-4 md:mt-0 items-end h-full">

@@ -79,7 +79,7 @@ const RootLayout: React.FC = () => {
 
       <ToastContainer />
 
-      {activeRoom && !location.pathname.startsWith(`/event/${activeRoom.eventId}/room`) && (
+      {activeRoom && !location.pathname.startsWith(`/event/${activeRoom.eventId}/room`) && !location.pathname.startsWith('/checkout') && (
         <div className="fixed bottom-6 right-6 z-[20] flex flex-col gap-4">
           <QueueMiniWidget
             imageUrl="https://picsum.photos/seed/queue/400/300"

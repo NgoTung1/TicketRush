@@ -48,8 +48,8 @@ export const orderApi = {
   getAllOrders: (params?: { status?: string; from?: string; to?: string }) =>
     axiosClient.get<OrderDetailResponse[]>('api/orders', { params }),
 
-  getOrderTicketDetail: (orderId: string) =>
-    axiosClient.get<OrderDetailResponse>(`api/orders/${orderId}/ticket-detail`),
+  getOrderDetail: (orderId: string) =>
+    axiosClient.get<OrderDetailResponse>(`api/orders/${orderId}`),
 
   getEventByOrder: (orderId: string) =>
     axiosClient.get<EventCreateResponse>(`api/orders/${orderId}/event`),

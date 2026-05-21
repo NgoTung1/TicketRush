@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PaymentMethodSelector from '../components/checkout/PaymentMethodSelector';
 import InvoiceDetails, { InvoiceItem } from '../components/checkout/InvoiceDetails';
@@ -6,6 +6,7 @@ import { orderApi } from '@/api/orderApi';
 import { seatApi } from '@/api/seatApi';
 import { roomApi } from '@/api/roomApi';
 import { useRoomStore } from '@/store/RoomStore';
+import { useToastStore } from '@/store/ToastStore';
 
 const Checkout: React.FC = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -18,11 +19,12 @@ const Checkout: React.FC = () => {
     totalAmount: number;
     eventId: string;
   } | null;
-  
+
   const [selectedMethod, setSelectedMethod] = useState<string>('bank');
   const [isLoadingPayment, setIsLoadingPayment] = useState<boolean>(false);
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const { activeRoom, clearActiveRoom } = useRoomStore();
+  const { addToast } = useToastStore();
 
   useEffect(() => {
     if (!state) {
@@ -36,6 +38,24 @@ const Checkout: React.FC = () => {
       navigate('/', { replace: true, state: { message: 'Thời gian thanh toán đã hết.' } });
     }
   }, [activeRoom, navigate]);
+
+  const hasWarnedRed = useRef(false);
+  useEffect(() => {
+    if (activeRoom?.timeLeft && !hasWarnedRed.current) {
+      const parts = activeRoom.timeLeft.split(':');
+      if (parts.length === 2) {
+        const mins = parseInt(parts[0], 10);
+        if (mins < 3) {
+          addToast({
+            type: 'warning',
+            title: 'Sắp hết thời gian',
+            message: 'Bạn chỉ còn dưới 3 phút để hoàn tất thanh toán!',
+          });
+          hasWarnedRed.current = true;
+        }
+      }
+    }
+  }, [activeRoom?.timeLeft, addToast]);
 
   const handleCancel = async () => {
     if (!state?.seatIds || !eventId) return;
@@ -67,57 +87,69 @@ const Checkout: React.FC = () => {
         }
       }
       clearActiveRoom();
+      addToast({ type: 'success', title: 'Thành công', message: 'Thanh toán thành công!' });
       navigate(`/checkout/success/${orderId}`, { replace: true, state: { invoiceData: state.invoiceData, totalAmount: state.totalAmount } });
     } catch (error) {
       console.error("Payment failed", error);
-      alert('Thanh toán thất bại, vui lòng thử lại');
+      addToast({ type: 'error', title: 'Thất bại', message: 'Thanh toán thất bại, vui lòng thử lại' });
     } finally {
       setIsLoadingPayment(false);
     }
   };
 
+  const getTimerColor = (timeLeft?: string) => {
+    if (!timeLeft) return 'text-[#00ff00]';
+    const parts = timeLeft.split(':');
+    if (parts.length === 2) {
+      const mins = parseInt(parts[0], 10);
+      if (mins < 3) return 'text-[#ff4747]';
+      if (mins < 6) return 'text-yellow-400';
+    }
+    return 'text-[#00ff00]';
+  };
+
   return (
-    <div className="w-full">
-        <div className="flex justify-between items-end mb-8">
-          <h1 className="text-3xl font-bold">Thanh toán</h1>
-          <div className="text-gray-300 font-medium italic">
-            Vui lòng hoàn tất thanh toán trong: <span className="text-ticket-green not-italic ml-1 text-lg">{activeRoom?.timeLeft || '00:00'}</span>
-          </div>
+    <div className="w-full my-6">
+      <div className="flex justify-between items-end mb-3">
+        <h1 className="text-3xl font-bold">Thanh toán</h1>
+        <div className="text-white font-medium italic">
+          Vui lòng hoàn tất thanh toán trong: <span className={`ml-1 ${getTimerColor(activeRoom?.timeLeft)}`}>{activeRoom?.timeLeft || '00:00'}</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column */}
+        <div className="flex flex-col">
+          <PaymentMethodSelector selectedMethod={selectedMethod} onSelect={setSelectedMethod} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column */}
-          <div className="flex flex-col">
-             <PaymentMethodSelector selectedMethod={selectedMethod} onSelect={setSelectedMethod} />
-          </div>
+        {/* Right Column */}
+        <div className="flex flex-col space-y-6 items-end">
+          {state && (
+            <InvoiceDetails
+              invoiceData={state.invoiceData}
+              totalAmount={state.totalAmount}
+            />
+          )}
 
-          {/* Right Column */}
-          <div className="flex flex-col space-y-6 items-end">
-            {state && (
-              <InvoiceDetails 
-                invoiceData={state.invoiceData} 
-                totalAmount={state.totalAmount} 
-              />
-            )}
-            
-            <div className="flex justify-end space-x-4 mt-4">
-              <button
-                onClick={handleCancel}
-                disabled={isCancelling}
-                className="px-5 py-1 rounded-full bg-gray-500 hover:bg-gray-600 text-white font-medium transition-colors focus:outline-none disabled:opacity-50"
-              >
-                {isCancelling ? 'Đang hủy...' : 'Hủy'}
-              </button>
-              <button
-                onClick={handlePayment}
-                disabled={isLoadingPayment}
-                className="px-5 py-1 rounded-full bg-ticket-blue hover:bg-blue-600 text-white font-medium transition-colors focus:outline-none shadow-[0_0_15px_rgba(33,150,243,0.5)] disabled:opacity-50"
-              >
-                {isLoadingPayment ? 'Đang xử lý...' : 'Thanh toán'}
-              </button>
-            </div>
+          <div className="flex justify-end space-x-4 mt-4">
+            <button
+              onClick={handleCancel}
+              disabled={isCancelling}
+              className="px-5 py-1 rounded-full bg-gray-500 hover:bg-gray-600 text-white font-medium transition-colors focus:outline-none disabled:opacity-50"
+            >
+              {isCancelling ? 'Đang hủy...' : 'Hủy'}
+            </button>
+            <button
+              onClick={handlePayment}
+              disabled={isLoadingPayment}
+              className="px-5 py-1 rounded-full bg-ticket-blue hover:bg-blue-600 text-white font-medium transition-colors focus:outline-none disabled:opacity-50"
+            >
+              {isLoadingPayment ? 'Đang xử lý...' : 'Thanh toán'}
+            </button>
           </div>
         </div>
+      </div>
     </div>
   );
 };

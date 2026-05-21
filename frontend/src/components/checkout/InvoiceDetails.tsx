@@ -20,7 +20,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ invoiceData, totalAmoun
   return (
     <div className="bg-panel rounded-xl p-4 shadow-md w-full">
       <h2 className="text-lg font-bold text-white mb-4">Thông tin hóa đơn</h2>
-      
+
       <div className="space-y-4">
         {invoiceData.map((item, index) => (
           <div key={index} className="flex justify-between items-start">
@@ -37,7 +37,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ invoiceData, totalAmoun
             </div>
             <div className="text-right">
               <p className="text-white font-bold italic text-sm mb-1">Số lượng: {item.quantity}</p>
-              <p className="text-ticket-green font-bold text-sm">{formatCurrency(item.price * item.quantity)}</p>
+              <p className="italic text-[#00ff00] font-bold text-sm">{formatCurrency(item.price * item.quantity)}</p>
             </div>
           </div>
         ))}
@@ -46,7 +46,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ invoiceData, totalAmoun
       <div className="mt-5">
         <div className="flex justify-start items-center space-x-1.5">
           <span className="text-white font-bold text-base">Tổng hóa đơn:</span>
-          <span className="text-ticket-green font-bold text-base">{formatCurrency(totalAmount)}</span>
+          <span className="text-[#00ff00] font-bold text-base">{formatCurrency(totalAmount)}</span>
         </div>
       </div>
     </div>

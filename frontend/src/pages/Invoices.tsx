@@ -93,17 +93,17 @@ const Invoices: React.FC = () => {
 
   return (
     <div className="bg-background text-white font-sans">
-      <div className="max-w-7xl mx-auto w-full px-8 py-10">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-[32px] font-bold mb-6">Hóa đơn</h1>
+      <div className="mx-auto w-full my-2">
+        <div className="mx-auto">
+          <h1 className="text-[32px] font-bold mb-2">Hóa đơn</h1>
 
           {/* Controls: Tabs & DatePicker */}
-          <div className="flex flex-wrap items-center gap-3 mb-8">
+          <div className="flex flex-wrap items-center gap-3 mb-4">
             <button
               onClick={() => handleTabChange('paid')}
-              className={`px-5 py-2 rounded-md text-[16px] font-bold transition-colors ${activeTab === 'paid'
+              className={`px-4 py-1.5 rounded-[8px] text-[12px] font-bold transition-colors ${activeTab === 'paid'
                 ? 'bg-[#5A5A5A] text-white'
-                : 'bg-[#414141] text-gray-400 hover:text-gray-200'
+                : 'bg-[#414141] text-white/80 hover:text-gray-200'
                 }`}
             >
               Đã thanh toán
@@ -111,9 +111,9 @@ const Invoices: React.FC = () => {
 
             <button
               onClick={() => handleTabChange('cancelled')}
-              className={`px-5 py-2 rounded-md text-[16px] font-bold transition-colors ${activeTab === 'cancelled'
+              className={`px-4 py-1.5 rounded-[8px] text-[12px] font-bold transition-colors ${activeTab === 'cancelled'
                 ? 'bg-[#5A5A5A] text-white'
-                : 'bg-[#414141] text-gray-400 hover:text-gray-200'
+                : 'bg-[#414141] text-white/80 hover:text-gray-200'
                 }`}
             >
               Đã hủy
@@ -122,9 +122,9 @@ const Invoices: React.FC = () => {
             <div className="relative" ref={datePickerRef}>
               <button
                 onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
-                className="flex items-center gap-3 bg-[#3F3F3F] hover:bg-[#4E4E4E] text-white px-4 py-2.5 rounded-[12px] text-[14px] font-bold transition-all duration-200 border border-white/5 shadow-md"
+                className="flex items-center gap-2  bg-[#3F3F3F] hover:bg-[#4E4E4E] text-white px-4 py-1.5 rounded-[8px] text-[12px] font-bold transition-all duration-200"
               >
-                <Calendar size={18} className="text-white shrink-0" />
+                <Calendar size={16} className="text-white shrink-0" />
                 <span className="font-roboto tracking-wide">
                   {startDate || endDate ? (
                     <>

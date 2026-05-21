@@ -18,9 +18,9 @@ export const InvoiceItem: React.FC<InvoiceItemProps> = ({
   onViewSeats
 }) => {
   return (
-    <div 
+    <div
       onClick={status === 'paid' ? onViewSeats : undefined}
-      className={`bg-[#1E1E1E] hover:bg-[#383838] text-white p-4 rounded-xl flex justify-between items-start w-full mb-3 shadow-sm transition-colors duration-200 ${status === 'paid' ? 'cursor-pointer' : ''}`}
+      className={`bg-[#1E1E1E] hover:bg-[#383838] text-white p-4 rounded-[8px] flex justify-between items-start w-full mb-3 shadow-sm transition-colors duration-200 ${status === 'paid' ? 'cursor-pointer' : ''}`}
     >
       <div className="flex flex-col gap-1">
         <div className="text-[14px] font-bold">Mã hóa đơn: {id}</div>
@@ -40,7 +40,7 @@ export const InvoiceItem: React.FC<InvoiceItemProps> = ({
           e.stopPropagation();
           onViewTicket?.();
         }}
-        className="bg-[#0090FF] hover:bg-[#0284c7] text-white text-[12px] font-bold py-1.5 px-4 rounded-full transition-colors"
+        className="bg-[#0090FF] hover:bg-[#0284c7] text-white text-[10px] font-bold py-1.5 px-4 rounded-full transition-colors"
       >
         Thông tin vé
       </button>

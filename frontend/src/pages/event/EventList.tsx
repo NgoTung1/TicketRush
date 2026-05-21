@@ -276,11 +276,11 @@ const EventList: React.FC = () => {
   // ─── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-[#141414] min-h-screen text-white font-roboto pt-24 pb-16">
+    <div className="bg-[#141414] min-h-screen text-white font-roboto pt-5 pb-16">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Filters row */}
-        <div className="flex flex-wrap items-center gap-3 mb-8">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
 
           {/* Filter 1: Danh mục */}
           <FilterDropdown
