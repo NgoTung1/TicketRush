@@ -1,7 +1,8 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { roomApi } from '@/api/roomApi';
 import { useRoomStore } from '@/store/RoomStore';
+import { useToastStore } from '@/store/ToastStore';
 import ViewPort, { ZoneData } from '@/components/room/ViewPort';
 import { SeatTypeResponse, seatTypeApi } from '@/api/seatTypeApi';
 import { SeatResponse, seatApi } from '@/api/seatApi';
@@ -15,7 +16,26 @@ export function RoomPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { activeRoom, clearActiveRoom } = useRoomStore();
+  const { addToast } = useToastStore();
+  const hasWarnedRed = useRef(false);
   const fromDetail = location.state?.fromDetail;
+
+  useEffect(() => {
+    if (activeRoom?.timeLeft && !hasWarnedRed.current) {
+      const parts = activeRoom.timeLeft.split(':');
+      if (parts.length === 2) {
+        const mins = parseInt(parts[0], 10);
+        if (mins < 3) {
+          addToast({
+            type: 'warning',
+            title: 'Sắp hết thời gian',
+            message: 'Bạn chỉ còn dưới 3 phút để chọn ghế!',
+          });
+          hasWarnedRed.current = true;
+        }
+      }
+    }
+  }, [activeRoom?.timeLeft, addToast]);
 
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
   const [zones, setZones] = useState<ZoneData[]>([]);
@@ -406,13 +426,12 @@ export function RoomPage() {
           </div>
           <div className="text-[14px] text-gray-200 space-y-3 leading-relaxed">
             <p>
-              <strong className="text-white">- Giới hạn thời gian:</strong> Bạn có tối đa <span className="text-[#00ff00]">5</span> phút để chọn ghế và <span className="text-[#00ff00]">10</span> phút để thanh toán. Nếu quá thời gian ở bất kỳ bước nào, hệ thống sẽ tự động hủy giao dịch và nhả ghế lại cho người khác.
+              <strong className="text-white">- Quy định chọn ghế:</strong> Bạn chỉ được đặt tối đa <span className="text-[#00ff00] font-bold">8 vé</span>. Trong quá trình thao tác, nếu ghế bạn chọn bị người khác giữ trước, hệ thống sẽ tự động xóa ghế đó khỏi lựa chọn của bạn.
             </p>
             <div>
-              <strong className="text-white">- Chế tài vi phạm:</strong> Để ngăn chặn hành vi găm vé, tài khoản sẽ bị tạm khóa chức năng mua vé trong <span className="text-[#00ff00]">60 phút</span> nếu thuộc một trong các trường hợp sau:
+              <strong className="text-white">- Chế tài vi phạm:</strong> Để đảm bảo tính công bằng, tài khoản của bạn sẽ bị cấm đặt vé trong <span className="text-[#00ff00] font-bold">2 tiếng</span> nếu:
               <ul className="list-disc pl-8 mt-1 space-y-1">
-                <li>Để hóa đơn hết hạn thanh toán <span className="text-[#00ff00] font-bold">02</span> lần liên tiếp.</li>
-                <li>Hệ thống phát hiện các thao tác cố tình giữ chỗ/hủy chỗ bất thường gây ảnh hưởng đến hệ thống</li>
+                <li>Để hệ thống tự động kích do hết thời gian quá <span className="text-[#00ff00] font-bold">3 lần</span>.</li>
               </ul>
             </div>
           </div>

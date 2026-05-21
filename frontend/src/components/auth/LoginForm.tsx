@@ -45,11 +45,20 @@ const LoginForm: React.FC = () => {
         navigate('/'); // Khách bình thường về Trang chủ
       }
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        err?.response?.data ||
-        'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
-      setApiError(typeof message === 'string' ? message : 'Đăng nhập thất bại.');
+      const status = err?.response?.status;
+      if (status === 401) {
+        setApiError('Email hoặc mật khẩu không chính xác.');
+      } else if (status === 403) {
+        setApiError('Tài khoản của bạn đã bị khóa hoặc không có quyền truy cập.');
+      } else if (status === 400) {
+        setApiError('Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.');
+      } else if (status === 429) {
+        setApiError('Bạn đã thử quá nhiều lần. Vui lòng quay lại sau.');
+      } else if (err.code === 'ERR_NETWORK') {
+        setApiError('Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng.');
+      } else {
+        setApiError('Đăng nhập thất bại. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }

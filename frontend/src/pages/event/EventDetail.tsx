@@ -242,7 +242,6 @@ const EventDetail: React.FC = () => {
         try {
           const res = await roomApi.getQueueStatus(currentId);
           const status = res.status ? res.status.toString() : '';
-          console.log("RES STATUS: ", res)
           if (status === 'ACTIVE_ROOM' || status === 'ALREADY_IN_ACTIVE') {
             const expireAtMs = res.expireAt ? res.expireAt * 1000 : Date.now() + 600000;
             setActiveRoom({ eventId: currentId, status: 'ready', expiresAt: expireAtMs });
@@ -282,11 +281,11 @@ const EventDetail: React.FC = () => {
 
   if (loadingEvent) {
     return (
-      <div className="bg-[#141414] min-h-screen text-white pt-20 pb-16">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 animate-pulse">
+      <div className="bg-[#141414] min-h-screen text-white pb-16">
+        <div className="mx-auto px-4 py-10 animate-pulse">
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 mb-12">
-            <div className="w-full lg:w-[55%] aspect-video bg-white/10 rounded-2xl" />
-            <div className="w-full lg:w-[45%] space-y-4 py-4">
+            <div className="w-full lg:w-[50%] aspect-video bg-white/10 rounded-2xl" />
+            <div className="w-full lg:w-[50%] space-y-4 py-4">
               <div className="h-8 bg-white/10 rounded w-3/4" />
               <div className="h-4 bg-white/10 rounded w-full" />
               <div className="h-4 bg-white/10 rounded w-5/6" />
@@ -300,7 +299,7 @@ const EventDetail: React.FC = () => {
 
   if (error) {
     return (
-      <div className="bg-[#141414] min-h-screen text-white pt-20 flex items-center justify-center">
+      <div className="bg-[#141414] min-h-screen text-white flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-red-400 font-medium">{error}</p>
           <button
@@ -317,13 +316,13 @@ const EventDetail: React.FC = () => {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-[#141414] min-h-screen text-white pt-20 pb-16">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+    <div className="bg-[#141414] min-h-screen text-white pb-16">
+      <div className="px-4 py-10">
 
         {/* Hero Section */}
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 mb-8 lg:mb-12">
+        <div className="flex flex-col lg:flex-row gap-6 mb-2">
           {/* Left: Poster — fixed 16/9, object-cover fills full frame without stretching */}
-          <div className="w-full lg:w-[55%] shrink-0">
+          <div className="w-full lg:w-[50%] shrink-0">
             <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-xl border border-white/10">
               <img
                 src={event?.bannerUrl || `https://picsum.photos/seed/${id}/1000/600`}
@@ -334,22 +333,24 @@ const EventDetail: React.FC = () => {
           </div>
 
           {/* Right: Info - Đã đổi class thành justify-start để đẩy nội dung lên trên */}
-          <div className="w-full lg:w-[45%] flex flex-col justify-start">
-            <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-white mb-4 lg:mb-6 leading-tight">
-              {event?.title || '—'}
-            </h1>
-            <p className="text-white text-sm sm:text-[18px] leading-relaxed text-white/80">
-              {event?.description || 'Chưa có mô tả cho sự kiện này.'}
-            </p>
+          <div className="w-full flex-1 lg:relative">
+            <div className="w-full lg:absolute lg:inset-0 flex flex-col justify-start gap-3 leading-none lg:overflow-y-auto lg:pr-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-white break-words">
+                {event?.title || '—'}
+              </h1>
+              <p className="text-sm sm:text-[18px] leading-relaxed text-white break-words whitespace-pre-wrap">
+                {event?.description || 'Chưa có mô tả cho sự kiện này.'}
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Organizer & Location */}
-        <div className="mb-12">
-          <h3 className="text-[24px] font-bold mb-4 italic text-white">
+        <div className="flex flex-col gap-1 mt-2 mb-12">
+          <h3 className="text-[24px] font-bold italic text-white">
             Ban tổ chức: {event?.organizer || '—'}
           </h3>
-          <div className="flex items-center gap-3 text-[16px] mb-3 text-white">
+          <div className="flex items-center gap-3 text-[16px] text-white">
             <img src={DateFilter} alt="" />
             <span className="font-bold italic">
               {event?.startTime ? formatDateTime(event.startTime) : '—'}
@@ -365,8 +366,8 @@ const EventDetail: React.FC = () => {
         </div>
 
         {/* Lịch diễn */}
-        <div className="mb-16">
-          <h2 className="text-[24px] font-bold italic mb-6 text-white">Lịch diễn</h2>
+        <div className="mb-20">
+          <h2 className="text-[24px] font-bold italic mb-2 text-white">Lịch diễn</h2>
 
           {loadingSessions ? (
             <div className="space-y-3">
@@ -421,7 +422,7 @@ const EventDetail: React.FC = () => {
 
         {/* Có thể bạn quan tâm */}
         <div>
-          <h2 className="text-xl font-bold mb-8 text-center text-white">Có thể bạn quan tâm</h2>
+          <h2 className="text-[24px] font-bold mb-6 text-center text-white">Có thể bạn quan tâm</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {relatedEvents.map((e) => {
               const types = relatedSeatTypes[e.id] || [];
@@ -458,7 +459,7 @@ const EventDetail: React.FC = () => {
           <div className="mt-10 text-center">
             <button
               onClick={() => navigate('/events')}
-              className="text-sm text-gray-400 hover:text-white transition-colors underline underline-offset-4"
+              className="italic font-bold text-white hover:underline hover:underline-offset-4"
             >
               Xem thêm
             </button>
