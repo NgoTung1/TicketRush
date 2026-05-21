@@ -227,9 +227,9 @@ const EventDetail: React.FC = () => {
 
   const statusLabel =
     event?.status === 'ONCOMING'
-      ? 'Sắp diễn ra'
+      ? 'Đang chuẩn bị'
       : event?.status === 'ONGOING'
-        ? 'Đang diễn ra'
+        ? 'Đang mở bán'
         : 'Đã kết thúc';
 
   const statusTextColor =
@@ -398,9 +398,9 @@ const EventDetail: React.FC = () => {
                     date={formatDateTime(e.startTime)}
                     status={
                       e.status === 'ONCOMING'
-                        ? 'Sắp diễn ra'
+                        ? 'Đang chuẩn bị'
                         : e.status === 'ONGOING'
-                          ? 'Đang diễn ra'
+                          ? 'Đang mở bán'
                           : 'Đã kết thúc'
                     }
                     statusColor={

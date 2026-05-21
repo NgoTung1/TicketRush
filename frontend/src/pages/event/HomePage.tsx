@@ -24,7 +24,7 @@ function toEventItemProps(event: EventResponse, onClick: () => void) {
     title: event.title,
     price: 'Xem chi tiết', // Cần cập nhật nếu API trả về giá
     date: formatDateTime(event.startTime),
-    status: event.status === 'ONCOMING' ? 'Sắp diễn ra' : event.status === 'ONGOING' ? 'Đang diễn ra' : 'Đã kết thúc',
+    status: event.status === 'ONCOMING' ? 'Đang chuẩn bị' : event.status === 'ONGOING' ? 'Đang mở bán' : 'Đã kết thúc',
     statusColor: event.status === 'ONCOMING' ? 'text-[#F7FF55]' : event.status === 'ONGOING' ? 'text-[#00D4FF]' : 'text-[#757575]',
     imageUrl: event.bannerUrl || 'https://picsum.photos/seed/default/600/400',
     onClick
@@ -181,7 +181,7 @@ const HomePage: React.FC = () => {
                 <div className="flex flex-col gap-3 mb-8 lg:mb-10">
                   <span className={`inline-block px-5 py-1 bg-white text-[10px] font-bold italic rounded-full w-fit tracking-wider ${activeEvent.status === 'ONCOMING' ? 'text-[#4E4E4E]' : activeEvent.status === 'ONGOING' ? 'text-[#00a3ff]' : 'text-gray-500'
                     }`}>
-                    {activeEvent.status === 'ONCOMING' ? 'Sắp diễn ra' : activeEvent.status === 'ONGOING' ? 'Đang diễn ra' : 'Đã kết thúc'}
+                    {activeEvent.status === 'ONCOMING' ? 'Đang chuẩn bị' : activeEvent.status === 'ONGOING' ? 'Đang mở bán' : 'Đã kết thúc'}
                   </span>
                   <p className="text-[#00A6FF] font-bold italic text-[14px]">
                     Bắt đầu lúc {formatDateTime(activeEvent.startTime)}
@@ -296,10 +296,10 @@ const HomePage: React.FC = () => {
         {/* Actual Data */}
         {!loading && !error && (
           <>
-            {/* Sắp diễn ra */}
+            {/* Đang chuẩn bị */}
             <section>
               <div className="flex justify-between items-end mb-4">
-                <h2 className="text-[24px] font-bold text-white">Sắp diễn ra</h2>
+                <h2 className="text-[24px] font-bold text-white">Đang chuẩn bị</h2>
                 <button
                   onClick={() => navigate('/events?status=ONCOMING')}
                   className="text-[#B4B2B2] hover:text-white text-[20px] font-bold transition-colors"
@@ -308,7 +308,7 @@ const HomePage: React.FC = () => {
                 </button>
               </div>
               {!upcomingEvents || upcomingEvents.length === 0 ? (
-                <p className="text-white/40 text-sm">Không có sự kiện sắp diễn ra.</p>
+                <p className="text-white/40 text-sm">Không có sự kiện đang chuẩn bị.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {upcomingEvents.slice(0, 4).map((event) => (
@@ -318,10 +318,10 @@ const HomePage: React.FC = () => {
               )}
             </section>
 
-            {/* Đang diễn ra */}
+            {/* Đang mở bán */}
             <section>
               <div className="flex justify-between items-end mb-4">
-                <h2 className="text-2xl font-bold text-white">Đang diễn ra</h2>
+                <h2 className="text-2xl font-bold text-white">Đang mở bán</h2>
                 <button
                   onClick={() => navigate('/events?status=ONGOING')}
                   className="text-[#B4B2B2] hover:text-white text-[20px] font-bold transition-colors"
@@ -330,7 +330,7 @@ const HomePage: React.FC = () => {
                 </button>
               </div>
               {!ongoingEvents || ongoingEvents.length === 0 ? (
-                <p className="text-white/40 text-sm">Không có sự kiện đang diễn ra.</p>
+                <p className="text-white/40 text-sm">Không có sự kiện đang mở bán.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {ongoingEvents.slice(0, 4).map((event) => (
