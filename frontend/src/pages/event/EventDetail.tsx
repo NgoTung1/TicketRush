@@ -323,7 +323,7 @@ const EventDetail: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-6 mb-2">
           {/* Left: Poster — fixed 16/9, object-cover fills full frame without stretching */}
           <div className="w-full lg:w-[50%] shrink-0">
-            <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-xl border border-white/10">
+            <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-xl">
               <img
                 src={event?.bannerUrl || `https://picsum.photos/seed/${id}/1000/600`}
                 alt={event?.title}
