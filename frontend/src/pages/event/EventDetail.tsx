@@ -355,6 +355,7 @@ const EventDetail: React.FC = () => {
                   : session.name;
 
                 const isEventOncoming = event?.status === 'ONCOMING';
+                const isEventCompleted = event?.status === 'COMPLETED';
 
                 return (
                   <EventSessionItem
@@ -363,9 +364,15 @@ const EventDetail: React.FC = () => {
                     date={session.startAt ? formatSessionDate(session.startAt) : '—'}
                     price={priceLabel}
                     status={itemStatus}
-                    disabled={isEventOncoming}
-                    actionLabel={isEventOncoming ? "Chưa mở bán" : "Mua vé ngay"}
-                    onActionClick={handleJoinRoom}
+                    disabled={isEventOncoming || isEventCompleted}
+                    actionLabel={
+                      isEventCompleted
+                        ? 'Đã kết thúc'
+                        : isEventOncoming
+                          ? 'Chưa mở bán'
+                          : 'Mua vé ngay'
+                    }
+                    onActionClick={isEventCompleted ? undefined : handleJoinRoom}
                   />
                 );
               })}

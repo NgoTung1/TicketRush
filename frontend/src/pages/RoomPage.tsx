@@ -7,6 +7,7 @@ import { SeatTypeResponse, seatTypeApi } from '@/api/seatTypeApi';
 import { SeatResponse, seatApi } from '@/api/seatApi';
 import { zoneApi } from '@/api/zoneApi';
 import { eventSessionApi } from '@/api/eventSessionApi';
+import { eventApi } from '@/api/eventApi';
 import { supabase } from '@/lib/supabase';
 
 export function RoomPage() {
@@ -20,6 +21,7 @@ export function RoomPage() {
   const [zones, setZones] = useState<ZoneData[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
+  // Guard 1: Không có activeRoom hoặc eventId không khớp → redirect
   useEffect(() => {
     if (!activeRoom || activeRoom.eventId !== eventId) {
       if (fromDetail) {
@@ -29,6 +31,22 @@ export function RoomPage() {
       }
     }
   }, [activeRoom, eventId, navigate, fromDetail]);
+
+  // Guard 2: Event đã COMPLETED → redirect về trang trước
+  useEffect(() => {
+    if (!eventId) return;
+    eventApi.getEventById(eventId)
+      .then((res: any) => {
+        const status: string = res?.data?.status ?? res?.status ?? '';
+        if (status === 'COMPLETED') {
+          navigate(-1);
+        }
+      })
+      .catch(() => {
+        // Không lấy được event (eventId không hợp lệ) → redirect về trang trước
+        navigate(-1);
+      });
+  }, [eventId, navigate]);
 
   // Cảnh báo người dùng khi họ cố tình F5, đóng tab hoặc tắt trình duyệt
   useEffect(() => {
