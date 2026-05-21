@@ -6,7 +6,6 @@ import Loading from '@/components/ui/Loading';
 import { useAuthStore } from '@/store/AuthStore';
 import { setAccessToken } from '@/lib/axios';
 import axios from 'axios';
-import NotifyForm from '@/components/ui/NotifyForm';
 import ToastContainer from '@/components/ui/ToastContainer';
 import QueueMiniWidget from '@/components/ui/QueueMiniWidget';
 import { useRoomStore } from '@/store/RoomStore';
@@ -27,7 +26,7 @@ const RootLayout: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
-  const { activeRoom, isNotifyOpen, setNotifyOpen, clearActiveRoom } = useRoomStore();
+  const { activeRoom, clearActiveRoom } = useRoomStore();
   const navigate = useNavigate();
 
   // Restore session on app mount by trying to refresh token via httpOnly cookie
@@ -79,21 +78,14 @@ const RootLayout: React.FC = () => {
       {!hideFooter && <Footer />}
 
       <ToastContainer />
-      <NotifyForm
-        isOpen={isNotifyOpen}
-        onClose={() => setNotifyOpen(false)}
-        title="Nhắc nhở"
-        onConfirm={() => { }}
-        confirmText="Xác nhận">
-        Sự kiện này hiện đang có lượng truy cập lớn! Để đảm bảo tính công bằng bạn đã được xếp vào hàng chờ tự động
-      </NotifyForm>
 
       {activeRoom && !location.pathname.startsWith(`/event/${activeRoom.eventId}/room`) && (
-        <div className="fixed bottom-6 right-6 z-[50] flex flex-col gap-4">
+        <div className="fixed bottom-6 right-6 z-[20] flex flex-col gap-4">
           <QueueMiniWidget
             imageUrl="https://picsum.photos/seed/queue/400/300"
             eventName="Sự kiện đang tham gia"
             status={activeRoom.status}
+            position={activeRoom.position}
             timeLeft={activeRoom.timeLeft}
             onNavigate={() => {
               navigate(`/event/${activeRoom.eventId}/room`);

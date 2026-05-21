@@ -44,7 +44,9 @@ public class TicketQueueService {
     }
     // Đang xếp hàng
     if (waitingScore != null) {
-      return new JoinResultDTO("ALREADY_IN_WAITING", waitingScore.longValue());
+      Long rank = redisTemplate.opsForZSet().rank(waitingKey, userId);
+      int position = (rank != null) ? rank.intValue() + 1 : 1;
+      return new JoinResultDTO("ALREADY_IN_WAITING", waitingScore.longValue(), position);
     }
 
     long now = Instant.now().getEpochSecond();
@@ -56,8 +58,30 @@ public class TicketQueueService {
       return new JoinResultDTO("ACTIVE_ROOM", expireTime);
     } else {
       redisTemplate.opsForZSet().add(waitingKey, userId, now);
-      return new JoinResultDTO("WAITING_ROOM", now);
+      Long rank = redisTemplate.opsForZSet().rank(waitingKey, userId);
+      int position = (rank != null) ? rank.intValue() + 1 : 1;
+      return new JoinResultDTO("WAITING_ROOM", now, position);
     }
+  }
+
+  // Hàm lấy trạng thái xếp hàng hiện tại của người dùng
+  public JoinResultDTO getQueueStatus(String eventId, String userId) {
+    String activeKey = getActiveKey(eventId);
+    String waitingKey = getWaitingKey(eventId);
+
+    Double activeScore = redisTemplate.opsForZSet().score(activeKey, userId);
+    if (activeScore != null) {
+      return new JoinResultDTO("ACTIVE_ROOM", activeScore.longValue()); // Không có position vì đã vào phòng
+    }
+
+    Double waitingScore = redisTemplate.opsForZSet().score(waitingKey, userId);
+    if (waitingScore != null) {
+      Long rank = redisTemplate.opsForZSet().rank(waitingKey, userId);
+      int position = (rank != null) ? rank.intValue() + 1 : 1;
+      return new JoinResultDTO("WAITING_ROOM", waitingScore.longValue(), position);
+    }
+
+    return new JoinResultDTO("NOT_IN_QUEUE", 0L);
   }
 
   // Hàm xóa user khỏi active room dùng khi hết 10 phút, hoặc user chủ động Out

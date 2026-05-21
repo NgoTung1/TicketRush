@@ -7,6 +7,7 @@ interface ActiveRoom {
   status: 'waiting' | 'ready';
   expiresAt?: number; // Dùng số millisecond làm chuẩn gốc
   timeLeft?: string;  // Chỉ dùng để show UI (VD: 09:59)
+  position?: number;
 }
 
 interface RoomState {

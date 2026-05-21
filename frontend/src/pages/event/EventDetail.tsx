@@ -78,8 +78,9 @@ const extractList = (res: any): any[] => {
 const EventDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { activeRoom, setActiveRoom, setNotifyOpen, clearActiveRoom } = useRoomStore();
+  const { activeRoom, setActiveRoom, setNotifyOpen, clearActiveRoom, isNotifyOpen } = useRoomStore();
   const [isSwitchConfirmOpen, setSwitchConfirmOpen] = useState(false);
+  const [isAlreadyWaitingOpen, setAlreadyWaitingOpen] = useState(false);
   const [blockMessage, setBlockMessage] = useState<string | null>(null);
 
   // ─── State ─────────────────────────────────────────────────────────────────
@@ -156,6 +157,7 @@ const EventDetail: React.FC = () => {
     try {
       const res = await roomApi.joinRoom(id);
       const status = res.status ? res.status.toString() : '';
+      console.log("RES: ", res)
 
       if (status === 'ACTIVE_ROOM' || status === 'ALREADY_IN_ACTIVE') {
 
@@ -171,7 +173,7 @@ const EventDetail: React.FC = () => {
         navigate(`/event/${id}/room`);
 
       } else if (status === 'WAITING_ROOM' || status === 'ALREADY_IN_WAITING') {
-        setActiveRoom({ eventId: id, status: 'waiting' });
+        setActiveRoom({ eventId: id, status: 'waiting', position: res.position });
         setNotifyOpen(true);
       } else if (status === 'BLOCKED') {
         const unblockAt = (res as any).unblockAt
@@ -199,8 +201,13 @@ const EventDetail: React.FC = () => {
 
     if (activeRoom) {
       if (activeRoom.eventId === id) {
-        navigate(`/event/${id}/room`, { state: { fromDetail: true } });
-        return;
+        if (activeRoom.status === "ready") {
+          navigate(`/event/${id}/room`, { state: { fromDetail: true } });
+          return;
+        } else if (activeRoom.status === "waiting") {
+          setAlreadyWaitingOpen(true);
+          return;
+        }
       } else {
         setSwitchConfirmOpen(true);
         return;
@@ -222,6 +229,38 @@ const EventDetail: React.FC = () => {
       await performJoinRoom();
     }
   };
+
+  // ─── Polling Queue Status ──────────────────────────────────────────────────
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+
+    const currentId = id;
+    if (!currentId) return;
+
+    if (activeRoom?.eventId === currentId && activeRoom?.status === 'waiting') {
+      interval = setInterval(async () => {
+        try {
+          const res = await roomApi.getQueueStatus(currentId);
+          const status = res.status ? res.status.toString() : '';
+          console.log("RES STATUS: ", res)
+          if (status === 'ACTIVE_ROOM' || status === 'ALREADY_IN_ACTIVE') {
+            const expireAtMs = res.expireAt ? res.expireAt * 1000 : Date.now() + 600000;
+            setActiveRoom({ eventId: currentId, status: 'ready', expiresAt: expireAtMs });
+          } else if (status === 'WAITING_ROOM' || status === 'ALREADY_IN_WAITING') {
+            setActiveRoom({ eventId: currentId, status: 'waiting', position: res.position });
+          } else if (status === 'NOT_IN_QUEUE') {
+            clearActiveRoom();
+          }
+        } catch (err) {
+          console.error("Lỗi khi cập nhật vị trí xếp hàng:", err);
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [id, activeRoom?.eventId, activeRoom?.status, setActiveRoom, clearActiveRoom]);
 
   // ─── Derived ───────────────────────────────────────────────────────────────
 
@@ -463,6 +502,26 @@ const EventDetail: React.FC = () => {
             </div>
           )}
         </div>
+      </NotifyForm>
+
+      {/* Thông báo xếp hàng */}
+      <NotifyForm
+        isOpen={isNotifyOpen}
+        onClose={() => setNotifyOpen(false)}
+        title="Nhắc nhở"
+        onConfirm={() => setNotifyOpen(false)}
+        confirmText="Xác nhận">
+        Sự kiện này hiện đang có lượng truy cập lớn! Để đảm bảo tính công bằng bạn đã được xếp vào hàng chờ tự động
+      </NotifyForm>
+
+      {/* Thông báo đã ở trong hàng chờ */}
+      <NotifyForm
+        isOpen={isAlreadyWaitingOpen}
+        onClose={() => setAlreadyWaitingOpen(false)}
+        title="Thông báo"
+        onConfirm={() => setAlreadyWaitingOpen(false)}
+        confirmText="Xác nhận">
+        Bạn đang ở trong hàng chờ của sự kiện này rồi. Vui lòng theo dõi vị trí và chờ đến lượt nhé!
       </NotifyForm>
 
     </div>

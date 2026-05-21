@@ -35,8 +35,8 @@ export const options = {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '60s', target: 210 }, // tăng lên 300 VU trong 100 giây
-        { duration: '200s', target: 210 }, // giữ 300 VU trong 30 giây
+        { duration: '80s', target: 250 }, // tăng lên 300 VU trong 100 giây
+        { duration: '200s', target: 250 }, // giữ 300 VU trong 30 giây
         { duration: '5s', target: 0 }, // giảm về 0
       ],
     },

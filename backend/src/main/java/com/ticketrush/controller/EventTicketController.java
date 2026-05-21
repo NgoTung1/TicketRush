@@ -51,6 +51,9 @@ public class EventTicketController {
 
     response.put("status", status);
     response.put("expireAt", result.getExpireAt());
+    if (result.getPosition() != null) {
+      response.put("position", result.getPosition());
+    }
 
     if ("ACTIVE_ROOM".equals(status) || "ALREADY_IN_ACTIVE".equals(status)) {
       response.put("message", "Đã vào phòng thanh toán.");
@@ -58,6 +61,24 @@ public class EventTicketController {
       response.put("message", "Đang ở phòng chờ. Vui lòng giữ màn hình...");
     }
 
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/{eventId}/queue-status")
+  public ResponseEntity<Map<String, Object>> getQueueStatus(
+      @PathVariable String eventId,
+      @AuthenticationPrincipal Jwt jwt) {
+
+    String userId = getUserIdFromToken(jwt);
+    var result = queueService.getQueueStatus(eventId, userId);
+    
+    Map<String, Object> response = new HashMap<>();
+    response.put("status", result.getStatus());
+    response.put("expireAt", result.getExpireAt());
+    if (result.getPosition() != null) {
+      response.put("position", result.getPosition());
+    }
+    
     return ResponseEntity.ok(response);
   }
 

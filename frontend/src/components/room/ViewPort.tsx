@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import Zone from './Zone';
 import { SeatResponse } from '@/api/seatApi';
 import { SeatTypeResponse } from '@/api/seatTypeApi';
-import { useRoomStore } from '@/store/RoomStore';
 import { useToastStore } from '@/store/ToastStore';
 
 export interface ZoneData {
@@ -24,17 +23,16 @@ interface ViewPortProps {
 
 const DEFAULT_ZONES: ZoneData[] = [];
 const DEFAULT_SEAT_TYPES: SeatTypeResponse[] = [];
+const SELECTED_SEAT_IDS: string[] = [];
 
 const ViewPort: React.FC<ViewPortProps> = ({
   className,
   zones: propZones = DEFAULT_ZONES,
   seatTypes = DEFAULT_SEAT_TYPES,
-  selectedSeatIds: propSelectedSeatIds = [],
+  selectedSeatIds: propSelectedSeatIds = SELECTED_SEAT_IDS,
   onSelectedSeatsChange,
   readOnly = false
 }) => {
-  const { activeRoom } = useRoomStore();
-
   const [zones, setInternalZones] = useState<ZoneData[]>(propZones);
   const [selectedSeatIds, setInternalSelectedSeatIds] = useState<string[]>(propSelectedSeatIds);
   const [internalSeatTypes, setInternalSeatTypes] = useState<SeatTypeResponse[]>(seatTypes);
