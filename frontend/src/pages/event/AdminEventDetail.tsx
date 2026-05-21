@@ -9,8 +9,8 @@ import { seatTypeApi, SeatTypeResponse } from '../../api/seatTypeApi';
 import { adminStatisticApi } from '../../api/adminStatisticApi';
 import {
   PieChart, Pie, Cell,
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  AreaChart, Area, CartesianGrid, LabelList
+  BarChart, Bar, XAxis, Tooltip, ResponsiveContainer,
+  AreaChart, Area, LabelList
 } from 'recharts';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -107,10 +107,16 @@ const AdminEventDetail: React.FC = () => {
     eventApi.getEventById(id)
       .then((res: any) => {
         const e: EventResponse = res?.data ?? res;
+        if (!e || !e.id) {
+          navigate('/', { replace: true });
+          return;
+        }
         setEvent(e);
+        setLoadingEvent(false);
       })
-      .catch(() => setError('Không thể tải thông tin sự kiện.'))
-      .finally(() => setLoadingEvent(false));
+      .catch(() => {
+        navigate('/', { replace: true });
+      });
 
     // Sessions
     eventSessionApi.getSessionsByEventId(id)
@@ -463,7 +469,7 @@ const AdminEventDetail: React.FC = () => {
             </div>
           </div>
 
-          {(event?.status === 'ONCOMING' || event?.status === 'ONGOING') && (
+          {event?.status === 'ONCOMING' && (
             <div className="mt-8 flex justify-end">
               <button
                 onClick={() => navigate(`/admin/event/update/${id}`)}

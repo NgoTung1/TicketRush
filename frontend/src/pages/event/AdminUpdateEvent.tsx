@@ -131,7 +131,24 @@ const AdminUpdateEvent: React.FC = () => {
 
   const handleFormChange = (field: keyof FormState) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  ) => {
+    const value = e.target.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+    if (field === 'startTime' && sessions.length > 0) {
+      setSessions((prev) => {
+        const updated = [...prev];
+        updated[0] = {
+          ...updated[0],
+          data: {
+            ...updated[0].data,
+            startAt: value,
+          },
+        };
+        return updated;
+      });
+    }
+  };
 
   const handleSessionChange = (id: string | number, data: SessionFormData) => {
     setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, data } : s)));

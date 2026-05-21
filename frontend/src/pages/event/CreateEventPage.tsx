@@ -75,7 +75,24 @@ const CreateEventPage: React.FC = () => {
 
   const handleFormChange = (field: keyof FormState) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  ) => {
+    const value = e.target.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+    if (field === 'startTime' && sessions.length > 0) {
+      setSessions((prev) => {
+        const updated = [...prev];
+        updated[0] = {
+          ...updated[0],
+          data: {
+            ...updated[0].data,
+            startAt: value,
+          },
+        };
+        return updated;
+      });
+    }
+  };
 
   const handleSessionChange = (id: number, data: SessionFormData) => {
     setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, data } : s)));
@@ -255,6 +272,15 @@ const CreateEventPage: React.FC = () => {
             value={form.startTime}
             onChange={handleFormChange('startTime')}
           />
+          {form.startTime && new Date(form.startTime) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) ? (
+            <p className="text-red-400 text-[13px] font-bold mt-[-12px] mb-5">
+              ⚠️ Thời gian bắt đầu sự kiện phải cách hiện tại ít nhất 1 tuần (7 ngày)!
+            </p>
+          ) : (
+            <p className="text-gray-400 text-[13px] mt-[-12px] mb-5 italic">
+              * Lưu ý: Thời gian bắt đầu phải cách hiện tại ít nhất 1 tuần (7 ngày).
+            </p>
+          )}
 
           {/* Thể loại */}
           <EventInput
