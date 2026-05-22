@@ -81,7 +81,7 @@ public class EventService {
             endDate = date.atTime(LocalTime.MAX); // 23:59:59.999999999
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
         Page<Event> eventPage = eventRepository.searchEvents(categoryId, status, keyword, startDate, endDate, pageable);
         return eventPage.map(this::mapToResponse);
     }

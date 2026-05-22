@@ -100,10 +100,7 @@ export function AdminRoomDetail() {
         {/* Sidebar */}
         <div className="w-[300px] bg-[#1E1E1E] rounded-xl flex flex-col overflow-hidden shrink-0 border border-gray-800 relative z-30">
           <div className="flex border-b border-gray-800 shrink-0">
-            <button className="flex-1 py-3 text-[16px] font-bold text-gray-400 hover:text-gray-200">
-              Trạng thái
-            </button>
-            <button className="flex-1 py-3 text-[16px] font-bold bg-[#2a2a2a] text-white cursor-default">
+            <button className="w-full py-3 text-[16px] font-bold bg-[#2a2a2a] text-white cursor-default">
               Thông tin
             </button>
           </div>
