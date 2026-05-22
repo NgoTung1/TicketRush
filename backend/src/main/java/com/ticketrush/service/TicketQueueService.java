@@ -20,8 +20,8 @@ public class TicketQueueService {
   @Autowired
   private BlockService blockService;
 
-  private static final int ACTIVE_ROOM_LIMIT = 200;
-  private static final long PAYMENT_WINDOW_SECONDS = 600; // 10 phút
+  private static final int ACTIVE_ROOM_LIMIT = 2;
+  private static final long PAYMENT_WINDOW_SECONDS = 180; // 10 phút
 
   private String getWaitingKey(String eventId) {
     return "event:" + eventId + ":waiting";
