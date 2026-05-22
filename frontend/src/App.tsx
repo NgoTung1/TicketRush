@@ -3,6 +3,7 @@ import { RouterProvider } from 'react-router-dom';
 import router from '@/router';
 import { setAccessToken } from '@/lib/axios';
 import { useAuthStore } from '@/store/AuthStore';
+import { getRoleFromToken } from '@/helpers/jwt';
 import axios from 'axios';
 import Loading from '@/components/ui/Loading';
 
@@ -43,6 +44,16 @@ function App() {
         if (newAccessToken) {
           setAccessToken(newAccessToken);
           await fetchUserProfile();
+
+          // Điều hướng theo role: admin → /admin/event-list, user → ở lại trang hiện tại
+          const role = getRoleFromToken(newAccessToken);
+          if (role?.toLowerCase() === 'admin') {
+            // Chỉ redirect nếu đang ở trang public (không phải đã ở trang admin)
+            if (!window.location.pathname.startsWith('/admin')) {
+              window.location.href = '/admin/event-list';
+              return; // Không setIsRestoring vì trang sẽ reload
+            }
+          }
         }
       } catch {
       } finally {

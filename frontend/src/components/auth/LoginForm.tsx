@@ -46,7 +46,7 @@ const LoginForm: React.FC = () => {
 
       const role = getRoleFromToken(token);
       if (role?.toLowerCase() === 'admin') {
-        navigate(from || '/admin/event-list', { replace: true });
+        navigate('/admin/event-list', { replace: true });
       } else if (from) {
         navigate(from, { replace: true });
       } else {

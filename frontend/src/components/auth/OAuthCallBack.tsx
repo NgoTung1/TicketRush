@@ -32,11 +32,9 @@ const OAuthCallback = () => {
         // Ưu tiên: 1) oauth_redirect_to (localStorage)  2) sessionStorage (global)  3) role-based default
         const savedRedirect = localStorage.getItem('oauth_redirect_to') || sessionStorage.getItem('redirect_after_login');
 
-        console.log("Save Redirect: ", savedRedirect)
-
         const role = getRoleFromToken(accessToken);
         if (role?.toLowerCase() === 'admin') {
-          navigate(savedRedirect || '/admin/event-list', { replace: true });
+          navigate('/admin/event-list', { replace: true });
         } else if (savedRedirect) {
           navigate(savedRedirect, { replace: true });
         } else {
