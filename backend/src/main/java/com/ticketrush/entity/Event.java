@@ -70,6 +70,9 @@ public class Event {
     @Column(name = "start_time")
     private LocalDateTime startTime;
 
+    @Column(name = "max_ticket_per_user", columnDefinition = "integer default 8")
+    private Integer maxTicketPerUser = 8;
+
     @org.hibernate.annotations.CreationTimestamp 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

@@ -56,6 +56,7 @@ public class EventService {
         newEvent.setStartTime(request.getStartTime());
         newEvent.setStatus(EventStatus.ONCOMING);
         newEvent.setCategory(category);
+        newEvent.setMaxTicketPerUser(request.getMaxTicketPerUser() != null ? request.getMaxTicketPerUser() : 8);
 
         Event savedEvent = eventRepository.save(newEvent);
 
@@ -134,6 +135,8 @@ public class EventService {
         }
         if (request.getStatus() != null)
             existingEvent.setStatus(request.getStatus());
+        if (request.getMaxTicketPerUser() != null)
+            existingEvent.setMaxTicketPerUser(request.getMaxTicketPerUser());
 
         Event updatedEvent = eventRepository.save(existingEvent);
 
@@ -209,6 +212,7 @@ public class EventService {
                 .startTime(event.getStartTime())
                 .status(event.getStatus())
                 .minPrice(minPrice)
+                .maxTicketPerUser(event.getMaxTicketPerUser())
                 .build();
     }
 }

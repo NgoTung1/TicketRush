@@ -12,6 +12,7 @@ export interface EventCreateRequest {
   bannerUrl?: string;
   startTime: string;
   status?: EventStatus;
+  maxTicketPerUser?: number;
 }
 
 export interface EventUpdateRequest {
@@ -23,6 +24,7 @@ export interface EventUpdateRequest {
   bannerUrl?: string;
   startTime?: string;
   status?: EventStatus;
+  maxTicketPerUser?: number;
 }
 
 export interface EventResponse {
@@ -36,6 +38,7 @@ export interface EventResponse {
   startTime: string;
   status: EventStatus;
   minPrice?: number | null;
+  maxTicketPerUser?: number;
 }
 
 export interface EventSearchParams {

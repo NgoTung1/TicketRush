@@ -18,6 +18,7 @@ interface ViewPortProps {
   zones?: ZoneData[];
   seatTypes?: SeatTypeResponse[];
   selectedSeatIds?: string[];
+  maxTicketPerUser?: number;
   onSelectedSeatsChange?: (seatIds: string[]) => void;
   readOnly?: boolean;
 }
@@ -31,6 +32,7 @@ const ViewPort: React.FC<ViewPortProps> = ({
   zones: propZones = DEFAULT_ZONES,
   seatTypes = DEFAULT_SEAT_TYPES,
   selectedSeatIds: propSelectedSeatIds = SELECTED_SEAT_IDS,
+  maxTicketPerUser = 8,
   onSelectedSeatsChange,
   readOnly = false
 }) => {
@@ -161,8 +163,8 @@ const ViewPort: React.FC<ViewPortProps> = ({
   const handleSeatSelect = (seat: SeatResponse, mode: 'add' | 'remove') => {
     setSelectedSeatIds(prev => {
       if (mode === 'add') {
-        if (prev.length >= 8 && !prev.includes(seat.id)) {
-          useToastStore.getState().addToast({ type: 'warning', title: 'Giới hạn ghế', message: 'Bạn chỉ được chọn tối đa 8 ghế.' });
+        if (prev.length >= maxTicketPerUser && !prev.includes(seat.id)) {
+          useToastStore.getState().addToast({ type: 'warning', title: 'Giới hạn ghế', message: `Bạn chỉ được chọn tối đa ${maxTicketPerUser} ghế.` });
           return prev;
         }
         return prev.includes(seat.id) ? prev : [...prev, seat.id];

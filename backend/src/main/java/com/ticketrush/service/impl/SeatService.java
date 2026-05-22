@@ -138,11 +138,13 @@ public class SeatService {
                     "Rất tiếc! Một hoặc nhiều ghế bạn chọn đã bị người khác đặt. Vui lòng chọn ghế khác.");
         }
 
-        UUID eventId = seats.get(0).getZone().getEventSession().getEvent().getId();
+        com.ticketrush.entity.Event event = seats.get(0).getZone().getEventSession().getEvent();
+        UUID eventId = event.getId();
         long existingCount = seatRepository.countSeatsByEventAndUser(eventId, userId);
 
-        if (existingCount + seatIds.size() > 8) {
-            throw new RuntimeException("Bạn đã đặt " + existingCount + " ghế. Việc chọn thêm " + seatIds.size() + " ghế sẽ vượt quá giới hạn 8 ghế cho toàn bộ sự kiện này!");
+        int maxLimit = event.getMaxTicketPerUser() != null ? event.getMaxTicketPerUser() : 8;
+        if (existingCount + seatIds.size() > maxLimit) {
+            throw new RuntimeException("Bạn đã đặt " + existingCount + " ghế. Việc chọn thêm " + seatIds.size() + " ghế sẽ vượt quá giới hạn " + maxLimit + " ghế cho toàn bộ sự kiện này!");
         }
 
         User user = userRepository.findById(userId)

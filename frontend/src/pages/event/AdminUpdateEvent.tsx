@@ -18,6 +18,7 @@ interface FormState {
   startTime: string;      // datetime-local string
   categoryId: string;
   status: string;
+  maxTicketPerUser: number;
 }
 
 const AdminUpdateEvent: React.FC = () => {
@@ -33,6 +34,7 @@ const AdminUpdateEvent: React.FC = () => {
     startTime: '',
     categoryId: '',
     status: 'ONCOMING',
+    maxTicketPerUser: 8,
   });
 
   // Sessions: Mỗi session có thể có id từ backend (string) hoặc id tạm thời (number)
@@ -85,6 +87,7 @@ const AdminUpdateEvent: React.FC = () => {
           startTime: e.startTime ? e.startTime.slice(0, 16) : '',
           categoryId: e.categoryId || '',
           status: e.status || 'ONCOMING',
+          maxTicketPerUser: e.maxTicketPerUser || 8,
         });
         setBannerPreview(e.bannerUrl);
 
@@ -132,7 +135,11 @@ const AdminUpdateEvent: React.FC = () => {
   const handleFormChange = (field: keyof FormState) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const value = e.target.value;
+    let value: any = e.target.value;
+    if (field === 'maxTicketPerUser') {
+      value = parseInt(value, 10);
+      if (isNaN(value) || value <= 0) value = 8;
+    }
     setForm((prev) => ({ ...prev, [field]: value }));
 
     if (field === 'startTime' && sessions.length > 0) {
@@ -248,6 +255,7 @@ const AdminUpdateEvent: React.FC = () => {
         address: form.address.trim(),
         startTime: form.startTime ? (form.startTime.length === 16 ? `${form.startTime}:00` : form.startTime) : undefined,
         status: form.status as any,
+        maxTicketPerUser: form.maxTicketPerUser,
       };
 
       // 1. Update Event Info
@@ -376,6 +384,13 @@ const AdminUpdateEvent: React.FC = () => {
               * Lưu ý: Thời gian bắt đầu phải cách hiện tại ít nhất 1 tuần (7 ngày).
             </p>
           )}
+          <EventInput
+            label="Số lượng vé tối đa/người"
+            type="number"
+            value={form.maxTicketPerUser.toString()}
+            onChange={handleFormChange('maxTicketPerUser')}
+            placeholder="Mặc định: 8"
+          />
           <EventInput
             label="Thể loại sự kiện"
             type="select"

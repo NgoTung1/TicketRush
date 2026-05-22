@@ -20,4 +20,5 @@ public class EventCreateResponse {
     private LocalDateTime startTime;
     private EventStatus status;
     private Integer minPrice;
+    private Integer maxTicketPerUser;
 }

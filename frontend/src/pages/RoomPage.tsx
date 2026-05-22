@@ -40,6 +40,7 @@ export function RoomPage() {
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
   const [zones, setZones] = useState<ZoneData[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [eventData, setEventData] = useState<any>(null);
 
   // Guard 1: Không có activeRoom hoặc eventId không khớp → redirect
   useEffect(() => {
@@ -57,8 +58,9 @@ export function RoomPage() {
     if (!eventId) return;
     eventApi.getEventById(eventId)
       .then((res: any) => {
-        const status: string = res?.data?.status ?? res?.status ?? '';
-        if (status === 'COMPLETED') {
+        const eData = res?.data ?? res;
+        setEventData(eData);
+        if (eData?.status === 'COMPLETED') {
           navigate(-1);
         }
       })
@@ -309,6 +311,8 @@ export function RoomPage() {
               <ViewPort
                 zones={zones}
                 seatTypes={seatTypes}
+                selectedSeatIds={selectedSeatIds}
+                maxTicketPerUser={eventData?.maxTicketPerUser || 8}
                 onSelectedSeatsChange={setSelectedSeatIds}
                 className="!bg-transparent"
               />
@@ -431,7 +435,7 @@ export function RoomPage() {
           </div>
           <div className="text-[14px] text-gray-200 space-y-3 leading-relaxed">
             <p>
-              <strong className="text-white">- Quy định chọn ghế:</strong> Bạn chỉ được đặt tối đa <span className="text-[#00ff00] font-bold">8 vé trong toàn bộ sự kiện</span>. Trong quá trình thao tác, nếu ghế bạn chọn bị người khác giữ trước, hệ thống sẽ tự động xóa ghế đó khỏi lựa chọn của bạn.
+              <strong className="text-white">- Quy định chọn ghế:</strong> Bạn chỉ được đặt tối đa <span className="text-[#00ff00] font-bold">{eventData?.maxTicketPerUser || 8} vé trong toàn bộ sự kiện</span>. Trong quá trình thao tác, nếu ghế bạn chọn bị người khác giữ trước, hệ thống sẽ tự động xóa ghế đó khỏi lựa chọn của bạn.
             </p>
             <div>
               <strong className="text-white">- Chế tài vi phạm:</strong> Để đảm bảo tính công bằng, tài khoản của bạn sẽ bị cấm đặt vé trong <span className="text-[#00ff00] font-bold">2 tiếng</span> nếu:
