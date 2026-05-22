@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+import os
+
+content = """import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, X, Undo2 } from 'lucide-react';
 import AdminViewPort, { ZoneData } from '@/components/room/AdminViewPort';
@@ -547,3 +549,8 @@ export function AdminRoomPage() {
     </div>
   );
 }
+"""
+
+path = r'd:\UET\Web\TicketRush\frontend\src\pages\AdminRoomPage.tsx'
+with open(path, 'w', encoding='utf-8') as f:
+    f.write(content)
