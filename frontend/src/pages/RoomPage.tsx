@@ -412,7 +412,7 @@ export function RoomPage() {
               disabled={groupedSelectedSeats.length === 0 || isHolding}
               onClick={handleCheckout}
             >
-              {isHolding ? 'Đang giữ ghế...' : 'Thanh toán'}
+              {isHolding ? 'Đang giữ ghế...' : 'Giữ ghế'}
             </button>
           </div>
         </div>
