@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface ZoneRepository extends JpaRepository<Zone, UUID> {
     List<Zone> findByEventSessionId(UUID eventSessionId);
+    void deleteByEventSessionId(UUID eventSessionId);
 }
 

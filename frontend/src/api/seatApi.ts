@@ -48,4 +48,7 @@ export const seatApi = {
 
   releaseSeats: (seatIds: string[]) =>
     axiosClient.post<SeatResponse[]>(`/seats/release`, seatIds),
+
+  deleteSeats: (seatIds: string[]) =>
+    axiosClient.delete(`/seats`, { data: seatIds }),
 };

@@ -38,7 +38,7 @@ export function AdminRoomPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'manage' | 'edit'>('manage');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [zones, setZones] = useState<ZoneData[]>([]);
   const [zonesHistory, setZonesHistory] = useState<ZoneData[][]>([]);
 
@@ -93,7 +93,7 @@ export function AdminRoomPage() {
       [zoneId]: !prev[zoneId]
     }));
   };
-  
+
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([
     { id: 't1', eventId: eventId || '', name: 'Standard', label: 'Ghế thường', price: 200000, color: '#B7B7B7' }
   ]);
@@ -127,30 +127,30 @@ export function AdminRoomPage() {
         return seat;
       }))
     })));
-    
+
     // Xóa mảng ghế đang chọn sau khi gán loại ghế thành công
     setSelectedSeatIds([]);
   };
 
   const handleAddZone = () => {
     if (!newZoneName || !newZoneRows || !newZoneCols) return;
-    
+
     const rows = parseInt(newZoneRows, 10);
     const cols = parseInt(newZoneCols, 10);
-    
+
     if (rows <= 0 || cols <= 0) return;
-    
+
     if (rows > 50 || cols > 50) {
       alert("Số hàng và số cột không được vượt quá 50!");
       return;
     }
 
     const newZoneId = `zone-${Date.now()}`;
-    
+
     // Mặc định lấy id của loại ghế đang đứng đầu tiên trong danh sách, nếu danh sách trống thì gán null
     const defaultSeatTypeId = seatTypes.length > 0 ? seatTypes[0].id : null;
-    
-    const newMatrix: (SeatResponse | null)[][] = Array.from({ length: rows }, (_, r) => 
+
+    const newMatrix: (SeatResponse | null)[][] = Array.from({ length: rows }, (_, r) =>
       Array.from({ length: cols }, (_, c) => ({
         id: `seat-${newZoneId}-${r}-${c}`,
         zoneId: newZoneId,
@@ -167,6 +167,7 @@ export function AdminRoomPage() {
       name: newZoneName,
       x: 50,
       y: 50,
+      rotation: 0,
       matrix: newMatrix
     };
 
@@ -201,9 +202,9 @@ export function AdminRoomPage() {
 
     if (editingSeatTypeId) {
       // Chế độ Edit: Cập nhật loại ghế đang có
-      setSeatTypes(prev => prev.map(t => 
-        t.id === editingSeatTypeId 
-          ? { ...t, name: newSeatTypeLabel, label: newSeatTypeLabel, price: price, color: newSeatTypeColor } 
+      setSeatTypes(prev => prev.map(t =>
+        t.id === editingSeatTypeId
+          ? { ...t, name: newSeatTypeLabel, label: newSeatTypeLabel, price: price, color: newSeatTypeColor }
           : t
       ));
     } else {
@@ -234,7 +235,7 @@ export function AdminRoomPage() {
         })));
       }
     }
-    
+
     setShowSeatTypeModal(false);
     setEditingSeatTypeId(null);
     setNewSeatTypeLabel('');
@@ -277,15 +278,25 @@ export function AdminRoomPage() {
 
     try {
       setIsSubmitting(true);
-      
+
       // 1. Fetch sessions
       const sessionsRes: any = await eventSessionApi.getSessionsByEventId(eventId);
       const sessions = Array.isArray(sessionsRes) ? sessionsRes : sessionsRes?.data ?? [];
-      
+
       if (!sessions || sessions.length === 0) {
         alert("Chưa có phiên sự kiện nào! Hãy thêm phiên trước khi cấu hình sơ đồ ghế.");
         navigate(`/admin/event/update/${eventId}`);
         return;
+      }
+
+      // 1.5 Cleanup: Xóa tất cả seatTypes và zones rác của event/session do những lần lưu lỗi trước đó (nếu có)
+      try {
+        await seatTypeApi.deleteAllByEventId(eventId);
+        for (const session of sessions) {
+          await zoneApi.deleteAllBySessionId(session.id);
+        }
+      } catch (err) {
+        console.warn("Lỗi khi dọn dẹp dữ liệu cũ, có thể chưa có dữ liệu nào:", err);
       }
 
       // 2. Save seat types & get real IDs
@@ -300,7 +311,7 @@ export function AdminRoomPage() {
         if (!t.id.startsWith('t') && !t.id.startsWith('type-')) {
           payload.id = t.id;
         }
-        
+
         const res: any = await seatTypeApi.saveSeatType(eventId, payload);
         const realType = res?.data ?? res;
         typeIdMap.set(t.id, realType.id);
@@ -313,13 +324,14 @@ export function AdminRoomPage() {
           const cols = rows > 0 ? zone.matrix[0].length : 0;
           if (rows === 0 || cols === 0) continue;
 
-           // 3a. Create Zone
+          // 3a. Create Zone
           const zoneRes: any = await zoneApi.createZone(session.id, {
             name: zone.name,
             rowsCount: rows,
             colsCount: cols,
             xPosition: zone.x,
-            yPosition: zone.y
+            yPosition: zone.y,
+            rotation: zone.rotation || 0
           });
           const realZone = zoneRes?.data ?? zoneRes;
           const realZoneId = realZone.id;
@@ -333,14 +345,15 @@ export function AdminRoomPage() {
 
           // 3c. Map seats to their assigned seat types and update non-AVAILABLE statuses
           const seatTypeGroups: Record<string, string[]> = {};
-          
+          const seatIdsToDelete: string[] = [];
+
           for (const realSeat of realSeats) {
             const r = realSeat.rowIndex - 1;
             const c = realSeat.colIndex - 1;
             const localSeat = zone.matrix[r]?.[c];
             if (localSeat) {
               const realTypeId = localSeat.seatTypeId ? typeIdMap.get(localSeat.seatTypeId) : undefined;
-              
+
               if (localSeat.status && localSeat.status !== 'AVAILABLE') {
                 // If status is locked (ORDERED) or sold (SOLD), update both its status and seatTypeId individually
                 await seatApi.updateSeat(realSeat.id, {
@@ -354,6 +367,8 @@ export function AdminRoomPage() {
                   seatTypeGroups[realTypeId].push(realSeat.id);
                 }
               }
+            } else {
+              seatIdsToDelete.push(realSeat.id);
             }
           }
 
@@ -365,6 +380,11 @@ export function AdminRoomPage() {
                 newSeatTypeId: realTypeId
               });
             }
+          }
+
+          // 3e. Delete missing seats
+          if (seatIdsToDelete.length > 0) {
+            await seatApi.deleteSeats(seatIdsToDelete);
           }
         }
       }
@@ -416,13 +436,13 @@ export function AdminRoomPage() {
         {/* Sidebar */}
         <div className="w-[300px] bg-[#1E1E1E] rounded-xl flex flex-col overflow-hidden shrink-0 border border-gray-800 relative z-30">
           <div className="flex border-b border-gray-800 shrink-0">
-            <button 
+            <button
               className={`flex-1 py-3 text-[16px] font-bold ${activeTab === 'manage' ? 'bg-[#2a2a2a] text-white' : 'text-gray-400 hover:text-gray-200'}`}
               onClick={() => setActiveTab('manage')}
             >
               Quản lý
             </button>
-            <button 
+            <button
               className={`flex-1 py-3 text-[16px] font-bold ${activeTab === 'edit' ? 'bg-[#2a2a2a] text-white' : 'text-gray-400 hover:text-gray-200'}`}
               onClick={() => setActiveTab('edit')}
             >
@@ -436,8 +456,8 @@ export function AdminRoomPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <span className="font-bold text-[16px]">Khu vực</span>
-                    <button 
-                      onClick={() => setShowAddZoneModal(true)} 
+                    <button
+                      onClick={() => setShowAddZoneModal(true)}
                       className="bg-[#696464] hover:bg-gray-600 rounded p-[3px] transition-colors"
                       title="Thêm khu vực"
                     >
@@ -464,38 +484,93 @@ export function AdminRoomPage() {
                         const unassignedCount = allZoneSeats.filter(s => !s.seatTypeId || !validSeatTypeIds.includes(s.seatTypeId)).length;
 
                         return (
-                          <div 
-                            key={z.id} 
+                          <div
+                            key={z.id}
                             className="bg-[#383838] rounded-lg overflow-hidden transition-all duration-200"
                           >
                             {/* Header */}
-                              <div
-                                className="w-full px-3 py-2.5 flex justify-between items-center hover:bg-[#323232] transition-colors focus:outline-none group"
+                            <div
+                              className="w-full px-3 py-2.5 flex justify-between items-center hover:bg-[#323232] transition-colors focus:outline-none group"
+                            >
+                              <button
+                                className="flex-1 flex justify-between items-center text-left focus:outline-none"
+                                onClick={() => toggleZoneExpand(z.id)}
                               >
-                                <button
-                                  className="flex-1 flex justify-between items-center text-left focus:outline-none"
-                                  onClick={() => toggleZoneExpand(z.id)}
-                                >
-                                  <span className="font-bold text-white pr-2">{z.name}</span>
-                                  <div className="flex items-center gap-2 text-white text-[12px]">
-                                    <span className="font-bold">{totalSeats} ghế</span>
-                                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                                  </div>
-                                </button>
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (window.confirm('Bạn có chắc chắn muốn xóa khu vực này?')) {
-                                      saveHistory(zones);
-                                      setZones(prev => prev.filter(zone => zone.id !== z.id));
+                                <span className="font-bold text-white pr-2">{z.name}</span>
+                                <div className="flex items-center gap-2 text-white text-[12px]">
+                                  <span className="font-bold">{totalSeats} ghế</span>
+                                  {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                </div>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm('Bạn có chắc chắn muốn xóa khu vực này?')) {
+                                    saveHistory(zones);
+                                    setZones(prev => prev.filter(zone => zone.id !== z.id));
+                                  }
+                                }}
+                                className="ml-3 text-red-500 hover:text-red-400 p-1 hidden group-hover:block"
+                                title="Xóa khu vực"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+
+                            {/* Tọa độ X, Y, Góc */}
+                            <div className="px-3 pb-2 pt-1 flex gap-2 justify-between border-b border-gray-600/50 bg-[#323232]">
+                              <div className="flex items-center gap-1 flex-1">
+                                <span className="text-[11px] text-gray-400 font-bold shrink-0">X:</span>
+                                <input
+                                  type="number"
+                                  value={Number.isNaN(z.x) ? '' : Math.round(z.x)}
+                                  onChange={(e) => {
+                                    const val = e.target.value === '' ? NaN : parseFloat(e.target.value);
+                                    setZones(prev => prev.map(zone => zone.id === z.id ? { ...zone, x: val } : zone));
+                                  }}
+                                  onBlur={(e) => {
+                                    if (e.target.value === '' || Number.isNaN(z.x)) {
+                                      setZones(prev => prev.map(zone => zone.id === z.id ? { ...zone, x: 0 } : zone));
                                     }
                                   }}
-                                  className="ml-3 text-red-500 hover:text-red-400 p-1 hidden group-hover:block"
-                                  title="Xóa khu vực"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                                  className="w-full min-w-[36px] bg-[#2a2a2a] text-white text-[11px] px-1.5 py-1 rounded outline-none border border-transparent focus:border-blue-500"
+                                />
                               </div>
+                              <div className="flex items-center gap-1 flex-1">
+                                <span className="text-[11px] text-gray-400 font-bold shrink-0">Y:</span>
+                                <input
+                                  type="number"
+                                  value={Number.isNaN(z.y) ? '' : Math.round(z.y)}
+                                  onChange={(e) => {
+                                    const val = e.target.value === '' ? NaN : parseFloat(e.target.value);
+                                    setZones(prev => prev.map(zone => zone.id === z.id ? { ...zone, y: val } : zone));
+                                  }}
+                                  onBlur={(e) => {
+                                    if (e.target.value === '' || Number.isNaN(z.y)) {
+                                      setZones(prev => prev.map(zone => zone.id === z.id ? { ...zone, y: 0 } : zone));
+                                    }
+                                  }}
+                                  className="w-full min-w-[36px] bg-[#2a2a2a] text-white text-[11px] px-1.5 py-1 rounded outline-none border border-transparent focus:border-blue-500"
+                                />
+                              </div>
+                              <div className="flex items-center gap-1 flex-1">
+                                <span className="text-[11px] text-gray-400 font-bold shrink-0">Góc:</span>
+                                <input
+                                  type="number"
+                                  value={Number.isNaN(z.rotation) ? '' : Math.round(z.rotation || 0)}
+                                  onChange={(e) => {
+                                    const val = e.target.value === '' ? NaN : parseFloat(e.target.value);
+                                    setZones(prev => prev.map(zone => zone.id === z.id ? { ...zone, rotation: val } : zone));
+                                  }}
+                                  onBlur={(e) => {
+                                    if (e.target.value === '' || Number.isNaN(z.rotation)) {
+                                      setZones(prev => prev.map(zone => zone.id === z.id ? { ...zone, rotation: 0 } : zone));
+                                    }
+                                  }}
+                                  className="w-full min-w-[36px] bg-[#2a2a2a] text-white text-[11px] px-1.5 py-1 rounded outline-none border border-transparent focus:border-blue-500"
+                                />
+                              </div>
+                            </div>
 
                             {/* Collapsible Content */}
                             {isExpanded && (
@@ -507,8 +582,8 @@ export function AdminRoomPage() {
                                     {seatTypeDetails.map(detail => (
                                       <div key={detail.id} className="flex justify-between items-center text-xs py-0.5 pl-2">
                                         <div className="flex items-center gap-2">
-                                          <div 
-                                            className="w-3 h-3 rounded-sm flex-shrink-0" 
+                                          <div
+                                            className="w-3 h-3 rounded-sm flex-shrink-0"
                                             style={{ backgroundColor: detail.color }}
                                           />
                                           <span className="text-white font-bold">{detail.label}</span>
@@ -548,8 +623,8 @@ export function AdminRoomPage() {
                   ) : (
                     <div className="flex flex-col gap-2">
                       {seatTypes.map(t => (
-                        <div 
-                          key={t.id} 
+                        <div
+                          key={t.id}
                           onClick={() => openEditSeatTypeModal(t)}
                           className="bg-[#383838] px-3 py-2 rounded-lg flex justify-between items-center text-[12px] font-bold border border-gray-700 group cursor-pointer hover:bg-[#4a4a4a] transition-colors"
                         >
@@ -559,14 +634,14 @@ export function AdminRoomPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-[#00FF1E] pointer-events-none">{t.price.toLocaleString('vi-VN')}đ</span>
-                            <button 
+                            <button
                               onClick={(e) => {
-                                e.stopPropagation(); 
+                                e.stopPropagation();
                                 handleDeleteSeatType(t.id);
-                              }} 
+                              }}
                               className="text-red-500 hover:text-red-400 hidden group-hover:block p-1"
                             >
-                                <Trash2 size={14} />
+                              <Trash2 size={14} />
                             </button>
                           </div>
                         </div>
@@ -584,8 +659,8 @@ export function AdminRoomPage() {
                   <div className="bg-[#2a2a2a] p-3 rounded-lg text-sm border border-gray-700">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                         <div className="w-3 h-3 rounded bg-[#383838]"></div>
-                         <span className="text-white font-bold">Ghế đang chọn</span>
+                        <div className="w-3 h-3 rounded bg-[#383838]"></div>
+                        <span className="text-white font-bold">Ghế đang chọn</span>
                       </div>
                       <span className="font-bold text-white">{selectedSeatIds.length} ghế</span>
                     </div>
@@ -596,7 +671,7 @@ export function AdminRoomPage() {
                   <h3 className="font-bold text-white mb-3 text-[16px]">Thay đổi loại ghế</h3>
                   <div className="flex flex-wrap gap-2">
                     {seatTypes.map(t => (
-                      <button 
+                      <button
                         key={t.id}
                         onClick={() => handleAssignSeatType(t.id)}
                         className="w-8 h-8 rounded border border-gray-600 hover:scale-110 transition-transform flex-shrink-0"
@@ -604,7 +679,7 @@ export function AdminRoomPage() {
                         title={t.label}
                       />
                     ))}
-                    <button 
+                    <button
                       onClick={() => handleAssignSeatType('')}
                       className="w-8 h-8 rounded border border-gray-600 hover:scale-110 transition-transform bg-[#4a4a4a] flex-shrink-0 flex items-center justify-center"
                       title="Xóa loại ghế"
@@ -619,14 +694,14 @@ export function AdminRoomPage() {
 
           <div className="p-4 shrink-0 flex flex-col gap-2">
             {zonesHistory.length > 0 && (
-              <button 
+              <button
                 onClick={handleUndo}
                 className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg w-full text-sm font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <Undo2 size={16} /> Hoàn tác ({zonesHistory.length})
               </button>
             )}
-            <button 
+            <button
               onClick={handleConfirmClick}
               disabled={isSubmitting}
               className={`px-4 py-2 bg-[#0090FF] hover:bg-blue-600 text-white rounded-lg w-full text-sm font-medium transition-colors ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -644,10 +719,10 @@ export function AdminRoomPage() {
             </div>
           ) : (
             <div className="flex-1 relative">
-              <AdminViewPort 
+              <AdminViewPort
                 className="!absolute"
-                isAdmin={true} 
-                zones={zones} 
+                isAdmin={true}
+                zones={zones}
                 seatTypes={seatTypes}
                 selectedSeatIds={selectedSeatIds}
                 onZonesChange={setZones}
@@ -663,19 +738,19 @@ export function AdminRoomPage() {
       {showAddZoneModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-[#2a2a2a] w-[480px] p-6  rounded-xl relative shadow-2xl border border-gray-700">
-            <button 
+            <button
               onClick={() => setShowAddZoneModal(false)}
               className="absolute top-4 right-4 text-white"
             >
               <X size={28} />
             </button>
             <h2 className="text-[28px] font-bold mb-6 text-center">Thêm khu vực</h2>
-            
+
             <div className="flex flex-col gap-4">
               <div>
                 <label className="block text-[20px] font-bold text-white mb-1">Tên khu vực</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={newZoneName}
                   onChange={e => setNewZoneName(e.target.value)}
                   placeholder="Nhập tên khu vực"
@@ -685,8 +760,8 @@ export function AdminRoomPage() {
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="block text-[20px] font-bold text-white mb-1">Số hàng</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     min={1}
                     max={50}
                     value={newZoneRows}
@@ -697,8 +772,8 @@ export function AdminRoomPage() {
                 </div>
                 <div className="flex-1">
                   <label className="block text-[20px] font-bold text-white mb-1">Số cột</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     min={1}
                     max={50}
                     value={newZoneCols}
@@ -708,7 +783,7 @@ export function AdminRoomPage() {
                   />
                 </div>
               </div>
-              <button 
+              <button
                 onClick={handleAddZone}
                 className="mt-4 bg-[#0090FF] hover:bg-blue-600 text-white font-bold py-2 rounded-full px-8 mx-auto block transition-colors"
               >
@@ -723,7 +798,7 @@ export function AdminRoomPage() {
       {showSeatTypeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-[#1e1e1e] w-[480px] rounded-2xl p-6 relative shadow-2xl border border-gray-800">
-            <button 
+            <button
               onClick={() => setShowSeatTypeModal(false)}
               className="absolute top-4 right-4 text-white hover:text-gray-300"
             >
@@ -732,12 +807,12 @@ export function AdminRoomPage() {
             <h2 className="text-[28px] font-bold mb-6 text-center text-white">
               {editingSeatTypeId ? 'Chỉnh sửa loại ghế' : 'Thêm loại ghế'}
             </h2>
-            
+
             <div className="flex flex-col gap-4">
               <div>
                 <label className="block text-[20px] font-bold text-white mb-1">Tên loại ghế</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={newSeatTypeLabel}
                   onChange={e => setNewSeatTypeLabel(e.target.value)}
                   placeholder="Nhập tên loại ghế"
@@ -746,8 +821,8 @@ export function AdminRoomPage() {
               </div>
               <div>
                 <label className="block text-[20px] font-bold text-white mb-1">Giá tiền (đ)</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   value={newSeatTypePrice}
                   onChange={e => setNewSeatTypePrice(e.target.value)}
                   placeholder="Nhập giá tiền"
@@ -764,11 +839,10 @@ export function AdminRoomPage() {
                         key={color}
                         type="button"
                         onClick={() => setNewSeatTypeColor(color)}
-                        className={`w-7 h-7 rounded-lg transition-all relative ${
-                          isSelected 
-                            ? 'ring-2 ring-[#0066ff] scale-110 border border-white' 
+                        className={`w-7 h-7 rounded-lg transition-all relative ${isSelected
+                            ? 'ring-2 ring-[#0066ff] scale-110 border border-white'
                             : 'hover:scale-105 border border-transparent'
-                        }`}
+                          }`}
                         style={{ backgroundColor: color }}
                         title={color}
                       />
@@ -783,12 +857,11 @@ export function AdminRoomPage() {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                       title="Chọn màu khác"
                     />
-                    <div 
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-500 hover:border-white transition-colors ${
-                        !PRESET_COLORS.includes(newSeatTypeColor.toLowerCase()) 
-                          ? 'ring-2 ring-[#0066ff] scale-110 border-solid border-white' 
+                    <div
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-500 hover:border-white transition-colors ${!PRESET_COLORS.includes(newSeatTypeColor.toLowerCase())
+                          ? 'ring-2 ring-[#0066ff] scale-110 border-solid border-white'
                           : ''
-                      }`}
+                        }`}
                       style={!PRESET_COLORS.includes(newSeatTypeColor.toLowerCase()) ? { backgroundColor: newSeatTypeColor } : {}}
                     >
                       <span className="text-xs font-bold text-gray-400 hover:text-white">+</span>
@@ -796,8 +869,8 @@ export function AdminRoomPage() {
                   </div>
                 </div>
               </div>
-              
-              <button 
+
+              <button
                 onClick={handleSaveSeatType}
                 className="mt-4 bg-[#0090FF] hover:bg-blue-600 text-white font-bold py-2 rounded-full px-12 mx-auto block transition-colors"
               >
@@ -814,17 +887,17 @@ export function AdminRoomPage() {
           <div className="bg-[#383838] w-[550px] p-6 rounded-2xl relative shadow-2xl border border-gray-800 text-center">
             <h2 className="text-[24px] font-bold mb-4 text-white">Xác nhận tạo sơ đồ ghế</h2>
             <p className="text-[20px] font-bold text-white mb-6 leading-relaxed">
-              Bạn có chắc chắn muốn tạo sơ đồ ghế không? <br/>
+              Bạn có chắc chắn muốn tạo sơ đồ ghế không? <br />
               <span className="text-[#ff5757] font-bold">Bạn sẽ không thể chỉnh sửa sơ đồ ghế sau khi đã tạo.</span>
             </p>
             <div className="flex gap-4 justify-center">
-              <button 
+              <button
                 onClick={() => setShowConfirmModal(false)}
                 className="bg-[#777777] border border-gray-600 hover:border-gray-400 text-white font-bold py-2 px-6 rounded-full transition-colors"
               >
                 Hủy bỏ
               </button>
-              <button 
+              <button
                 onClick={handleConfirmSubmit}
                 className="bg-[#ff5757] hover:bg-red-600 text-white font-bold py-2 px-6 rounded-full transition-colors"
               >

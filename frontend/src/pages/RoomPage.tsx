@@ -112,6 +112,7 @@ export function RoomPage() {
               name: zone.name,
               x: zone.xPosition || 0,
               y: zone.yPosition || 0,
+              rotation: zone.rotation || 0,
               matrix,
             };
           });

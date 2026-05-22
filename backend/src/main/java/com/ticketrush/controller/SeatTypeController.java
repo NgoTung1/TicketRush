@@ -30,4 +30,11 @@ public class SeatTypeController {
             @PathVariable UUID eventId) {
         return ResponseEntity.ok(seatTypeService.getSeatTypesByEventId(eventId));
     }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @DeleteMapping("/events/seat-types/{eventId}")
+    public ResponseEntity<Void> deleteAllByEventId(@PathVariable UUID eventId) {
+        seatTypeService.deleteAllByEventId(eventId);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -27,4 +27,7 @@ export const seatTypeApi = {
 
   saveSeatType: (eventId: string, data: SeatTypeRequest) =>
     axiosClient.post<SeatTypeResponse>(`${BASE}/${eventId}`, data),
+
+  deleteAllByEventId: (eventId: string) =>
+    axiosClient.delete(`${BASE}/${eventId}`),
 };

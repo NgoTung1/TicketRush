@@ -56,6 +56,7 @@ export function AdminRoomDetail() {
             name: z.name,
             x: z.xPosition ?? 50,
             y: z.yPosition ?? 50,
+            rotation: z.rotation ?? 0,
             matrix
           };
         });

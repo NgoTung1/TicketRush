@@ -8,6 +8,7 @@ export interface ZoneData {
     name: string;
     x: number;
     y: number;
+    rotation?: number;
     matrix: (SeatResponse | null)[][];
 }
 
@@ -228,6 +229,74 @@ const ViewPort: React.FC<ViewPortProps> = ({
         setSelectedSeatIds([]);
     };
 
+    const handleDeleteSelectedSeats = () => {
+        if (selectedSeatIds.length === 0) { alert("Vui lòng chọn ít nhất 1 ghế để xóa!"); return; }
+        if (!window.confirm("Bạn có chắc chắn muốn xóa các ghế đã chọn? Hành động này sẽ tự động thu gọn khu vực (Trim).")) return;
+        
+        onSaveHistory?.();
+        setZones(prevZones => prevZones.map(zone => {
+            // Kiểm tra xem zone này có chứa ghế được chọn không
+            let hasSelectedSeat = false;
+            let newMatrix = zone.matrix.map(row => row.map(seat => {
+                if (seat && selectedSeatIds.includes(seat.id)) { 
+                    hasSelectedSeat = true;
+                    return null; // Xóa ghế
+                }
+                return seat;
+            }));
+
+            if (!hasSelectedSeat) return zone;
+
+            // Tính năng tự động Trim
+            let minRow = newMatrix.length;
+            let maxRow = -1;
+            let minCol = newMatrix.length > 0 ? newMatrix[0].length : 0;
+            let maxCol = -1;
+
+            for (let r = 0; r < newMatrix.length; r++) {
+                for (let c = 0; c < newMatrix[r].length; c++) {
+                    if (newMatrix[r][c] !== null) {
+                        if (r < minRow) minRow = r;
+                        if (r > maxRow) maxRow = r;
+                        if (c < minCol) minCol = c;
+                        if (c > maxCol) maxCol = c;
+                    }
+                }
+            }
+
+            // Nếu xóa hết sạch ghế
+            if (maxRow === -1) {
+                return { ...zone, matrix: [] };
+            }
+
+            // Cắt matrix
+            const trimmedMatrix = newMatrix.slice(minRow, maxRow + 1).map(row => row.slice(minCol, maxCol + 1));
+
+            // Cập nhật lại index
+            const finalMatrix = trimmedMatrix.map((row, rIdx) => 
+                row.map((seat, cIdx) => {
+                    if (!seat) return null;
+                    return {
+                        ...seat,
+                        rowIndex: rIdx,
+                        colIndex: cIdx,
+                        seatNumber: cIdx + 1
+                    };
+                })
+            );
+
+            // Bù trừ X, Y để giữ hình ảnh đứng yên
+            // Ước tính kích thước: khoảng 42px mỗi ô (gồm cả gap) cho màn hình desktop
+            const offset = 42; 
+            const newX = zone.x + minCol * offset;
+            const newY = zone.y + minRow * offset;
+
+            return { ...zone, matrix: finalMatrix, x: newX, y: newY };
+        }).filter(z => z.matrix.length > 0)); // Loại bỏ các zone bị rỗng hoàn toàn
+        
+        setSelectedSeatIds([]);
+    };
+
     const handleZoneTransform = (action: 'rotateLeft' | 'rotateRight' | 'flipHorizontal' | 'flipVertical') => {
         if (!selectedZoneId) return;
         onSaveHistory?.();
@@ -332,7 +401,8 @@ const ViewPort: React.FC<ViewPortProps> = ({
                         className={`absolute p-4 rounded-xl select-none transition-[box-shadow,background-color] duration-200 ${selectedZoneId === zone.id ? 'ring-2 ring-blue-500 bg-blue-500/10' : ''}`}
                         style={{
                             left: zone.x,
-                            top: zone.y
+                            top: zone.y,
+                            transform: `rotate(${zone.rotation || 0}deg)`
                         }}
                         onMouseDown={(e) => handleZoneMouseDown(e, zone.id)}
                     >
@@ -371,8 +441,8 @@ const ViewPort: React.FC<ViewPortProps> = ({
                         Đang chọn: <strong className="text-[#0000ff] text-lg">{selectedSeatIds.length}</strong> ghế
                     </span>
                     <div className="flex gap-2">
-                        <button onClick={() => handleUpdateSelectedSeatsStatus('ORDERED')} className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded-lg text-sm shadow-md whitespace-nowrap">Khóa</button>
                         <button onClick={() => handleUpdateSelectedSeatsStatus('SOLD')} className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm shadow-md whitespace-nowrap">Bán</button>
+                        <button onClick={handleDeleteSelectedSeats} className="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm shadow-md whitespace-nowrap">Xóa ghế</button>
                     </div>
 
                     {selectedZoneId && (

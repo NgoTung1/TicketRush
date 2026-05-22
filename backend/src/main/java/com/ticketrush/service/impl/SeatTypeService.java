@@ -58,6 +58,11 @@ public class SeatTypeService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteAllByEventId(UUID eventId) {
+        seatTypeRepository.deleteByEventId(eventId);
+    }
+
     private SeatTypeResponse mapToResponse(SeatType seatType) {
         return SeatTypeResponse.builder()
                 .id(seatType.getId())

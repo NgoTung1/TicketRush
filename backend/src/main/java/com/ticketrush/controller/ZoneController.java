@@ -37,4 +37,11 @@ public class ZoneController {
             @RequestBody ZoneRequest request) {
         return ResponseEntity.ok(zoneService.updateZone(zoneId, request));
     }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @DeleteMapping("/sessions/zones/{sessionId}")
+    public ResponseEntity<Void> deleteAllBySessionId(@PathVariable UUID sessionId) {
+        zoneService.deleteAllBySessionId(sessionId);
+        return ResponseEntity.ok().build();
+    }
 }

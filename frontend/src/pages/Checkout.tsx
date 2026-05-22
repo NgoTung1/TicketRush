@@ -92,7 +92,7 @@ const Checkout: React.FC = () => {
   };
 
   return (
-    <div className="w-full mt-4">
+    <div className="w-full mt-4 mb-6">
       <div className="flex justify-between items-end mb-4">
         <h1 className="text-3xl font-bold">Thanh toán</h1>
         <div className="text-white font-medium italic">

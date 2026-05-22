@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface SeatTypeRepository extends JpaRepository<SeatType, UUID> {
     List<SeatType> findByEventId(UUID eventId);
+    void deleteByEventId(UUID eventId);
     
 }

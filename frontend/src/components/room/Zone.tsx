@@ -103,10 +103,10 @@ const Zone: React.FC<ZoneProps> = ({
             </div>
 
             {row.map((seat, colIndex) => {
-              if (!seat) return <div key={`empty-${rowIndex}-${colIndex}`} className="w-6 h-6 md:w-8 md:h-8" />;
+              if (!seat) return <div key={`empty-${rowIndex}-${colIndex}`} className="w-6 h-6 md:w-10 md:h-10 shrink-0" />;
 
               return (
-                <div key={seat.id} data-seat-id={seat.id} className="seat-element">
+                <div key={seat.id} data-seat-id={seat.id} className="seat-element shrink-0">
                   <Seat
                     seat={seat}
                     color={getSeatColor(seat.seatTypeId)}

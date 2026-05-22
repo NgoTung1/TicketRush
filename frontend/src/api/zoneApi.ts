@@ -8,6 +8,7 @@ export interface ZoneResponse {
   colsCount: number;
   xPosition?: number;
   yPosition?: number;
+  rotation?: number;
 }
 
 export interface ZoneRequest {
@@ -16,6 +17,7 @@ export interface ZoneRequest {
   colsCount: number;
   xPosition?: number;
   yPosition?: number;
+  rotation?: number;
 }
 
 export const zoneApi = {
@@ -27,4 +29,7 @@ export const zoneApi = {
 
   updateZone: (zoneId: string, data: ZoneRequest) =>
     axiosClient.put<ZoneResponse>(`/zones/${zoneId}`, data),
+
+  deleteAllBySessionId: (sessionId: string) =>
+    axiosClient.delete(`/sessions/zones/${sessionId}`),
 };

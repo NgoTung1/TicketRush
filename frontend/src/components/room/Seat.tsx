@@ -32,7 +32,7 @@ const Seat: React.FC<SeatProps> = ({ seat, color = '#b3b3b3', isSelected, readOn
       onMouseDown={isUnselectable ? undefined : onMouseDown}
       onMouseEnter={isUnselectable ? undefined : onMouseEnter}
       style={getStyle()}
-      className={`seat-element w-6 h-6 md:w-10 md:h-10 rounded-[4px] transition-all duration-200 flex items-center justify-center ${isUnselectable ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:scale-110 hover:shadow-lg'}`}
+      className={`seat-element w-6 h-6 md:w-10 md:h-10 shrink-0 rounded-[4px] transition-all duration-200 flex items-center justify-center ${isUnselectable ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:scale-110 hover:shadow-lg'}`}
       title={`Ghế ${seat.rowIndex}-${seat.colIndex}`}
     >
       {(isSelected || isPurchasedByUser) && (

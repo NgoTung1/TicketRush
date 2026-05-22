@@ -12,4 +12,6 @@ public class ZoneRequest {
     
     @com.fasterxml.jackson.annotation.JsonProperty("yPosition")
     private Double yPosition;
+
+    private Double rotation;
 }

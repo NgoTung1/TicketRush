@@ -181,6 +181,11 @@ public class SeatService {
         seatRepository.deleteByZoneId(zoneId);
     }
 
+    @Transactional
+    public void deleteSeats(List<UUID> seatIds) {
+        seatRepository.deleteAllById(seatIds);
+    }
+
     private SeatResponse mapToResponse(Seat seat) {
         return SeatResponse.builder()
                 .id(seat.getId())

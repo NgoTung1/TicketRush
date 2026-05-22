@@ -49,6 +49,7 @@ public class ZoneService {
         zone.setColsCount(request.getColsCount());
         if (request.getXPosition() != null) zone.setXPosition(request.getXPosition());
         if (request.getYPosition() != null) zone.setYPosition(request.getYPosition());
+        if (request.getRotation() != null) zone.setRotation(request.getRotation());
 
         Zone savedZone = zoneRepository.save(zone);
 
@@ -72,6 +73,7 @@ public class ZoneService {
         if (request.getColsCount() != null) zone.setColsCount(request.getColsCount());
         if (request.getXPosition() != null) zone.setXPosition(request.getXPosition());
         if (request.getYPosition() != null) zone.setYPosition(request.getYPosition());
+        if (request.getRotation() != null) zone.setRotation(request.getRotation());
 
         Zone saved = zoneRepository.save(zone);
         return mapToResponse(saved);
@@ -87,6 +89,11 @@ public class ZoneService {
         zoneRepository.delete(zone);
     }
 
+    @Transactional
+    public void deleteAllBySessionId(UUID sessionId) {
+        zoneRepository.deleteByEventSessionId(sessionId);
+    }
+
     private ZoneResponse mapToResponse(Zone zone) {
         return ZoneResponse.builder()
                 .id(zone.getId())
@@ -96,6 +103,7 @@ public class ZoneService {
                 .colsCount(zone.getColsCount())
                 .xPosition(zone.getXPosition())
                 .yPosition(zone.getYPosition())
+                .rotation(zone.getRotation())
                 .build();
     }
 }

@@ -64,4 +64,11 @@ public class SeatController {
             @RequestBody List<UUID> seatIds) {
         return ResponseEntity.ok(seatService.releaseHeldSeats(userId, seatIds));
     }
+
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @DeleteMapping("/seats")
+    public ResponseEntity<Void> deleteSeats(@RequestBody List<UUID> seatIds) {
+        seatService.deleteSeats(seatIds);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -9,6 +9,7 @@ export interface ZoneData {
   name: string;
   x: number;
   y: number;
+  rotation?: number;
   matrix: (SeatResponse | null)[][];
 }
 
@@ -194,7 +195,8 @@ const ViewPort: React.FC<ViewPortProps> = ({
             className={`absolute p-4 rounded-xl select-none transition-[box-shadow,background-color] duration-200`}
             style={{
               left: zone.x,
-              top: zone.y
+              top: zone.y,
+              transform: `rotate(${zone.rotation || 0}deg)`
             }}
             onMouseDown={handleZoneMouseDown}
           >
