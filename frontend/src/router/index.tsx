@@ -153,10 +153,6 @@ const router = createBrowserRouter([
         element: <AdminEventList />,
       },
       {
-        path: 'event/:id',
-        element: <AdminEventDetail />,
-      },
-      {
         path: 'event/update/:id',
         element: <AdminUpdateEvent />,
       },
@@ -167,6 +163,10 @@ const router = createBrowserRouter([
       {
         path: 'event/:eventId/session/:sessionId/room',
         element: <AdminRoomDetail />,
+      },
+      {
+        path: 'event/:id',
+        element: <AdminEventDetail />,
       },
       {
         path: 'categories',

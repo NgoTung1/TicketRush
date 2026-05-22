@@ -38,6 +38,7 @@ export interface EventResponse {
   bannerUrl: string;
   startTime: string;
   status: EventStatus;
+  minPrice?: number | null;
 }
 
 export interface EventSearchParams {

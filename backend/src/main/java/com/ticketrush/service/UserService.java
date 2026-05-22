@@ -35,10 +35,10 @@ public class UserService {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-    user.setFullName(request.fullName());
-    user.setGender(request.gender());
-    user.setPhone(request.phone());
-    user.setBirthDate(request.birthDate());
+    if (request.fullName() != null) user.setFullName(request.fullName());
+    if (request.gender()   != null) user.setGender(request.gender());
+    if (request.phone()    != null) user.setPhone(request.phone());
+    if (request.birthDate()!= null) user.setBirthDate(request.birthDate());
     if (avatarFile != null && !avatarFile.isEmpty()) {
       String avatarUrl = fileStorageService.uploadFile(avatarFile, "avatars");
       user.setAvatarUrl(avatarUrl);
