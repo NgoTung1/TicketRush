@@ -87,7 +87,7 @@ export function AdminRoomPage() {
   };
   
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([
-    { id: 't1', eventId: eventId || '', name: 'Standard', label: 'Ghế thường', price: 200000, color: '#4a4a4a' }
+    { id: 't1', eventId: eventId || '', name: 'Standard', label: 'Ghế thường', price: 200000, color: '#B7B7B7' }
   ]);
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
 
