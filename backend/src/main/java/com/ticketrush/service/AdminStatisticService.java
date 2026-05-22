@@ -4,17 +4,16 @@ import com.ticketrush.dto.admin.AgeStatisticDTO;
 import com.ticketrush.dto.admin.DailyRevenueDTO;
 import com.ticketrush.dto.admin.GenderStatisticDTO;
 import com.ticketrush.dto.admin.RevenueStatisticDTO;
-import com.ticketrush.entity.Order;
-import com.ticketrush.entity.OrderSeat;
 import com.ticketrush.entity.enums.Gender;
 import com.ticketrush.entity.enums.OrderStatus;
-import com.ticketrush.repository.OrderRepository;
+import com.ticketrush.repository.OrderSeatRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -23,53 +22,20 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class AdminStatisticService {
 
-  private final OrderRepository orderRepository;
-
-  private List<Order> getPaidOrdersForEvent(UUID eventId) {
-    return orderRepository.findByEventIdAndStatusWithDetails(eventId, OrderStatus.PAID);
-  }
-
-  private long countEventTicketsInOrder(Order order, UUID eventId) {
-    if (order == null || order.getOrderSeats() == null || eventId == null) {
-      return 0;
-    }
-    return order.getOrderSeats().stream()
-        .filter(os -> os != null 
-            && os.getSeat() != null 
-            && os.getSeat().getSeatType() != null 
-            && os.getSeat().getSeatType().getEvent() != null 
-            && eventId.equals(os.getSeat().getSeatType().getEvent().getId()))
-        .count();
-  }
-
-  private BigDecimal sumEventRevenueInOrder(Order order, UUID eventId) {
-    if (order == null || order.getOrderSeats() == null || eventId == null) {
-      return BigDecimal.ZERO;
-    }
-    return order.getOrderSeats().stream()
-        .filter(os -> os != null 
-            && os.getSeat() != null 
-            && os.getSeat().getSeatType() != null 
-            && os.getSeat().getSeatType().getEvent() != null 
-            && eventId.equals(os.getSeat().getSeatType().getEvent().getId()))
-        .map(os -> os.getPriceAtPurchase() != null ? os.getPriceAtPurchase() : BigDecimal.ZERO)
-        .reduce(BigDecimal.ZERO, BigDecimal::add);
-  }
+  private final OrderSeatRepository orderSeatRepository;
 
   public List<GenderStatisticDTO> getTicketCountByGender(UUID eventId) {
-    List<Order> orders = getPaidOrdersForEvent(eventId);
-    System.out.println("======> TÌM ĐƯỢC BAO NHIÊU ĐƠN PAID: " + orders.size());
+    List<Object[]> results = orderSeatRepository.countTicketsByGender(eventId, OrderStatus.PAID);
     Map<Gender, Long> genderCount = new EnumMap<>(Gender.class);
 
-    for (Order order : orders) {
-      if (order == null || order.getUser() == null)
-        continue;
-      Gender gender = order.getUser().getGender();
-      if (gender == null)
-        continue;
-
-      long ticketCount = countEventTicketsInOrder(order, eventId);
-      genderCount.merge(gender, ticketCount, Long::sum);
+    for (Object[] result : results) {
+      Gender gender = (Gender) result[0];
+      Long count = (Long) result[1];
+      
+      if (gender == null) {
+        gender = Gender.OTHER;
+      }
+      genderCount.merge(gender, count, Long::sum);
     }
 
     return genderCount.entrySet().stream()
@@ -78,24 +44,22 @@ public class AdminStatisticService {
   }
 
   public List<AgeStatisticDTO> getTicketCountByAgeRange(UUID eventId) {
-    List<Order> orders = getPaidOrdersForEvent(eventId);
-    System.out.println("======> TÌM ĐƯỢC BAO NHIÊU ĐƠN PAID: " + orders.size());
-
+    List<Object[]> results = orderSeatRepository.countTicketsByBirthDate(eventId, OrderStatus.PAID);
     Map<String, Long> ageRangeCount = new HashMap<>();
     int currentYear = LocalDate.now().getYear();
 
-    for (Order order : orders) {
-      if (order == null || order.getUser() == null)
+    for (Object[] result : results) {
+      LocalDate birthDate = (LocalDate) result[0];
+      Long count = (Long) result[1];
+      
+      if (birthDate == null) {
+        ageRangeCount.merge("Khác", count, Long::sum);
         continue;
-      LocalDate birthDate = order.getUser().getBirthDate();
-      if (birthDate == null)
-        continue;
+      }
 
       int exactAge = currentYear - birthDate.getYear();
       String ageRange = getAgeRangeLabel(exactAge);
-
-      long ticketCount = countEventTicketsInOrder(order, eventId);
-      ageRangeCount.merge(ageRange, ticketCount, Long::sum);
+      ageRangeCount.merge(ageRange, count, Long::sum);
     }
 
     return ageRangeCount.entrySet().stream()
@@ -105,41 +69,31 @@ public class AdminStatisticService {
   }
 
   public RevenueStatisticDTO getTotalRevenue(UUID eventId) {
-    List<Order> orders = getPaidOrdersForEvent(eventId);
-    System.out.println("======> TÌM ĐƯỢC BAO NHIÊU ĐƠN PAID: " + orders.size());
-    BigDecimal total = BigDecimal.ZERO;
-
-    for (Order order : orders) {
-      if (order == null)
-        continue;
-      BigDecimal orderRevenue = sumEventRevenueInOrder(order, eventId);
-      if (orderRevenue != null) {
-        total = total.add(orderRevenue);
-      }
+    BigDecimal total = orderSeatRepository.sumRevenueByEventAndStatus(eventId, OrderStatus.PAID);
+    if (total == null) {
+      total = BigDecimal.ZERO;
     }
-
     return new RevenueStatisticDTO(total);
   }
 
   public List<DailyRevenueDTO> getDailyRevenue(UUID eventId, LocalDate startDate, LocalDate endDate) {
-    List<Order> orders = getPaidOrdersForEvent(eventId);
-    System.out.println("======> TÌM ĐƯỢC BAO NHIÊU ĐƠN PAID: " + orders.size());
+    List<Object[]> results = orderSeatRepository.findRevenueDetailsByEventAndStatus(eventId, OrderStatus.PAID);
     Map<LocalDate, BigDecimal> dailyRevenueMap = new HashMap<>();
 
-    for (Order order : orders) {
-      if (order == null || order.getCreatedAt() == null)
-        continue;
-      LocalDate orderDate = order.getCreatedAt().toLocalDate();
+    for (Object[] result : results) {
+      LocalDateTime createdAt = (LocalDateTime) result[0];
+      BigDecimal price = (BigDecimal) result[1];
+      
+      if (createdAt == null || price == null) continue;
+      
+      LocalDate orderDate = createdAt.toLocalDate();
 
       if (startDate != null && orderDate.isBefore(startDate))
         continue;
       if (endDate != null && orderDate.isAfter(endDate))
         continue;
 
-      BigDecimal orderRevenue = sumEventRevenueInOrder(order, eventId);
-      if (orderRevenue != null) {
-        dailyRevenueMap.merge(orderDate, orderRevenue, BigDecimal::add);
-      }
+      dailyRevenueMap.merge(orderDate, price, BigDecimal::add);
     }
 
     return dailyRevenueMap.entrySet().stream()

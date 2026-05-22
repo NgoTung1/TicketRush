@@ -274,7 +274,7 @@ const CreateEventPage: React.FC = () => {
           />
           {form.startTime && new Date(form.startTime) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) ? (
             <p className="text-red-400 text-[13px] font-bold mt-[-12px] mb-5">
-              ⚠️ Thời gian bắt đầu sự kiện phải cách hiện tại ít nhất 1 tuần (7 ngày)!
+               Thời gian bắt đầu sự kiện phải cách hiện tại ít nhất 1 tuần (7 ngày)!
             </p>
           ) : (
             <p className="text-gray-400 text-[13px] mt-[-12px] mb-5 italic">

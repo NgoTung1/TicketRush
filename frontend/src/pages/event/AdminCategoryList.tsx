@@ -37,12 +37,10 @@ const AdminCategoryList: React.FC = () => {
     fetchCategories();
   }, []);
 
-  // Lọc
   const filteredCategories = categories.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Phân trang
   const totalPages = Math.ceil(filteredCategories.length / PAGE_SIZE) || 1;
   const currentCategories = filteredCategories.slice(
     (currentPage - 1) * PAGE_SIZE,

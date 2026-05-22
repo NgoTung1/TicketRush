@@ -7,6 +7,7 @@ import { eventApi, EventResponse } from '../../api/eventApi';
 import { eventSessionApi, EventSessionResponse } from '../../api/eventSessionApi';
 import { seatTypeApi, SeatTypeResponse } from '../../api/seatTypeApi';
 import { adminStatisticApi } from '../../api/adminStatisticApi';
+import { supabase } from '@/lib/supabase';
 import {
   PieChart, Pie, Cell,
   BarChart, Bar, XAxis, Tooltip, ResponsiveContainer,
@@ -95,6 +96,46 @@ const AdminEventDetail: React.FC = () => {
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // ─── Fetch stats (extracted to reuse in realtime) ──────────────────────────
+  const fetchStats = React.useCallback(async () => {
+    if (!id) return;
+    try {
+      const [genderRes, ageRes, totalRevRes, dailyRevRes] = await Promise.all([
+        adminStatisticApi.getGenderStats(id).catch(() => []),
+        adminStatisticApi.getAgeStats(id).catch(() => []),
+        adminStatisticApi.getTotalRevenue(id).catch(() => ({ totalRevenue: 0 })),
+        adminStatisticApi.getDailyRevenue(id).catch(() => [])
+      ]);
+
+      const mappedGender = Array.isArray(genderRes) ? genderRes.map(g => ({
+        name: g?.gender === 'FEMALE' ? 'Nữ' : g?.gender === 'MALE' ? 'Nam' : 'Khác',
+        value: g?.ticketCount || 0,
+        color: g?.gender === 'FEMALE' ? '#7a7a7a' : g?.gender === 'MALE' ? '#b0b0b0' : '#4a4a4a'
+      })) : [];
+      setGenderData(mappedGender);
+
+      const mappedAge = Array.isArray(ageRes) ? ageRes.map(a => ({
+        name: a?.ageRange || 'Khác',
+        count: a?.ticketCount || 0
+      })) : [];
+      setAgeData(mappedAge);
+
+      setTotalRevenue((totalRevRes as any)?.totalRevenue || 0);
+
+      const mappedDaily = Array.isArray(dailyRevRes) ? dailyRevRes.map(d => {
+        const dateStr = d?.date || '';
+        const parts = dateStr.split('-');
+        return {
+          date: parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr,
+          value: d?.revenue || 0
+        };
+      }) : [];
+      setRevenueData(mappedDaily);
+    } catch (err) {
+      console.error('Lỗi tải thống kê:', err);
+    }
+  }, [id]);
+
   // ─── Fetch event + sessions + seatTypes ────────────────────────────────────
   useEffect(() => {
     if (!id) return;
@@ -131,51 +172,48 @@ const AdminEventDetail: React.FC = () => {
         setSeatTypes(extractList(res));
       });
 
-    // Statistics
-    Promise.all([
-      adminStatisticApi.getGenderStats(id).catch(err => {
-        console.error('Lỗi tải thống kê giới tính:', err);
-        return [];
-      }),
-      adminStatisticApi.getAgeStats(id).catch(err => {
-        console.error('Lỗi tải thống kê độ tuổi:', err);
-        return [];
-      }),
-      adminStatisticApi.getTotalRevenue(id).catch(err => {
-        console.error('Lỗi tải thống kê tổng doanh thu:', err);
-        return { totalRevenue: 0 };
-      }),
-      adminStatisticApi.getDailyRevenue(id).catch(err => {
-        console.error('Lỗi tải thống kê doanh thu hàng ngày:', err);
-        return [];
-      })
-    ]).then(([genderRes, ageRes, totalRevRes, dailyRevRes]) => {
-      const mappedGender = Array.isArray(genderRes) ? genderRes.map(g => ({
-        name: g?.gender === 'FEMALE' ? 'Nữ' : g?.gender === 'MALE' ? 'Nam' : 'Khác',
-        value: g?.ticketCount || 0,
-        color: g?.gender === 'FEMALE' ? '#7a7a7a' : g?.gender === 'MALE' ? '#b0b0b0' : '#4a4a4a'
-      })) : [];
-      setGenderData(mappedGender);
+    // Statistics (first load)
+    fetchStats();
+  }, [id, fetchStats]);
 
-      const mappedAge = Array.isArray(ageRes) ? ageRes.map(a => ({
-        name: a?.ageRange || 'Khác',
-        count: a?.ticketCount || 0
-      })) : [];
-      setAgeData(mappedAge);
+  // ─── Realtime: lắng nghe vé được tạo/cập nhật để refresh thống kê ───────────
+  // Ghi chú: Sử dụng kỹ thuật Debounce (chờ 3 giây) để tránh spam API
+  // mỗi khi có hàng loạt vé được bán ra cùng lúc.
+  useEffect(() => {
+    if (!id) return;
+    let timeoutId: NodeJS.Timeout;
 
-      setTotalRevenue(totalRevRes?.totalRevenue || 0);
+    const channel = supabase
+      .channel(`admin-stats-${id}-tickets`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Lắng nghe cả INSERT (tạo vé) và UPDATE (cập nhật trạng thái)
+          schema: 'public',
+          table: 'tickets'
+        },
+        () => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            fetchStats();
+          }, 1500);
+        }
+      )
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`[Supabase Realtime] Admin stats kết nối: admin-stats-${id}-tickets`);
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error(`[Supabase Realtime] Lỗi kênh stats tickets:`, err);
+        }
+      });
 
-      const mappedDaily = Array.isArray(dailyRevRes) ? dailyRevRes.map(d => {
-        const dateStr = d?.date || '';
-        const parts = dateStr.split('-');
-        return {
-          date: parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr,
-          value: d?.revenue || 0
-        };
-      }) : [];
-      setRevenueData(mappedDaily);
-    }).catch(err => console.error('Lỗi tải thống kê:', err));
-  }, [id]);
+    return () => {
+      clearTimeout(timeoutId);
+      supabase.removeChannel(channel);
+    };
+  }, [id, fetchStats]);
+
 
   // ─── Derived ───────────────────────────────────────────────────────────────
 

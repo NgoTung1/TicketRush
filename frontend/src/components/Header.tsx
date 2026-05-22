@@ -32,17 +32,14 @@ const Header: React.FC = () => {
 
   const { user, isAuthenticated, clearUser } = useAuthStore();
 
-  // Cart badge count (default: 0 = hidden)
   const cartItemCount = 0;
 
-  // Close sidebar and search on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsMobileSearchOpen(false);
     setIsProfileMenuOpen(false);
   }, [location.pathname]);
 
-  // Close sidebar on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -54,7 +51,6 @@ const Header: React.FC = () => {
       ) {
         setIsMobileMenuOpen(false);
       }
-      // Close profile dropdown on click outside
       if (
         isProfileMenuOpen &&
         profileMenuRef.current &&
@@ -67,7 +63,6 @@ const Header: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobileMenuOpen, isProfileMenuOpen]);
 
-  // Lock body scroll when sidebar open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';

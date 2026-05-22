@@ -3,7 +3,7 @@ import DateIcon from '@/assets/images/Date.svg';
 
 export interface SessionFormData {
   name: string;
-  startAt: string; // ISO datetime-local string
+  startAt: string; 
   endAt: string;
 }
 
@@ -24,7 +24,6 @@ const EventSessionForm: React.FC<SessionProps> = ({ index, data, onChange, onRem
 
   return (
     <div className="bg-[#383838] rounded-lg p-3 mb-2 shadow-sm">
-      {/* Tiêu đề */}
       <div className="flex justify-between items-center mb-2">
         <h4 className="text-white font-bold text-[16px]">Phiên sự kiện {index}:</h4>
         {canRemove && (
@@ -85,7 +84,6 @@ const EventSessionForm: React.FC<SessionProps> = ({ index, data, onChange, onRem
                   [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
               />
 
-              {/* Chevron bên phải */}
               <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none z-10">
                 <svg className="w-3.5 h-3.5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -94,13 +92,12 @@ const EventSessionForm: React.FC<SessionProps> = ({ index, data, onChange, onRem
             </div>
             {data.startAt && new Date(data.startAt) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
               <span className="text-red-400 text-[11px] font-bold">
-                ⚠️ Thời gian bắt đầu phiên phải cách hiện tại ít nhất 1 tuần (7 ngày)!
+                 Thời gian bắt đầu phiên phải cách hiện tại ít nhất 1 tuần (7 ngày)!
               </span>
             )}
           </div>
         </div>
 
-        {/* Kết thúc lúc */}
         <div className="flex items-center gap-3">
           <label className="text-white text-[14px] font-bold w-24 shrink-0">Kết thúc lúc:</label>
           <div className="flex-1 sm:max-w-[220px] relative">
@@ -110,7 +107,6 @@ const EventSessionForm: React.FC<SessionProps> = ({ index, data, onChange, onRem
               className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 object-contain pointer-events-none z-10"
             />
 
-            {/* Nếu chưa có dữ liệu, đè cái placeholder này lên */}
             {!data.endAt && (
               <span className="absolute left-8 top-1/2 -translate-y-1/2 text-white/40 text-[12px] font-bold pointer-events-none z-10">
                 Chọn mốc thời gian
@@ -131,7 +127,6 @@ const EventSessionForm: React.FC<SessionProps> = ({ index, data, onChange, onRem
                 [&::-webkit-calendar-picker-indicator]:cursor-pointer`}
             />
 
-            {/* Chevron bên phải */}
             <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none z-10">
               <svg className="w-3.5 h-3.5 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

@@ -34,22 +34,17 @@ export const EventItem: React.FC<EventItemProps> = ({
                 />
             </div>
 
-            {/* Content Container */}
             <div className="px-2 py-3 flex flex-col flex-1">
-                {/* Title */}
                 <h3 className="text-white text-[18px] font-bold leading-tight mb-1 line-clamp-2">
                     {title}
                 </h3>
 
-                {/* Price */}
                 <div className="text-[#19FF88] font-bold text-[14px] mb-6">
                     Giá vé: {price}
                 </div>
 
-                {/* Spacer */}
                 <div className="flex-1"></div>
 
-                {/* Footer */}
                 <div className="flex items-center justify-between mt-auto">
                     <div className="flex items-center text-white text-[12px] font-medium">
                         <Calendar className="w-4 h-4 mr-2 text-white" />

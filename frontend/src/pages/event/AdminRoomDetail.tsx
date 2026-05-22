@@ -6,6 +6,7 @@ import { SeatResponse, seatApi } from '@/api/seatApi';
 import { zoneApi, ZoneResponse } from '@/api/zoneApi';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import Loading from '@/components/ui/Loading';
+import { supabase } from '@/lib/supabase';
 
 export function AdminRoomDetail() {
   const { eventId, sessionId } = useParams<{ eventId: string; sessionId: string }>();
@@ -27,24 +28,19 @@ export function AdminRoomDetail() {
     const loadData = async () => {
       try {
         setLoading(true);
-        // 1. Fetch seat types for event
         const typesRes: any = await seatTypeApi.getSeatTypesByEventId(eventId);
         const types = Array.isArray(typesRes) ? typesRes : typesRes?.data ?? [];
         setSeatTypes(types);
 
-        // 2. Fetch zones for session
         const zonesRes: any = await zoneApi.getZonesBySessionId(sessionId);
         const rawZones = Array.isArray(zonesRes) ? zonesRes : zonesRes?.data ?? [];
 
-        // 3. Fetch seats for session
         const seatsRes: any = await seatApi.getSeatsBySession(sessionId);
         const rawSeats = Array.isArray(seatsRes) ? seatsRes : seatsRes?.data ?? [];
 
-        // 4. Map to ZoneData
         const formattedZones: ZoneData[] = rawZones.map((z: ZoneResponse) => {
           const zoneSeats = rawSeats.filter((s: SeatResponse) => s.zoneId === z.id);
           
-          // Build matrix (0-indexed locally, 1-indexed in API)
           const rows = z.rowsCount;
           const cols = z.colsCount;
           const matrix: (SeatResponse | null)[][] = Array.from({ length: rows }, () => Array(cols).fill(null));
@@ -64,7 +60,6 @@ export function AdminRoomDetail() {
           };
         });
 
-        // Mở sẵn các zone đầu tiên
         const initExpanded: Record<string, boolean> = {};
         formattedZones.forEach(z => { initExpanded[z.id] = true; });
         setExpandedZones(initExpanded);
@@ -79,6 +74,61 @@ export function AdminRoomDetail() {
 
     loadData();
   }, [eventId, sessionId]);
+
+  // Realtime: lắng nghe thay đổi trạng thái ghế để cập nhật sơ đồ + thống kê live
+  useEffect(() => {
+    if (!eventId) return;
+
+    const channel = supabase
+      .channel(`admin-room-detail-${eventId}-seats`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'seats'
+        },
+        (payload) => {
+          const dbSeat = payload.new;
+
+          setZones((prevZones) => {
+            const isRelevant = prevZones.some(z => z.id === dbSeat.zone_id);
+            if (!isRelevant) return prevZones;
+
+            return prevZones.map((zone) => {
+              if (zone.id !== dbSeat.zone_id) return zone;
+
+              const newMatrix = zone.matrix.map(row => [...row]);
+              const rIdx = dbSeat.row_index - 1;
+              const cIdx = dbSeat.col_index - 1;
+
+              if (newMatrix[rIdx] && newMatrix[rIdx][cIdx]) {
+                const currentSeat = newMatrix[rIdx][cIdx]!;
+                newMatrix[rIdx][cIdx] = {
+                  ...currentSeat,
+                  status: dbSeat.status,
+                  userId: dbSeat.select_by
+                };
+              }
+
+              return { ...zone, matrix: newMatrix };
+            });
+          });
+        }
+      )
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`[Supabase Realtime] AdminRoomDetail kết nối: admin-room-detail-${eventId}-seats`);
+        }
+        if (status === 'CHANNEL_ERROR') {
+          console.error(`[Supabase Realtime] Lỗi kênh AdminRoomDetail:`, err);
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [eventId]);
 
   if (loading) return <Loading visible />;
 

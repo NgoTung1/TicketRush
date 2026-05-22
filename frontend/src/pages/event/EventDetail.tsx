@@ -12,7 +12,6 @@ import { useRoomStore } from '../../store/RoomStore';
 import NotifyForm from '../../components/ui/NotifyForm';
 import { formatUnblockTime } from '@/helpers/time';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDateTime(iso: string): string {
   try {
@@ -73,7 +72,6 @@ const extractList = (res: any): any[] => {
   return [];
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
 
 const EventDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -83,12 +81,10 @@ const EventDetail: React.FC = () => {
   const [isAlreadyWaitingOpen, setAlreadyWaitingOpen] = useState(false);
   const [blockMessage, setBlockMessage] = useState<string | null>(null);
 
-  // ─── State ─────────────────────────────────────────────────────────────────
   const [event, setEvent] = useState<EventResponse | null>(null);
   const [sessions, setSessions] = useState<EventSessionResponse[]>([]);
   const [seatTypes, setSeatTypes] = useState<SeatTypeResponse[]>([]);
   const [relatedEvents, setRelatedEvents] = useState<EventResponse[]>([]);
-  // Map: eventId → seatTypes (dùng cho related events card giá)
   const [relatedSeatTypes, setRelatedSeatTypes] = useState<Record<string, SeatTypeResponse[]>>({});
 
   const [loadingEvent, setLoadingEvent] = useState(true);
@@ -97,7 +93,6 @@ const EventDetail: React.FC = () => {
 
   const [unblockTime, setUnblockTime] = useState<string | null>(null);
 
-  // ─── Fetch event + sessions + seatTypes ────────────────────────────────────
   useEffect(() => {
     if (!id) return;
 
@@ -105,7 +100,6 @@ const EventDetail: React.FC = () => {
     setLoadingSessions(true);
     setError(null);
 
-    // Event detail
     eventApi.getEventById(id)
       .then((res: any) => {
         const e: EventResponse = res?.data ?? res;
@@ -114,33 +108,28 @@ const EventDetail: React.FC = () => {
       .catch(() => setError('Không thể tải thông tin sự kiện.'))
       .finally(() => setLoadingEvent(false));
 
-    // Sessions
     eventSessionApi.getSessionsByEventId(id)
       .then((res: any) => {
         setSessions(extractList(res));
       })
       .finally(() => setLoadingSessions(false));
 
-    // Seat types (giá vé)
     seatTypeApi.getSeatTypesByEventId(id)
       .then((res: any) => {
         setSeatTypes(extractList(res));
       });
 
-    // Related events: lấy ONGOING + mới (không filter status → mới nhất)
     Promise.all([
       eventApi.getEvents({ status: 'ONGOING', page: 0, size: 4 }),
       eventApi.getEvents({ page: 0, size: 4 }),
     ]).then(([ongoingRes, newRes]) => {
       const ongoing = extractList(ongoingRes);
       const newest = extractList(newRes);
-      // Gộp, loại trùng và loại event hiện tại, lấy tối đa 8
       const merged = [...ongoing, ...newest]
         .filter((e, idx, arr) => e.id !== id && arr.findIndex((x) => x.id === e.id) === idx)
         .slice(0, 8);
       setRelatedEvents(merged);
 
-      // Fetch seat types cho từng related event để hiển thị giá
       merged.forEach((e) => {
         seatTypeApi.getSeatTypesByEventId(e.id)
           .then((res: any) => {
@@ -168,7 +157,6 @@ const EventDetail: React.FC = () => {
           return;
         }
 
-        // Truyền hẳn expireAt vào Store
         setActiveRoom({ eventId: id, status: 'ready', expiresAt: expireAtMs });
         navigate(`/event/${id}/room`);
 
@@ -230,7 +218,6 @@ const EventDetail: React.FC = () => {
     }
   };
 
-  // ─── Polling Queue Status ──────────────────────────────────────────────────
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
 
@@ -261,7 +248,6 @@ const EventDetail: React.FC = () => {
     };
   }, [id, activeRoom?.eventId, activeRoom?.status, setActiveRoom, clearActiveRoom]);
 
-  // ─── Derived ───────────────────────────────────────────────────────────────
 
   const statusLabel =
     event?.status === 'ONCOMING'
@@ -277,7 +263,6 @@ const EventDetail: React.FC = () => {
         ? 'text-[#00a3ff]'
         : 'text-gray-500';
 
-  // ─── Loading skeleton ──────────────────────────────────────────────────────
 
   if (loadingEvent) {
     return (
@@ -313,15 +298,12 @@ const EventDetail: React.FC = () => {
     );
   }
 
-  // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="bg-[#141414] min-h-screen text-white pb-16">
       <div className="px-4 py-10">
 
-        {/* Hero Section */}
         <div className="flex flex-col lg:flex-row gap-6 mb-2">
-          {/* Left: Poster — fixed 16/9, object-cover fills full frame without stretching */}
           <div className="w-full lg:w-[50%] shrink-0">
             <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-xl">
               <img
@@ -332,7 +314,6 @@ const EventDetail: React.FC = () => {
             </div>
           </div>
 
-          {/* Right: Info - Đã đổi class thành justify-start để đẩy nội dung lên trên */}
           <div className="w-full flex-1 lg:relative">
             <div className="w-full lg:absolute lg:inset-0 flex flex-col justify-start gap-3 leading-none lg:overflow-y-auto lg:pr-2">
               <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-white break-words">

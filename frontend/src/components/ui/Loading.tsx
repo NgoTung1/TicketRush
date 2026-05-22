@@ -1,9 +1,7 @@
 import React from 'react';
 
 interface LoadingProps {
-  /** Show/hide the loading overlay */
   visible?: boolean;
-  /** Size of the spinner in px */
   size?: number;
 }
 
@@ -15,7 +13,6 @@ const Loading: React.FC<LoadingProps> = ({ visible = true, size = 36 }) => {
       id="loading-overlay"
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#0a0a0a]"
     >
-      {/* Spinner */}
       <svg
         className="animate-spin text-white/80"
         width={size}
