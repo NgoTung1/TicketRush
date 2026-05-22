@@ -1,6 +1,7 @@
 package com.ticketrush.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,12 @@ public class AuthController {
   @PostMapping("/login")
   public ResponseEntity<?> loginWithEmail(@RequestBody LoginRequest request, HttpServletResponse response) {
     AuthTokens tokens = authService.login(request.email(), request.password());
+
+    System.out.println("[LOGIN] Đã tạo Access Token: "
+        + tokens.accessToken().substring(0, Math.min(20, tokens.accessToken().length())) + "...");
+    System.out.println("[LOGIN] Đã tạo Refresh Token: "
+        + tokens.refreshToken().substring(0, Math.min(20, tokens.refreshToken().length())) + "...");
+
     setRefreshTokenCookie(response, tokens.refreshToken());
     return ResponseEntity.ok(new TokenResponse(tokens.accessToken(), "Đăng nhập thành công!"));
   }
@@ -58,7 +65,9 @@ public class AuthController {
 
   @PostMapping("/oauth-success")
   public ResponseEntity<?> handleOAuthSuccess(@RequestBody OAuthSuccessRequest request, HttpServletResponse response) {
+    System.out.println("[OAUTH SUCCESS] Refresh Token MỚI: " + request.refreshToken() + "...");
     setRefreshTokenCookie(response, request.refreshToken());
+    System.out.println("[OAUTH SUCCESS] SET REFRESHTOKEN!!!!");
     return ResponseEntity.ok("Xử lý OAuth thành công, Cookie đã được thiết lập!");
   }
 
@@ -85,36 +94,54 @@ public class AuthController {
       @CookieValue(name = "refresh_token", required = false) String refreshToken,
       HttpServletResponse response) {
 
+    System.out.println("[REFRESH API] Bắt đầu quá trình xin cấp lại Token...");
+    System.out.println("[REFRESH API] Giá trị Refresh Token lấy từ Cookie: " +
+        (refreshToken == null ? "NULL" : refreshToken + "..."));
+
     // Nếu trình duyệt gửi lên mà không có Cookie
     if (refreshToken == null || refreshToken.isEmpty()) {
+      System.out.println("[REFRESH API] LỖI: Trình duyệt không gửi Cookie 'refresh_token' lên server!");
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Không tìm thấy Refresh Token!");
     }
 
     try {
       AuthTokens tokens = authService.refreshToken(refreshToken);
 
+      System.out.println("[REFRESH API] Xin cấp Token mới thành công!");
+      System.out.println("[REFRESH API] Access Token MỚI: " + tokens.accessToken() + "...");
+      System.out.println("[REFRESH API] Refresh Token MỚI: " + tokens.refreshToken() + "...");
+
       setRefreshTokenCookie(response, tokens.refreshToken());
       return ResponseEntity.ok(new TokenResponse(tokens.accessToken(), "Làm mới token thành công!"));
     } catch (Exception e) {
       clearRefreshTokenCookie(response);
+
+      System.out.println("[REFRESH API] LỖI: Refresh Token này bị từ chối. Lý do: " + e.getMessage());
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh Token không hợp lệ hoặc đã hết hạn");
     }
   }
 
   private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-    Cookie refreshTokenCookie = new Cookie("refresh_token", refreshToken);
-    refreshTokenCookie.setHttpOnly(true);
-    refreshTokenCookie.setSecure(true); // Bật true khi lên HTTPS
-    refreshTokenCookie.setPath("/");
-    refreshTokenCookie.setMaxAge(30 * 24 * 60 * 60); // 30 ngày
+    ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
+        .httpOnly(true)
+        .secure(true)
+        .path("/")
+        .maxAge(30 * 24 * 60 * 60)
+        .sameSite("None")
+        .build();
 
-    response.addHeader("Set-Cookie", refreshTokenCookie.getName() + "=" + refreshTokenCookie.getValue() +
-        "; HttpOnly; Secure; Path=/; Max-Age=" + refreshTokenCookie.getMaxAge() +
-        "; SameSite=Strict");
+    response.addHeader("Set-Cookie", cookie.toString());
   }
 
   private void clearRefreshTokenCookie(HttpServletResponse response) {
-    response.addHeader("Set-Cookie", "refresh_token=" +
-        "; HttpOnly; Secure; Path=/; Max-Age=0; SameSite=Strict");
+    ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
+        .httpOnly(true)
+        .secure(true)
+        .path("/")
+        .maxAge(0) // Set về 0 để xóa
+        .sameSite("None")
+        .build();
+
+    response.addHeader("Set-Cookie", cookie.toString());
   }
 }

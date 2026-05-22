@@ -61,19 +61,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
       setRecentFiltered(recent.slice(0, 2));
     }
 
+    setIsFetching(true);
+
     const delayDebounce = setTimeout(async () => {
-      if (query.trim().length >= 2) {
-        setIsFetching(true);
-        try {
-          const res = await eventApi.getHotSuggestions(query.trim());
-          setHotEvents(Array.isArray(res) ? res : (res as any)?.data ?? []);
-        } catch (err) {
-          console.error('Lỗi lấy gợi ý sự kiện:', err);
-        } finally {
-          setIsFetching(false);
-        }
-      } else {
+      try {
+        const res = await eventApi.getHotSuggestions(query.trim());
+        setHotEvents(Array.isArray(res) ? res : (res as any)?.data ?? []);
+      } catch (err) {
+        console.error('Lỗi lấy gợi ý sự kiện:', err);
         setHotEvents([]);
+      } finally {
         setIsFetching(false);
       }
     }, 300);
@@ -108,7 +105,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   // Biến kiểm tra xem có content gợi ý nào không (để quyết định hiển thị đường gạch ngang)
-  const hasAnySuggestions = recentFiltered.length > 0 || hotEvents.length > 0;
+  const hasAnySuggestions = recentFiltered.length > 0 || hotEvents.length > 0 || isFetching;
 
   return (
     <div ref={dropdownRef} className="relative">
@@ -133,7 +130,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       {/* POPUP DROPDOWN */}
       {isDropdownOpen && (hasAnySuggestions || query.trim().length > 0) && (
         <div
-          className="absolute top-[calc(100%+6px)] right-0 min-w-full w-[350px] sm:w-[450px] max-w-[95vw] bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl shadow-2xl z-[99] overflow-hidden py-2 text-sm text-white animate-[fadeIn_0.1s_ease-out]"
+          className="absolute top-[24px] sm:top-[calc(100%+6px)] -right-20 sm:right-0 min-w-full w-[350px] sm:w-[450px] max-w-[95vw] bg-[#1C1C1C] border border-[#2A2A2A] rounded-xl shadow-2xl z-[99] overflow-hidden py-2 text-sm text-white animate-[fadeIn_0.1s_ease-out]"
         >
           {/* VÙNG 1: Tìm kiếm gần đây */}
           {recentFiltered.length > 0 && (
@@ -142,7 +139,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
                 <span className="flex items-center gap-1.5">
                   <Clock size={12} /> TÌM KIẾM GẦN ĐÂY
                 </span>
-                {isFetching && query.trim().length >= 2 && <Loader2 size={12} className="animate-spin text-tr-accent" />}
               </div>
               {recentFiltered.map((text, idx) => (
                 <button
@@ -158,18 +154,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
           )}
 
           {/* Đường gạch ngang phân chia */}
-          {recentFiltered.length > 0 && hotEvents.length > 0 && (
+          {recentFiltered.length > 0 && (hotEvents.length > 0 || isFetching) && (
             <div className="border-t border-[#2A2A2A] my-1" />
           )}
 
           {/* VÙNG 2: Tên Events Hot */}
-          {hotEvents.length > 0 && (
+          {(hotEvents.length > 0 || isFetching) && (
             <div>
               <div className="px-3 py-1 text-xs text-tr-accent font-semibold flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Flame size={12} className="text-red-500" /> SỰ KIỆN NỔI BẬT
                 </span>
-                {isFetching && recentFiltered.length === 0 && <Loader2 size={12} className="animate-spin text-tr-accent" />}
+                {isFetching && <Loader2 size={12} className="animate-spin text-tr-accent" />}
               </div>
               {hotEvents.map((event) => (
                 <button

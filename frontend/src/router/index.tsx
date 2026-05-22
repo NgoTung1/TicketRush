@@ -56,6 +56,34 @@ const router = createBrowserRouter([
         path: 'auth/callback',
         element: <OAuthCallback />,
       },
+      {
+        index: true,
+        element: <HomePage />,
+      },
+      {
+        path: 'su-kien/:id',
+        element: <EventDetail />,
+      },
+      {
+        path: 'event/:id',
+        element: <EventDetail />,
+      },
+      {
+        path: 'events',
+        element: <EventList />,
+      },
+      {
+        path: 'am-nhac',
+        element: <Navigate to="/events" replace />,
+      },
+      {
+        path: 'nghe-thuat',
+        element: <Navigate to="/events" replace />,
+      },
+      {
+        path: 'hoi-thao',
+        element: <Navigate to="/events" replace />,
+      },
 
       // ==========================================
       // 2. NHÓM USER (Bắt buộc phải đăng nhập/có quyền)
@@ -68,26 +96,6 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
         children: [
-          {
-            index: true,
-            element: <HomePage />,
-          },
-          {
-            path: 'su-kien/:id',
-            element: <EventDetail />,
-          },
-          {
-            path: 'event/:id',
-            element: <EventDetail />,
-          },
-          {
-            path: 'events',
-            element: <EventList />,
-          },
-          {
-            path: 'am-nhac',
-            element: <Navigate to="/events" replace />,
-          },
           {
             path: 'profile',
             element: <ProfilePage />,
@@ -119,15 +127,6 @@ const router = createBrowserRouter([
           {
             path: 'ticket/cancelled/:id',
             element: <CancelledTicketDetail />,
-          },
-          // Các route Redirect
-          {
-            path: 'nghe-thuat',
-            element: <Navigate to="/event" replace />,
-          },
-          {
-            path: 'hoi-thao',
-            element: <Navigate to="/event" replace />,
           },
         ],
       },

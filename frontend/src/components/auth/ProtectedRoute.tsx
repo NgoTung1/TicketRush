@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/AuthStore';
 import { getRoleFromToken } from '@/helpers/jwt';
+import { getAccessToken } from '@/lib/axios';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,13 +12,18 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
   const { isAuthenticated } = useAuthStore();
   const location = useLocation();
-  const token = localStorage.getItem('accessToken');
 
   // Nếu trang yêu cầu đăng nhập (profile, hoặc các trang user-only) mà không có token
-  if (!token && requiredRole) {
+  if (!isAuthenticated && requiredRole) {
+    // Lưu trang hiện tại vào sessionStorage để sau khi login quay lại đúng chỗ
+    const currentPath = location.pathname + location.search;
+    if (currentPath && currentPath !== '/auth') {
+      sessionStorage.setItem('redirect_after_login', currentPath);
+    }
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  const token = getAccessToken();
   const role = token ? getRoleFromToken(token).toLowerCase() : null;
 
   // 1. Nếu trang yêu cầu ADMIN mà người dùng không phải ADMIN

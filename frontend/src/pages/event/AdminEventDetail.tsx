@@ -197,11 +197,11 @@ const AdminEventDetail: React.FC = () => {
 
   if (loadingEvent) {
     return (
-      <div className="bg-[#141414] min-h-screen text-white pt-8 pb-16">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 mb-12">
-            <div className="w-full lg:w-[55%] aspect-video bg-white/10 rounded-2xl" />
-            <div className="w-full lg:w-[45%] space-y-4 py-4">
+      <div className="bg-[#141414] min-h-screen text-white pb-16">
+        <div className="px-10 py-10 animate-pulse">
+          <div className="flex flex-col lg:flex-row gap-6 mb-12">
+            <div className="w-full lg:w-[50%] aspect-video bg-white/10 rounded-2xl" />
+            <div className="w-full lg:w-[50%] space-y-4 py-4">
               <div className="h-8 bg-white/10 rounded w-3/4" />
               <div className="h-4 bg-white/10 rounded w-full" />
               <div className="h-4 bg-white/10 rounded w-5/6" />
@@ -215,7 +215,7 @@ const AdminEventDetail: React.FC = () => {
 
   if (error) {
     return (
-      <div className="bg-[#141414] min-h-screen text-white pt-8 flex items-center justify-center">
+      <div className="bg-[#141414] min-h-screen text-white flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-red-400 font-medium">{error}</p>
           <button
@@ -257,14 +257,14 @@ const AdminEventDetail: React.FC = () => {
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-[#141414] min-h-screen text-white pt-8 pb-16">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10">
+    <div className="bg-[#141414] min-h-screen text-white">
+      <div className="px-10 py-10">
 
         {/* Hero Section */}
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 mb-8 lg:mb-12">
-          {/* Left: Poster */}
-          <div className="w-full lg:w-[55%] shrink-0">
-            <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-xl border border-white/10">
+        <div className="flex flex-col lg:flex-row gap-6 mb-2">
+          {/* Left: Poster — fixed 16/9, object-cover fills full frame without stretching */}
+          <div className="w-full lg:w-[50%] shrink-0">
+            <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-xl">
               <img
                 src={event?.bannerUrl || `https://picsum.photos/seed/${id}/1000/600`}
                 alt={event?.title}
@@ -274,27 +274,29 @@ const AdminEventDetail: React.FC = () => {
           </div>
 
           {/* Right: Info */}
-          <div className="w-full lg:w-[45%] flex flex-col justify-start">
-            <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-white mb-4 lg:mb-6 leading-tight uppercase">
-              {event?.title || '—'}
-            </h1>
-            <p className="text-white text-sm sm:text-[18px] leading-relaxed text-white/80 italic font-medium">
-              {event?.description || 'Chưa có mô tả cho sự kiện này.'}
-            </p>
+          <div className="w-full flex-1 lg:relative">
+            <div className="w-full lg:absolute lg:inset-0 flex flex-col justify-start gap-3 leading-none lg:overflow-y-auto lg:pr-2">
+              <h1 className="text-2xl sm:text-3xl lg:text-[36px] font-bold text-white break-words">
+                {event?.title || '—'}
+              </h1>
+              <p className="text-sm sm:text-[18px] leading-relaxed text-white break-words whitespace-pre-wrap">
+                {event?.description || 'Chưa có mô tả cho sự kiện này.'}
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Organizer & Location */}
-        <div className="mb-12">
-          <h3 className="text-[24px] font-bold mb-4 italic text-white">
+        <div className="flex flex-col gap-1 mt-4 mb-12">
+          <h3 className="text-[24px] font-bold italic text-white mb-1 break-words whitespace-pre-wrap">
             Ban tổ chức: {event?.organizer || '—'}
           </h3>
-          <div className="flex items-center gap-3 text-[16px] mb-3 text-white">
+          <div className="flex items-center gap-1 text-[16px] text-white">
             <img src={DateFilter} alt="Date" />
             <span className="font-bold italic">
               {event?.startTime ? formatDateTime(event.startTime) : '—'}
             </span>
-            <span className={`px-3 py-0.5 bg-white text-[10px] font-bold italic rounded-full uppercase ml-2 tracking-wide ${statusTextColor}`}>
+            <span className={`px-3 py-1 bg-white text-[10px] font-bold italic rounded-full uppercase ml-2 tracking-wide ${statusTextColor}`}>
               {statusLabel}
             </span>
           </div>
@@ -305,8 +307,8 @@ const AdminEventDetail: React.FC = () => {
         </div>
 
         {/* Lịch diễn */}
-        <div className="mb-16">
-          <h2 className="text-[24px] font-bold mb-6 text-white">Lịch diễn</h2>
+        <div className="mb-20">
+          <h2 className="text-[24px] font-bold italic mb-2 text-white">Lịch diễn</h2>
 
           {loadingSessions ? (
             <div className="space-y-3">
@@ -346,7 +348,7 @@ const AdminEventDetail: React.FC = () => {
         </div>
 
         {/* Thống kê */}
-        <div className="mb-12">
+        <div className="">
           <h2 className="text-[24px] font-bold mb-6 text-white">Thống kê</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

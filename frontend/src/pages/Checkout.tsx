@@ -18,7 +18,7 @@ const Checkout: React.FC = () => {
     totalAmount: number;
     eventId: string;
   } | null;
-  
+
   const [selectedMethod, setSelectedMethod] = useState<string>('bank');
   const [isLoadingPayment, setIsLoadingPayment] = useState<boolean>(false);
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
@@ -80,47 +80,47 @@ const Checkout: React.FC = () => {
   };
 
   return (
-    <div className="w-full">
-        <div className="flex justify-between items-end mb-8">
-          <h1 className="text-3xl font-bold">Thanh toán</h1>
-          <div className="text-gray-300 font-medium italic">
-            Vui lòng hoàn tất thanh toán trong: <span className="text-ticket-green not-italic ml-1 text-lg">{activeRoom?.timeLeft || '00:00'}</span>
-          </div>
+    <div className="w-full mt-4">
+      <div className="flex justify-between items-end mb-4">
+        <h1 className="text-3xl font-bold">Thanh toán</h1>
+        <div className="text-white font-medium italic">
+          Vui lòng hoàn tất thanh toán trong: <span className="text-[#00ff00]">{activeRoom?.timeLeft || '00:00'}</span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column */}
+        <div className="flex flex-col">
+          <PaymentMethodSelector selectedMethod={selectedMethod} onSelect={setSelectedMethod} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column */}
-          <div className="flex flex-col">
-             <PaymentMethodSelector selectedMethod={selectedMethod} onSelect={setSelectedMethod} />
-          </div>
+        {/* Right Column */}
+        <div className="flex flex-col space-y-6 items-end">
+          {state && (
+            <InvoiceDetails
+              invoiceData={state.invoiceData}
+              totalAmount={state.totalAmount}
+            />
+          )}
 
-          {/* Right Column */}
-          <div className="flex flex-col space-y-6 items-end">
-            {state && (
-              <InvoiceDetails 
-                invoiceData={state.invoiceData} 
-                totalAmount={state.totalAmount} 
-              />
-            )}
-            
-            <div className="flex justify-end space-x-4 mt-4">
-              <button
-                onClick={handleCancel}
-                disabled={isCancelling}
-                className="px-5 py-1 rounded-full bg-gray-500 hover:bg-gray-600 text-white font-medium transition-colors focus:outline-none disabled:opacity-50"
-              >
-                {isCancelling ? 'Đang hủy...' : 'Hủy'}
-              </button>
-              <button
-                onClick={handlePayment}
-                disabled={isLoadingPayment}
-                className="px-5 py-1 rounded-full bg-ticket-blue hover:bg-blue-600 text-white font-medium transition-colors focus:outline-none shadow-[0_0_15px_rgba(33,150,243,0.5)] disabled:opacity-50"
-              >
-                {isLoadingPayment ? 'Đang xử lý...' : 'Thanh toán'}
-              </button>
-            </div>
+          <div className="flex justify-end space-x-4 mt-4">
+            <button
+              onClick={handleCancel}
+              disabled={isCancelling}
+              className="px-5 py-1 rounded-full bg-gray-500 hover:bg-gray-600 text-white font-medium transition-colors focus:outline-none disabled:opacity-50"
+            >
+              {isCancelling ? 'Đang hủy...' : 'Hủy'}
+            </button>
+            <button
+              onClick={handlePayment}
+              disabled={isLoadingPayment}
+              className="px-5 py-1 rounded-full bg-ticket-blue hover:bg-blue-600 text-white font-medium transition-colors focus:outline-none shadow-[0_0_15px_rgba(33,150,243,0.5)] disabled:opacity-50"
+            >
+              {isLoadingPayment ? 'Đang xử lý...' : 'Thanh toán'}
+            </button>
           </div>
         </div>
+      </div>
     </div>
   );
 };

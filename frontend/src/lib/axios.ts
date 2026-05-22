@@ -3,15 +3,10 @@ import { getIdFromToken } from '@/helpers/jwt';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
 
-let accessToken: string | null = localStorage.getItem('accessToken');
+let accessToken: string | null = null;
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
-  if (token) {
-    localStorage.setItem('accessToken', token);
-  } else {
-    localStorage.removeItem('accessToken');
-  }
 };
 
 export const getAccessToken = () => accessToken;
@@ -66,21 +61,23 @@ axiosClient.interceptors.response.use(
           {},
           { withCredentials: true }
         );
-
-        // SỬA LỖI 1: Đọc đúng tên biến 'accessToken' từ Backend gửi về
         const newToken = refreshResponse.data.accessToken;
 
         setAccessToken(newToken);
 
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
 
-        // SỬA LỖI 2: Phải return lại AxiosClient cùng với originalRequest để gọi lại API bị tạch trước đó
         return axiosClient(originalRequest);
 
       } catch (refreshError) {
         console.warn('Phiên đăng nhập hết hạn! Vui lòng đăng nhập lại.');
         setAccessToken(null);
-        window.location.href = '/auth';
+        // Lưu trang hiện tại để sau khi đăng nhập xong quay lại đúng chỗ
+        const currentPath = window.location.pathname + window.location.search;
+        if (currentPath && currentPath !== '/auth') {
+          sessionStorage.setItem('redirect_after_login', currentPath);
+        }
+        window.dispatchEvent(new Event('auth:unauthorized'));
         return Promise.reject(refreshError);
       }
     }

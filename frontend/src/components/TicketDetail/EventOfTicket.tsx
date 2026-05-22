@@ -39,11 +39,11 @@ const EventOfTicket: React.FC<EventOfTicketProps> = ({ variant = 'default' }) =>
   }, [id]);
 
   if (loading) {
-    return <div className="mb-10 w-full border-b border-gray-800 pb-10 text-white">Đang tải thông tin sự kiện...</div>;
+    return <div className="mb-10 w-full border-b border-[#353535] pb-10 text-white">Đang tải thông tin sự kiện...</div>;
   }
 
   if (!eventData) {
-    return <div className="mb-10 w-full border-b border-gray-800 pb-10 text-white">Không tìm thấy thông tin sự kiện.</div>;
+    return <div className="mb-10 w-full border-b border-[#353535] pb-10 text-white">Không tìm thấy thông tin sự kiện.</div>;
   }
 
   const formatDateTime = (dateString: string) => {
@@ -54,12 +54,12 @@ const EventOfTicket: React.FC<EventOfTicketProps> = ({ variant = 'default' }) =>
   };
 
   return (
-    <div className="mb-10 w-full border-b border-gray-800 pb-10">
-      <h2 className="text-2xl font-bold text-white mb-6">Sự kiện</h2>
+    <div className="w-full border-b border-[#353535] pb-12 mt-4">
+      <h2 className="text-2xl font-bold text-white mb-4 leading-none">Sự kiện</h2>
 
-      <div className="flex flex-col md:flex-row gap-8 w-full justify-between">
+      <div className="flex flex-col md:flex-row gap-8 w-full">
         {/* Event Poster */}
-        <div className="w-full md:w-[60%] shrink-0">
+        <div className="w-full md:w-[50%] shrink-0">
           <img
             src={eventData.bannerUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS2bOb-8xFgTA9saEENGC3s-dt1fNxihede1g&s"}
             alt="Event Poster"
@@ -68,33 +68,32 @@ const EventOfTicket: React.FC<EventOfTicketProps> = ({ variant = 'default' }) =>
         </div>
 
         {/* Event Info */}
-        <div className="flex flex-col justify-start md:w-[35%] py-4">
-          <h3
-            className={
-              `text-3xl lg:text-4xl font-bold mb-4 leading-tight ` +
-              (isCancelled ? 'text-gray-400' : 'text-white')
-            }
-          >
-            {eventData.title}
-          </h3>
-          <p className="text-gray-400 text-base mb-6">
-            Ban tổ chức: <span className="text-white font-medium">{eventData.organizer || 'Đang cập nhật'}</span>
-          </p>
+        <div className="md:relative w-full md:w-[50%] md:h-[400px]">
+          <div className="md:absolute md:inset-0 flex flex-col justify-start overflow-y-auto md:pr-4">
+            <h3
+              className="text-3xl lg:text-4xl font-bold leading-tight text-white break-words whitespace-pre-wrap"
+            >
+              {eventData.title}
+            </h3>
+            <p className="text-white text-base font-bold italic my-2 break-words whitespace-pre-wrap">
+              Ban tổ chức: {eventData.organizer || 'Đang cập nhật'}
+            </p>
 
-          {isCancelled ? (
-            <p className="text-red-500 text-2xl font-extrabold -mt-4 mb-6">CANCELLED</p>
-          ) : null}
+            <div className="space-y-1">
+              <div className="flex items-center text-base font-bold">
+                <CalendarDays className="w-5 h-5 mr-3 shrink-0" />
+                <span>{eventData.startTime ? formatDateTime(eventData.startTime) : 'Đang cập nhật'}</span>
+              </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center text-gray-300 text-base">
-              <CalendarDays className="w-5 h-5 mr-3 text-gray-400 shrink-0" />
-              <span>{eventData.startTime ? formatDateTime(eventData.startTime) : 'Đang cập nhật'}</span>
+              <div className="flex items-start text-base font-bold">
+                <MapPin className="w-5 h-5 mr-3 mt-0.5 shrink-0" />
+                <span>{eventData.address || 'Đang cập nhật'}</span>
+              </div>
             </div>
 
-            <div className="flex items-start text-gray-300 text-base">
-              <MapPin className="w-5 h-5 mr-3 mt-0.5 text-gray-400 shrink-0" />
-              <span>{eventData.address || 'Đang cập nhật'}</span>
-            </div>
+            {isCancelled ? (
+              <p className="text-red-500 text-2xl font-extrabold mt-2">CANCELLED</p>
+            ) : null}
           </div>
         </div>
       </div>

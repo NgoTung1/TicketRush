@@ -145,7 +145,7 @@ const Header: React.FC = () => {
         className="bg-[#141414]"
         style={{ height: 'var(--header-height)' }}
       >
-        <div className="h-full max-w-[1440px] mx-auto px-2 flex items-center">
+        <div className="h-full mx-auto px-10 flex items-center">
           {/* ── Mobile: Hamburger  */}
           <button
             ref={menuBtnRef}
@@ -169,10 +169,10 @@ const Header: React.FC = () => {
             className="flex items-center shrink-0 mr-6 lg:mr-10 group"
           >
             <span className="text-2xl font-black font-paytone tracking-tight">
-              <span className="text-tr-accent">
+              <span className="text-white">
                 TICKET
               </span>
-              <span className="text-[#FFFFFF]">RUSH</span>
+              <span className="text-[#00a3ff]">RUSH</span>
             </span>
           </Link>
 
@@ -194,15 +194,17 @@ const Header: React.FC = () => {
           </nav>
 
           {/* ── Search Bar (Bình thường ở Desktop) */}
-          <SearchBar
-            id="header-search"
-            value={searchQuery}
-            onChange={setSearchQuery}
-            onSubmit={handleSearch}
-            className="hidden sm:flex ml-auto lg:ml-0 lg:mr-4 bg-[#1C1C1C] w-[272px]"
-            inputClassName='text-[12px] py-1.5 px-1.5'
-            placeholder="Tìm kiếm"
-          />
+          <div className='ml-auto lg:ml-0'>
+            <SearchBar
+              id="header-search"
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onSubmit={handleSearch}
+              className="hidden sm:flex lg:ml-0 mr-4 bg-[#1C1C1C] w-[272px]"
+              inputClassName='text-[12px] py-1.5 px-1.5'
+              placeholder="Tìm kiếm"
+            />
+          </div>
 
           {/* ── Mobile Search Button */}
           <button
@@ -291,20 +293,33 @@ const Header: React.FC = () => {
             /* ── Auth Buttons (Desktop) - Only when NOT authenticated */
             <div className="hidden sm:flex items-center gap-2 sm:gap-3 shrink-0">
               <Button
-                as="link"
-                to="/auth?view=login"
+                as="button"
                 id="login-btn"
                 variant="ghost"
                 className="text-[14px] rounded-full"
+                onClick={() => {
+                  const currentPath = location.pathname + location.search;
+                  console.log("CURENTPATH: ", currentPath)
+                  if (currentPath !== '/auth') {
+                    sessionStorage.setItem('redirect_after_login', currentPath);
+                  }
+                  navigate('/auth?view=login');
+                }}
               >
                 Đăng nhập
               </Button>
               <Button
-                as="link"
-                to="/auth?view=register"
+                as="button"
                 id="register-btn"
                 variant="primary"
                 className="text-[14px] rounded-full"
+                onClick={() => {
+                  const currentPath = location.pathname + location.search;
+                  if (currentPath !== '/auth') {
+                    sessionStorage.setItem('redirect_after_login', currentPath);
+                  }
+                  navigate('/auth?view=register');
+                }}
               >
                 Đăng ký
               </Button>
@@ -315,14 +330,14 @@ const Header: React.FC = () => {
         {/* ── Thanh Tìm Kiếm Dài (Chỉ hiện khi bấm kính lúp ở Mobile) ── */}
         {isMobileSearchOpen && (
           <div
-            className="absolute top-[var(--header-height)] left-0 w-full p-3 bg-[#141414] sm:hidden pointer-events-auto"
+            className="absolute top-[var(--header-height)] left-0 w-full p-3 bg-[#141414] sm:hidden pointer-events-auto z-[60] shadow-md border-b border-[#2A2A2A]"
           >
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
               onSubmit={handleSearch}
               placeholder="Tìm kiếm"
-              className="sm:flex bg-[#1C1C1C]"
+              className="flex bg-[#1C1C1C]"
               inputClassName='text-[12px] py-1.5 px-1.5'
             />
           </div>
@@ -396,18 +411,30 @@ const Header: React.FC = () => {
         ) : (
           <div className="px-4 py-4 sm:hidden flex flex-col gap-3">
             <Button
-              as="link"
-              to="/auth"
+              as="button"
               variant="outline"
               className="w-full rounded-[12px] py-2"
+              onClick={() => {
+                const currentPath = location.pathname + location.search;
+                if (currentPath !== '/auth') {
+                  sessionStorage.setItem('redirect_after_login', currentPath);
+                }
+                navigate('/auth');
+              }}
             >
               Đăng nhập
             </Button>
             <Button
-              as="link"
-              to="/auth?view=register"
+              as="button"
               variant="primary"
               className="w-full rounded-[12px] py-2"
+              onClick={() => {
+                const currentPath = location.pathname + location.search;
+                if (currentPath !== '/auth') {
+                  sessionStorage.setItem('redirect_after_login', currentPath);
+                }
+                navigate('/auth?view=register');
+              }}
             >
               Đăng ký
             </Button>

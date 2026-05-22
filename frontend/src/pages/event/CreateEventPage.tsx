@@ -150,7 +150,7 @@ const CreateEventPage: React.FC = () => {
 
     for (const session of validSessions) {
       const sessionStartAt = new Date(session.data.startAt);
-      
+
       // Kiểm tra 7 ngày đối với phiên sự kiện
       if (sessionStartAt < minEventStartTime) {
         return setError(`Thời gian bắt đầu phiên sự kiện "${session.data.name}" phải cách hiện tại ít nhất 7 ngày.`);
@@ -192,7 +192,7 @@ const CreateEventPage: React.FC = () => {
         eventData,
         bannerFile ?? undefined
       );
-      
+
       // Lấy eventId từ response
       const eventId: string = createdEvent?.id ?? createdEvent?.data?.id;
 
@@ -218,19 +218,19 @@ const CreateEventPage: React.FC = () => {
         err?.message ||
         'Tạo sự kiện thất bại. Vui lòng thử lại.';
       setError(msg);
-      setSubmitting(false); 
-    } 
+      setSubmitting(false);
+    }
   };
 
   // ─── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-[#141414] min-h-screen text-white font-roboto pb-12">
+    <div className="bg-[#141414] min-h-screen text-white font-roboto pb-4">
       {/* Main */}
-      <div className="max-w-[1000px] mx-auto px-4 sm:px-6 py-8">
-        <h2 className="text-[32px] font-bold text-white mb-8">Thông tin sự kiện</h2>
+      <div className="mx-auto px-10 pt-4">
+        <h2 className="text-[32px] font-bold text-white mb-2">Thông tin sự kiện</h2>
 
-        <div className="space-y-1">
+        <div className="space-y-2">
 
           {/* Ban tổ chức */}
           <EventInput

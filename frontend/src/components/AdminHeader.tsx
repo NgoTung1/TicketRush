@@ -71,7 +71,7 @@ const AdminHeader: React.FC = () => {
   const handleLogout = async () => {
     try {
       await authApi.logout();
-    } catch (e) {}
+    } catch (e) { }
     setAccessToken(null);
     clearUser();
     setIsProfileMenuOpen(false);
@@ -100,7 +100,7 @@ const AdminHeader: React.FC = () => {
         className="z-[60] bg-[#141414] sticky top-0"
         style={{ height: 'var(--header-height, 64px)' }}
       >
-        <div className="h-full max-w-[1440px] mx-auto px-4 flex items-center">
+        <div className="h-full w-full px-10 mx-auto flex items-center">
           {/* Mobile: Hamburger */}
           <button
             ref={menuBtnRef}
@@ -122,7 +122,7 @@ const AdminHeader: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8 mr-auto">
+          <nav className="hidden lg:flex items-center gap-1 mr-auto">
             {NAV_ITEMS.map((item) => {
               // Active path nếu đang đứng đúng route
               const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
@@ -130,9 +130,8 @@ const AdminHeader: React.FC = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`relative text-[15px] font-bold transition-all duration-200 ${
-                    isActive ? 'text-white' : 'text-[#868686] hover:text-white'
-                  }`}
+                  className={`relative px-4 py-1.5 rounded-full text-[16px] font-bold text-[#FFFFFF] hover:bg-[#2A2A2A] transition-all duration-200 whitespace-nowrap'
+                    }`}
                 >
                   {item.label}
                 </Link>
@@ -216,9 +215,8 @@ const AdminHeader: React.FC = () => {
                 <li key={item.path}>
                   <Link
                     to={item.path}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[16px] font-bold transition-all duration-200 ${
-                      isActive ? 'bg-[#2A2A2A] text-white' : 'text-[#868686] hover:bg-[#2A2A2A] hover:text-white'
-                    }`}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[16px] font-bold transition-all duration-200 ${isActive ? 'bg-[#2A2A2A] text-white' : 'text-[#868686] hover:bg-[#2A2A2A] hover:text-white'
+                      }`}
                   >
                     {item.label}
                   </Link>

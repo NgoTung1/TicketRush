@@ -277,7 +277,7 @@ const HomePage: React.FC = () => {
             {[0, 1].map((s) => (
               <section key={s}>
                 <div className="h-8 w-48 bg-white/10 rounded-lg mb-6 animate-pulse" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {[0, 1, 2, 3].map((i) => (
                     <div key={i} className="w-full rounded-xl overflow-hidden bg-[#1a1a1b] animate-pulse">
                       <div className="w-full aspect-[16/10] bg-white/10" />
@@ -310,7 +310,7 @@ const HomePage: React.FC = () => {
               {!upcomingEvents || upcomingEvents.length === 0 ? (
                 <p className="text-white/40 text-sm">Không có sự kiện đang chuẩn bị.</p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {upcomingEvents.slice(0, 4).map((event) => (
                     <EventItem key={event.id} {...toEventItemProps(event, () => handleEventClick(event.id))} />
                   ))}
@@ -332,7 +332,7 @@ const HomePage: React.FC = () => {
               {!ongoingEvents || ongoingEvents.length === 0 ? (
                 <p className="text-white/40 text-sm">Không có sự kiện đang mở bán.</p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {ongoingEvents.slice(0, 4).map((event) => (
                     <EventItem key={event.id} {...toEventItemProps(event, () => handleEventClick(event.id))} />
                   ))}
@@ -354,7 +354,7 @@ const HomePage: React.FC = () => {
               {!newEvents || newEvents.length === 0 ? (
                 <p className="text-white/40 text-sm">Chưa có sự kiện mới.</p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {newEvents.slice(0, 4).map((event) => (
                     <EventItem key={event.id} {...toEventItemProps(event, () => handleEventClick(event.id))} />
                   ))}

@@ -385,7 +385,7 @@ const EventList: React.FC = () => {
 
         {/* Loading skeleton */}
         {loading && !error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="w-full rounded-xl overflow-hidden bg-[#1a1a1b] animate-pulse">
                 <div className="w-full aspect-[16/10] bg-white/10" />
@@ -401,7 +401,7 @@ const EventList: React.FC = () => {
 
         {/* Event grid */}
         {!loading && !error && events.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
             {events.map((event) => (
               <div
                 key={event.id}

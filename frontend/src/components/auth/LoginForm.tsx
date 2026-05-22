@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
 import AuthInput from '@/components/ui/AuthInput';
 import { authApi } from '@/api/authApi';
@@ -9,6 +9,7 @@ import { getRoleFromToken } from '@/helpers/jwt';
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -35,14 +36,21 @@ const LoginForm: React.FC = () => {
     try {
       const res: any = await authApi.login({ email, password });
       const token = res.accessToken; // Lấy token ra
+
       setAccessToken(token);
 
       await fetchUserProfile();
+
+      // Ưu tiên: 1) state từ ProtectedRoute  2) sessionStorage (global)  3) role-based default
+      const from = location.state?.from?.pathname || sessionStorage.getItem('redirect_after_login');
+
       const role = getRoleFromToken(token);
       if (role?.toLowerCase() === 'admin') {
-        navigate('/admin/event-list'); // Đẩy vào Dashboard Admin
+        navigate(from || '/admin/event-list', { replace: true });
+      } else if (from) {
+        navigate(from, { replace: true });
       } else {
-        navigate('/'); // Khách bình thường về Trang chủ
+        navigate('/', { replace: true });
       }
     } catch (err: any) {
       const status = err?.response?.status;
@@ -65,6 +73,13 @@ const LoginForm: React.FC = () => {
   };
 
   const handleGoogleLogin = () => {
+    // Lưu lại đường dẫn cũ để OAuthCallback redirect về sau khi thành công
+    const from = location.state?.from?.pathname || sessionStorage.getItem('redirect_after_login');
+    if (from) {
+      localStorage.setItem('oauth_redirect_to', from);
+      sessionStorage.removeItem('redirect_after_login');
+    }
+
     // Redirect to Supabase OAuth
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const redirectTo = `${window.location.origin}/auth/callback`;

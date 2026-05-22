@@ -346,16 +346,16 @@ const EventDetail: React.FC = () => {
         </div>
 
         {/* Organizer & Location */}
-        <div className="flex flex-col gap-1 mt-2 mb-12">
-          <h3 className="text-[24px] font-bold italic text-white">
+        <div className="flex flex-col gap-1 mt-4 mb-12">
+          <h3 className="text-[24px] font-bold italic text-white mb-1 break-words whitespace-pre-wrap">
             Ban tổ chức: {event?.organizer || '—'}
           </h3>
-          <div className="flex items-center gap-3 text-[16px] text-white">
+          <div className="flex items-center gap-1 text-[16px] text-white">
             <img src={DateFilter} alt="" />
             <span className="font-bold italic">
               {event?.startTime ? formatDateTime(event.startTime) : '—'}
             </span>
-            <span className={`px-3 py-0.5 bg-white text-[10px] font-bold italic rounded-full uppercase ml-2 tracking-wide ${statusTextColor}`}>
+            <span className={`px-3 py-1 bg-white text-[10px] font-bold italic rounded-full uppercase ml-2 tracking-wide ${statusTextColor}`}>
               {statusLabel}
             </span>
           </div>
@@ -423,7 +423,7 @@ const EventDetail: React.FC = () => {
         {/* Có thể bạn quan tâm */}
         <div>
           <h2 className="text-[24px] font-bold mb-6 text-center text-white">Có thể bạn quan tâm</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {relatedEvents.map((e) => {
               const types = relatedSeatTypes[e.id] || [];
               return (

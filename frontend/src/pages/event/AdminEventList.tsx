@@ -34,14 +34,14 @@ function toEventItemProps(event: EventResponse) {
       event.status === 'ONCOMING'
         ? 'Đang chuẩn bị'
         : event.status === 'ONGOING'
-        ? 'Đang mở bán'
-        : 'Đã kết thúc',
+          ? 'Đang mở bán'
+          : 'Đã kết thúc',
     statusColor:
       event.status === 'ONCOMING'
         ? 'text-[#ffe600]'
         : event.status === 'ONGOING'
-        ? 'text-[#00e5ff]'
-        : 'text-gray-400',
+          ? 'text-[#00e5ff]'
+          : 'text-gray-400',
     imageUrl: event.bannerUrl || `https://picsum.photos/seed/${event.id}/600/400`,
   };
 }
@@ -103,11 +103,10 @@ const FilterDropdown: React.FC<DropdownProps> = ({ icon, label, options, value, 
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((p) => !p)}
-        className={`flex items-center gap-2 px-3 py-1.5 font-bold text-[13px] rounded-md transition-colors border ${
-          isActive
-            ? 'bg-[#00a3ff]/20 border-[#00a3ff]/60 text-[#00a3ff]'
-            : 'bg-[#414141] hover:bg-[#333] text-white border-white/10'
-        }`}
+        className={`flex items-center gap-2 px-3 py-1.5 font-bold text-[13px] rounded-md transition-colors border ${isActive
+          ? 'bg-[#00a3ff]/20 border-[#00a3ff]/60 text-[#00a3ff]'
+          : 'bg-[#414141] hover:bg-[#333] text-white border-white/10'
+          }`}
       >
         <img src={icon} alt="" className="w-4 h-4 object-contain" />
         <span>{activeLabel}</span>
@@ -130,11 +129,10 @@ const FilterDropdown: React.FC<DropdownProps> = ({ icon, label, options, value, 
                 onChange(opt.value);
                 setOpen(false);
               }}
-              className={`w-full text-left px-4 py-2 text-[13px] font-medium transition-colors ${
-                opt.value === value
-                  ? 'bg-[#00a3ff]/20 text-[#00a3ff]'
-                  : 'text-white/80 hover:bg-white/5 hover:text-white'
-              }`}
+              className={`w-full text-left px-4 py-2 text-[13px] font-medium transition-colors ${opt.value === value
+                ? 'bg-[#00a3ff]/20 text-[#00a3ff]'
+                : 'text-white/80 hover:bg-white/5 hover:text-white'
+                }`}
             >
               {opt.label}
             </button>
@@ -283,11 +281,11 @@ const EventList: React.FC = () => {
   // ─── Render ───────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-[#141414] min-h-screen text-white font-roboto pt-24 pb-16">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-[#141414] min-h-screen text-white font-roboto pt-10 pb-16">
+      <div className="w-full mx-auto px-10">
 
         {/* Filters row */}
-        <div className="flex flex-wrap items-center gap-3 mb-8">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
 
           {/* Filter 1: Danh mục */}
           <FilterDropdown
@@ -319,20 +317,19 @@ const EventList: React.FC = () => {
             />
             <button
               onClick={() => dateInputRef.current?.showPicker()}
-              className={`flex items-center gap-2 px-3 py-1.5 font-bold text-[13px] rounded-md border transition-colors ${
-                currentDate
-                  ? 'bg-[#00a3ff]/20 border-[#00a3ff]/60 text-[#00a3ff]'
-                  : 'bg-[#414141] hover:bg-[#333] text-white border-white/10'
-              }`}
+              className={`flex items-center gap-2 px-3 py-1.5 font-bold text-[13px] rounded-md border transition-colors ${currentDate
+                ? 'bg-[#00a3ff]/20 border-[#00a3ff]/60 text-[#00a3ff]'
+                : 'bg-[#414141] hover:bg-[#333] text-white border-white/10'
+                }`}
             >
               <img src={DateFilter} alt="" className="w-4 h-4 object-contain" />
               <span className="whitespace-nowrap">
                 {currentDate
                   ? new Date(currentDate + 'T00:00:00').toLocaleDateString('vi-VN', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                    })
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })
                   : 'Tất cả các ngày'}
               </span>
               {currentDate && (
@@ -386,7 +383,7 @@ const EventList: React.FC = () => {
 
         {/* Loading skeleton */}
         {loading && !error && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="w-full rounded-xl overflow-hidden bg-[#1a1a1b] animate-pulse">
                 <div className="w-full aspect-[16/10] bg-white/10" />
@@ -402,7 +399,7 @@ const EventList: React.FC = () => {
 
         {/* Event grid */}
         {!loading && !error && events.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-12">
             {events.map((event) => (
               <div
                 key={event.id}
@@ -453,9 +450,8 @@ const EventList: React.FC = () => {
                 <button
                   key={p}
                   onClick={() => handlePageChange(p as number)}
-                  className={`w-7 h-7 flex items-center justify-center rounded-sm transition-colors ${
-                    currentPage === p ? 'bg-white/20 text-white' : 'hover:text-white'
-                  }`}
+                  className={`w-7 h-7 flex items-center justify-center rounded-sm transition-colors ${currentPage === p ? 'bg-white/20 text-white' : 'hover:text-white'
+                    }`}
                 >
                   {p}
                 </button>

@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -41,12 +42,20 @@ public class SecurityConfig {
                 "/swagger-ui.html",
                 "/error")
             .permitAll()
+            .requestMatchers(HttpMethod.GET, "/events/**", "/api/categories/**").permitAll()
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
             .anyRequest().authenticated())
         .oauth2ResourceServer(
             oauth2 -> oauth2
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 .authenticationEntryPoint((request, response, authException) -> {
+                  System.out.println("[SECURITY FILTER] Lỗi 401 Unauthorized tại API: " + request.getRequestURI());
+                  System.out
+                      .println("[SECURITY FILTER] Lý do Spring Security từ chối: " + authException.getMessage());
+                  String authHeader = request.getHeader("Authorization");
+                  System.out.println("[SECURITY FILTER] Header 'Authorization' nhận được: " +
+                      (authHeader == null ? "NULL"
+                          : authHeader.substring(0, Math.min(25, authHeader.length())) + "..."));
                   response.setStatus(HttpStatus.UNAUTHORIZED.value());
                   response.setContentType("application/json;charset=UTF-8");
                   response.getWriter().write(
