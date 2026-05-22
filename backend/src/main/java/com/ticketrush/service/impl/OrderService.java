@@ -368,11 +368,23 @@ public class OrderService {
                 .build();
     }
 
+    public static String getRowLabel(int rowIndex) {
+        StringBuilder label = new StringBuilder();
+        int temp = rowIndex;
+        while (temp > 0) {
+            temp--;
+            label.insert(0, (char) ('A' + (temp % 26)));
+            temp = temp / 26;
+        }
+        return label.toString();
+    }
+
     private String buildSeatLabel(Seat seat) {
         String zoneName = seat.getZone() != null ? seat.getZone().getName() : "ZONE";
-        String row = seat.getRowIndex() != null ? seat.getRowIndex().toString() : "?";
-        String number = seat.getSeatNumber() != null ? seat.getSeatNumber().toString() : "?";
-        return zoneName + "-R" + row + "-S" + number;
+        if (seat.getRowIndex() == null || seat.getColIndex() == null) {
+            return zoneName + "-?";
+        }
+        return zoneName + "-" + getRowLabel(seat.getRowIndex()) + seat.getColIndex();
     }
 
     private String generateOrderCode() {
