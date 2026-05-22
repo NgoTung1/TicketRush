@@ -157,11 +157,23 @@ const EventDetail: React.FC = () => {
           return;
         }
 
-        setActiveRoom({ eventId: id, status: 'ready', expiresAt: expireAtMs });
+        setActiveRoom({ 
+          eventId: id, 
+          status: 'ready', 
+          expiresAt: expireAtMs,
+          eventName: event?.title,
+          imageUrl: event?.bannerUrl 
+        });
         navigate(`/event/${id}/room`);
 
       } else if (status === 'WAITING_ROOM' || status === 'ALREADY_IN_WAITING') {
-        setActiveRoom({ eventId: id, status: 'waiting', position: res.position });
+        setActiveRoom({ 
+          eventId: id, 
+          status: 'waiting', 
+          position: res.position,
+          eventName: event?.title,
+          imageUrl: event?.bannerUrl 
+        });
         setNotifyOpen(true);
       } else if (status === 'BLOCKED') {
         const unblockAt = (res as any).unblockAt
@@ -231,9 +243,21 @@ const EventDetail: React.FC = () => {
           const status = res.status ? res.status.toString() : '';
           if (status === 'ACTIVE_ROOM' || status === 'ALREADY_IN_ACTIVE') {
             const expireAtMs = res.expireAt ? res.expireAt * 1000 : Date.now() + 600000;
-            setActiveRoom({ eventId: currentId, status: 'ready', expiresAt: expireAtMs });
+            setActiveRoom({ 
+              eventId: currentId, 
+              status: 'ready', 
+              expiresAt: expireAtMs,
+              eventName: activeRoom?.eventName,
+              imageUrl: activeRoom?.imageUrl
+            });
           } else if (status === 'WAITING_ROOM' || status === 'ALREADY_IN_WAITING') {
-            setActiveRoom({ eventId: currentId, status: 'waiting', position: res.position });
+            setActiveRoom({ 
+              eventId: currentId, 
+              status: 'waiting', 
+              position: res.position,
+              eventName: activeRoom?.eventName,
+              imageUrl: activeRoom?.imageUrl
+            });
           } else if (status === 'NOT_IN_QUEUE') {
             clearActiveRoom();
           }

@@ -45,8 +45,8 @@ const RootLayout: React.FC = () => {
       {activeRoom && !location.pathname.startsWith(`/event/${activeRoom.eventId}/room`) && !location.pathname.startsWith('/checkout') && (
         <div className="fixed bottom-6 right-6 z-[20] flex flex-col gap-4">
           <QueueMiniWidget
-            imageUrl="https://picsum.photos/seed/queue/400/300"
-            eventName="Sự kiện đang tham gia"
+            imageUrl={activeRoom.imageUrl || "https://picsum.photos/seed/queue/400/300"}
+            eventName={activeRoom.eventName || "Sự kiện đang tham gia"}
             status={activeRoom.status}
             position={activeRoom.position}
             timeLeft={activeRoom.timeLeft}
