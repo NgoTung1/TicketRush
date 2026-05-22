@@ -234,7 +234,11 @@ export function RoomPage() {
       });
     } catch (err: any) {
       const message = err?.response?.data?.message || err?.message || 'Không thể giữ ghế. Vui lòng thử lại.';
-      alert(message);
+      addToast({
+        type: 'error',
+        title: 'Lỗi đặt vé',
+        message: message,
+      });
     } finally {
       setIsHolding(false);
     }
@@ -426,7 +430,7 @@ export function RoomPage() {
           </div>
           <div className="text-[14px] text-gray-200 space-y-3 leading-relaxed">
             <p>
-              <strong className="text-white">- Quy định chọn ghế:</strong> Bạn chỉ được đặt tối đa <span className="text-[#00ff00] font-bold">8 vé</span>. Trong quá trình thao tác, nếu ghế bạn chọn bị người khác giữ trước, hệ thống sẽ tự động xóa ghế đó khỏi lựa chọn của bạn.
+              <strong className="text-white">- Quy định chọn ghế:</strong> Bạn chỉ được đặt tối đa <span className="text-[#00ff00] font-bold">8 vé trong toàn bộ sự kiện</span>. Trong quá trình thao tác, nếu ghế bạn chọn bị người khác giữ trước, hệ thống sẽ tự động xóa ghế đó khỏi lựa chọn của bạn.
             </p>
             <div>
               <strong className="text-white">- Chế tài vi phạm:</strong> Để đảm bảo tính công bằng, tài khoản của bạn sẽ bị cấm đặt vé trong <span className="text-[#00ff00] font-bold">2 tiếng</span> nếu:

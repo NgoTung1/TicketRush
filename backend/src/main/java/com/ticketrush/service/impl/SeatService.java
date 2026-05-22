@@ -127,12 +127,9 @@ public class SeatService {
 
     @Transactional
     public List<SeatResponse> holdSeatsForBooking(UUID userId, List<UUID> seatIds) {
-        if (seatIds.size() > 8) {
-            throw new RuntimeException("Bạn chỉ được phép đặt tối đa 8 ghế cho mỗi lần!");
+        if (seatIds.isEmpty()) {
+            throw new RuntimeException("Bạn chưa chọn ghế nào!");
         }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy User!"));
 
         List<Seat> seats = seatRepository.findAvailableSeatsForUpdate(seatIds);
 
@@ -140,6 +137,16 @@ public class SeatService {
             throw new RuntimeException(
                     "Rất tiếc! Một hoặc nhiều ghế bạn chọn đã bị người khác đặt. Vui lòng chọn ghế khác.");
         }
+
+        UUID eventId = seats.get(0).getZone().getEventSession().getEvent().getId();
+        long existingCount = seatRepository.countSeatsByEventAndUser(eventId, userId);
+
+        if (existingCount + seatIds.size() > 8) {
+            throw new RuntimeException("Bạn đã đặt " + existingCount + " ghế. Việc chọn thêm " + seatIds.size() + " ghế sẽ vượt quá giới hạn 8 ghế cho toàn bộ sự kiện này!");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy User!"));
 
         for (Seat seat : seats) {
             seat.setStatus(SeatStatus.ORDERED);

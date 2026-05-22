@@ -39,4 +39,9 @@ public interface SeatRepository extends JpaRepository<Seat, UUID> {
         @Lock(LockModeType.PESSIMISTIC_WRITE)
         @Query("select s from Seat s join fetch s.seatType where s.id in :seatIds")
         List<Seat> findForUpdateByIds(@Param("seatIds") List<UUID> seatIds);
+
+        @Query("SELECT COUNT(s) FROM Seat s JOIN s.zone z JOIN z.eventSession es " +
+               "WHERE es.event.id = :eventId AND s.selectedBy.id = :userId " +
+               "AND s.status IN ('ORDERED', 'SOLD')")
+        long countSeatsByEventAndUser(@Param("eventId") UUID eventId, @Param("userId") UUID userId);
 }

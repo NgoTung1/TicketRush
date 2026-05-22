@@ -51,6 +51,19 @@ public class OrderService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Some seats could not be found");
         }
 
+        if (!seats.isEmpty()) {
+            UUID eventId = seats.get(0).getZone().getEventSession().getEvent().getId();
+            long existingCount = seatRepository.countSeatsByEventAndUser(eventId, userId);
+            
+            long alreadyCounted = seats.stream()
+                .filter(s -> s.getStatus() == SeatStatus.ORDERED && s.getSelectedBy() != null && s.getSelectedBy().getId().equals(userId))
+                .count();
+                
+            if (existingCount - alreadyCounted + request.getSeatIds().size() > 8) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bạn đã đặt " + (existingCount - alreadyCounted) + " ghế. Việc chọn thêm " + request.getSeatIds().size() + " ghế sẽ vượt quá giới hạn 8 ghế cho toàn bộ sự kiện này!");
+            }
+        }
+
         for (Seat seat : seats) {
             boolean isAlreadyHeldByCurrentUser = (seat.getStatus() == SeatStatus.ORDERED) &&
                     (seat.getSelectedBy() != null) &&
