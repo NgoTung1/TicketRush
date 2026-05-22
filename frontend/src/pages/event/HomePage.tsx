@@ -20,9 +20,13 @@ function formatDateTime(iso: string): string {
 
 // Helper: map EventResponse → EventItem props
 function toEventItemProps(event: EventResponse, onClick: () => void) {
+  const priceLabel = event.minPrice != null
+    ? `${event.minPrice.toLocaleString('vi-VN')}đ`
+    : 'Liên hệ';
+
   return {
     title: event.title,
-    price: 'Xem chi tiết', // Cần cập nhật nếu API trả về giá
+    price: priceLabel,
     date: formatDateTime(event.startTime),
     status: event.status === 'ONCOMING' ? 'Đang chuẩn bị' : event.status === 'ONGOING' ? 'Đang mở bán' : 'Đã kết thúc',
     statusColor: event.status === 'ONCOMING' ? 'text-[#F7FF55]' : event.status === 'ONGOING' ? 'text-[#00D4FF]' : 'text-[#757575]',
@@ -155,10 +159,10 @@ const HomePage: React.FC = () => {
   return (
     <div className="bg-[#141414] min-h-screen text-white font-roboto pb-16">
       {/* Hero Banner Section */}
-      <section className="relative w-full h-auto lg:h-[650px] flex flex-col px-9 pt-5 overflow-hidden">
+      <section className="relative w-full h-[520px] lg:h-[600px] flex flex-col px-9 pt-5 overflow-hidden">
 
         {/* --- VÙNG 1: BANNERS & TEXT CONTENT --- */}
-        <div className="relative w-full flex-grow flex flex-col justify-center min-h-[480px] lg:min-h-0">
+        <div className="relative flex-1 min-h-0">
           {activeEvent && (
             <div
               className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700 ease-in-out rounded-xl"
@@ -168,27 +172,30 @@ const HomePage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/70 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-transparent" />
 
-          <div className="relative z-10 px-20 w-full pt-20 pb-16 lg:py-0">
+          <div className="relative z-10 px-20 w-full h-full flex items-center">
             {activeEvent ? (
-              <div className="max-w-3xl mt-4 lg:mt-12">
-                <h3 className="max-w-[600px] break-words text-[24px] font-bold font-italic text-white mb-2 italic uppercase leading-none">
-                  {activeEvent.organizer || 'Sự kiện nổi bật'}
-                </h3>
-                <h1 className="max-w-[600px] break-words text-[54px] font-bold text-white leading-none mb-2 tracking-tight">
-                  {activeEvent.title}
-                </h1>
+              <div className="max-w-3xl">
+                {/* Container có chiều cao cố định để cố định vị trí các nút bấm ở dưới */}
+                <div className="h-[220px] flex flex-col justify-end">
+                  <h3 className="max-w-[600px] break-words text-[24px] font-bold font-italic text-white mb-2 italic uppercase leading-none">
+                    {activeEvent.organizer || 'Sự kiện nổi bật'}
+                  </h3>
+                  <h1 className="max-w-[600px] break-words text-[54px] font-bold text-white leading-none mb-2 tracking-tight line-clamp-2">
+                    {activeEvent.title}
+                  </h1>
 
-                <div className="flex flex-col gap-3 mb-8 lg:mb-10">
-                  <span className={`inline-block px-5 py-1 bg-white text-[10px] font-bold italic rounded-full w-fit tracking-wider ${activeEvent.status === 'ONCOMING' ? 'text-[#4E4E4E]' : activeEvent.status === 'ONGOING' ? 'text-[#00a3ff]' : 'text-gray-500'
-                    }`}>
-                    {activeEvent.status === 'ONCOMING' ? 'Đang chuẩn bị' : activeEvent.status === 'ONGOING' ? 'Đang mở bán' : 'Đã kết thúc'}
-                  </span>
-                  <p className="text-[#00A6FF] font-bold italic text-[14px]">
-                    Bắt đầu lúc {formatDateTime(activeEvent.startTime)}
-                  </p>
+                  <div className="flex flex-col gap-3">
+                    <span className={`inline-block px-5 py-1 bg-white text-[10px] font-bold italic rounded-full w-fit tracking-wider ${activeEvent.status === 'ONCOMING' ? 'text-[#4E4E4E]' : activeEvent.status === 'ONGOING' ? 'text-[#00a3ff]' : 'text-gray-500'
+                      }`}>
+                      {activeEvent.status === 'ONCOMING' ? 'Đang chuẩn bị' : activeEvent.status === 'ONGOING' ? 'Đang mở bán' : 'Đã kết thúc'}
+                    </span>
+                    <p className="text-[#00A6FF] font-bold italic text-[14px]">
+                      Bắt đầu lúc {formatDateTime(activeEvent.startTime)}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex gap-4 mt-8">
                   <button
                     onClick={() => handleEventClick(activeEvent.id)}
                     className="px-14 py-2 bg-[#00a3ff] hover:bg-[#0090FF] text-white text-sm font-bold rounded-full transition-colors"
@@ -205,11 +212,13 @@ const HomePage: React.FC = () => {
               </div>
             ) : (
               // Skeleton hoặc Loading State cho Banner nếu chưa có data
-              <div className="max-w-3xl mt-4 lg:mt-12 animate-pulse">
-                <div className="h-6 w-48 bg-white/20 rounded mb-4" />
-                <div className="h-16 w-3/4 bg-white/20 rounded mb-6" />
-                <div className="h-8 w-32 bg-white/20 rounded-full mb-8" />
-                <div className="flex gap-4">
+              <div className="max-w-3xl animate-pulse">
+                <div className="h-[220px] flex flex-col justify-end">
+                  <div className="h-6 w-48 bg-white/20 rounded mb-4" />
+                  <div className="h-16 w-3/4 bg-white/20 rounded mb-6" />
+                  <div className="h-8 w-32 bg-white/20 rounded-full" />
+                </div>
+                <div className="flex gap-4 mt-8">
                   <div className="h-10 w-36 bg-white/20 rounded-full" />
                   <div className="h-10 w-36 bg-white/20 rounded-full" />
                 </div>

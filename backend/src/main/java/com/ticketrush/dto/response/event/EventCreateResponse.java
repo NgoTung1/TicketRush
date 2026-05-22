@@ -19,4 +19,5 @@ public class EventCreateResponse {
     private String bannerUrl;
     private LocalDateTime startTime;
     private EventStatus status;
+    private Integer minPrice;
 }

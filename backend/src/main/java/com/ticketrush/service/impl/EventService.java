@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,7 +81,7 @@ public class EventService {
             endDate = date.atTime(LocalTime.MAX); // 23:59:59.999999999
         }
 
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Event> eventPage = eventRepository.searchEvents(categoryId, status, keyword, startDate, endDate, pageable);
         return eventPage.map(this::mapToResponse);
     }
@@ -194,6 +195,15 @@ public class EventService {
     }
 
     private EventCreateResponse mapToResponse(Event event) {
+        Integer minPrice = null;
+        if (event.getSeatTypes() != null && !event.getSeatTypes().isEmpty()) {
+            minPrice = event.getSeatTypes().stream()
+                    .map(st -> st.getPrice())
+                    .filter(p -> p != null)
+                    .min(Integer::compareTo)
+                    .orElse(null);
+        }
+
         return EventCreateResponse.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -204,6 +214,7 @@ public class EventService {
                 .bannerUrl(event.getBannerUrl())
                 .startTime(event.getStartTime())
                 .status(event.getStatus())
+                .minPrice(minPrice)
                 .build();
     }
 }

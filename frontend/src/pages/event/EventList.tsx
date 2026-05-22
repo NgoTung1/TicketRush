@@ -25,10 +25,14 @@ function formatDateTime(iso: string): string {
 }
 
 function toEventItemProps(event: EventResponse) {
+  const priceLabel = event.minPrice != null
+    ? `${event.minPrice.toLocaleString('vi-VN')}đ`
+    : 'Liên hệ';
+
   return {
     id: event.id,
     title: event.title,
-    price: 'Xem chi tiết',
+    price: priceLabel,
     date: formatDateTime(event.startTime),
     status:
       event.status === 'ONCOMING'
