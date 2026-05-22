@@ -32,11 +32,23 @@ const Checkout: React.FC = () => {
   }, [state, navigate]);
 
   useEffect(() => {
-    if (!activeRoom && !isNavigatingAway.current) {
-      // Time expired or room cleared
-      navigate('/', { replace: true, state: { message: 'Thời gian thanh toán đã hết.' } });
-    }
-  }, [activeRoom, navigate]);
+    const handleTimeout = async () => {
+      if (!activeRoom && !isNavigatingAway.current) {
+        // Time expired or room cleared
+        isNavigatingAway.current = true;
+        if (state?.seatIds) {
+          try {
+            await seatApi.releaseSeats(state.seatIds);
+          } catch (err) {
+            console.error('Lỗi khi nhả ghế do hết giờ:', err);
+          }
+        }
+        navigate('/', { replace: true, state: { message: 'Thời gian thanh toán đã hết.' } });
+      }
+    };
+
+    handleTimeout();
+  }, [activeRoom, navigate, state?.seatIds]);
 
   const handleCancel = async () => {
     if (!state?.seatIds || !eventId) return;
@@ -109,7 +121,7 @@ const Checkout: React.FC = () => {
               disabled={isCancelling}
               className="px-5 py-1 rounded-full bg-gray-500 hover:bg-gray-600 text-white font-medium transition-colors focus:outline-none disabled:opacity-50"
             >
-              {isCancelling ? 'Đang hủy...' : 'Hủy'}
+              {isCancelling ? 'Đang quay lại...' : 'Quay lại'}
             </button>
             <button
               onClick={handlePayment}
