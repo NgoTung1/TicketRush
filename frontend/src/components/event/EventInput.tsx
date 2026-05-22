@@ -4,7 +4,7 @@ import FilterIcon from '@/assets/images/Filter.svg';
 
 interface EventInputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> {
   label: string;
-  type?: 'text' | 'textarea' | 'select' | 'date' | 'datetime-local';
+  type?: 'text' | 'textarea' | 'select' | 'date' | 'datetime-local' | 'number';
   options?: { value: string; label: string }[] | string[];
 }
 
