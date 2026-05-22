@@ -71,8 +71,8 @@ const AdminUpdateEvent: React.FC = () => {
         const eventRes: any = await eventApi.getEventById(id);
         const e = eventRes?.data ?? eventRes;
 
-        // Chặn truy cập nếu sự kiện đã kết thúc hoặc đã hủy
-        if (e.status === 'COMPLETED' || e.status === 'CANCELLED') {
+        // Chỉ cho phép cập nhật nếu sự kiện ở trạng thái chuẩn bị (ONCOMING)
+        if (e.status !== 'ONCOMING') {
           navigate('/admin/event-list', { replace: true });
           return;
         }
@@ -82,7 +82,7 @@ const AdminUpdateEvent: React.FC = () => {
           title: e.title || '',
           description: e.description || '',
           address: e.address || '',
-          startTime: e.startTime ? new Date(e.startTime).toISOString().slice(0, 16) : '',
+          startTime: e.startTime ? e.startTime.slice(0, 16) : '',
           categoryId: e.categoryId || '',
           status: e.status || 'ONCOMING',
         });
@@ -96,8 +96,8 @@ const AdminUpdateEvent: React.FC = () => {
             id: s.id,
             data: {
               name: s.name,
-              startAt: s.startAt ? new Date(s.startAt).toISOString().slice(0, 16) : '',
-              endAt: s.endAt ? new Date(s.endAt).toISOString().slice(0, 16) : '',
+              startAt: s.startAt ? s.startAt.slice(0, 16) : '',
+              endAt: s.endAt ? s.endAt.slice(0, 16) : '',
             },
           }))
         );
@@ -246,7 +246,7 @@ const AdminUpdateEvent: React.FC = () => {
         organizer: form.organizer.trim(),
         description: form.description.trim(),
         address: form.address.trim(),
-        startTime: form.startTime ? new Date(form.startTime).toISOString() : undefined,
+        startTime: form.startTime ? (form.startTime.length === 16 ? `${form.startTime}:00` : form.startTime) : undefined,
         status: form.status as any,
       };
 
@@ -262,8 +262,10 @@ const AdminUpdateEvent: React.FC = () => {
         sessions.map((s) => {
           const sessionReq: EventSessionCreateRequest = {
             name: s.data.name.trim(),
-            startAt: new Date(s.data.startAt).toISOString(),
-            endAt: s.data.endAt ? new Date(s.data.endAt).toISOString() : new Date(s.data.startAt).toISOString(),
+            startAt: s.data.startAt.length === 16 ? `${s.data.startAt}:00` : s.data.startAt,
+            endAt: s.data.endAt 
+              ? (s.data.endAt.length === 16 ? `${s.data.endAt}:00` : s.data.endAt) 
+              : (s.data.startAt.length === 16 ? `${s.data.startAt}:00` : s.data.startAt),
           };
 
           if (typeof s.id === 'string' && s.id.startsWith('new-')) {
@@ -277,7 +279,12 @@ const AdminUpdateEvent: React.FC = () => {
       setSuccess(true);
     } catch (err: any) {
       console.error(err);
-      setError(err?.response?.data?.message || 'Cập nhật sự kiện thất bại.');
+      const serverError = err?.response?.data;
+      if (typeof serverError === 'string') {
+        setError(serverError);
+      } else {
+        setError(serverError?.message || 'Cập nhật sự kiện thất bại.');
+      }
     } finally {
       setSubmitting(false);
     }

@@ -32,6 +32,13 @@ public class ZoneService {
     // Tạo Zone và sinh ghế
     @Transactional
     public ZoneResponse createZone(UUID sessionId, ZoneRequest request) {
+        if (request.getRowsCount() != null && request.getRowsCount() > 50) {
+            throw new RuntimeException("Số hàng không được vượt quá 50!");
+        }
+        if (request.getColsCount() != null && request.getColsCount() > 50) {
+            throw new RuntimeException("Số cột không được vượt quá 50!");
+        }
+
         EventSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Session!"));
 
@@ -50,6 +57,13 @@ public class ZoneService {
 
     @Transactional
     public ZoneResponse updateZone(UUID zoneId, ZoneRequest request) {
+        if (request.getRowsCount() != null && request.getRowsCount() > 50) {
+            throw new RuntimeException("Số hàng không được vượt quá 50!");
+        }
+        if (request.getColsCount() != null && request.getColsCount() > 50) {
+            throw new RuntimeException("Số cột không được vượt quá 50!");
+        }
+
         Zone zone = zoneRepository.findById(zoneId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Zone!"));
 

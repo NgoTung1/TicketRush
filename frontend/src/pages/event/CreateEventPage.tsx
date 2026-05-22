@@ -184,7 +184,7 @@ const CreateEventPage: React.FC = () => {
         organizer: form.organizer.trim(),
         description: form.description.trim(),
         address: form.address.trim(),
-        startTime: new Date(form.startTime).toISOString(),
+        startTime: form.startTime.length === 16 ? `${form.startTime}:00` : form.startTime,
       };
 
       // 1. Tạo event (gửi kèm banner file nếu có)
@@ -201,8 +201,10 @@ const CreateEventPage: React.FC = () => {
         validSessions.map((s) => {
           const sessionReq: EventSessionCreateRequest = {
             name: s.data.name.trim(),
-            startAt: new Date(s.data.startAt).toISOString(),
-            endAt: s.data.endAt ? new Date(s.data.endAt).toISOString() : new Date(s.data.startAt).toISOString(),
+            startAt: s.data.startAt.length === 16 ? `${s.data.startAt}:00` : s.data.startAt,
+            endAt: s.data.endAt 
+              ? (s.data.endAt.length === 16 ? `${s.data.endAt}:00` : s.data.endAt) 
+              : (s.data.startAt.length === 16 ? `${s.data.startAt}:00` : s.data.startAt),
           };
           return eventSessionApi.createSession(eventId, sessionReq);
         })

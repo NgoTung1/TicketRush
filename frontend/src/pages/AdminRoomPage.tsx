@@ -48,12 +48,20 @@ export function AdminRoomPage() {
       return;
     }
 
-    eventApi.getEventById(eventId)
-      .then((res: any) => {
-        const event = res?.data ?? res;
+    Promise.all([
+      eventApi.getEventById(eventId),
+      seatTypeApi.getSeatTypesByEventId(eventId).catch(() => [])
+    ])
+      .then(([eventRes, seatTypesRes]: [any, any]) => {
+        const event = eventRes?.data ?? eventRes;
+        const existingSeatTypes = Array.isArray(seatTypesRes) ? seatTypesRes : seatTypesRes?.data ?? [];
+
         if (event.status !== 'ONCOMING') {
           alert('Không thể cấu hình sơ đồ ghế cho sự kiện đã hoặc đang diễn ra.');
           navigate('/');
+        } else if (existingSeatTypes.length > 0) {
+          alert('Sơ đồ ghế cho sự kiện này đã được thiết lập!');
+          navigate(`/admin/event/${eventId}`);
         } else {
           setLoading(false);
         }
@@ -131,6 +139,11 @@ export function AdminRoomPage() {
     const cols = parseInt(newZoneCols, 10);
     
     if (rows <= 0 || cols <= 0) return;
+    
+    if (rows > 50 || cols > 50) {
+      alert("Số hàng và số cột không được vượt quá 50!");
+      return;
+    }
 
     const newZoneId = `zone-${Date.now()}`;
     
@@ -456,16 +469,33 @@ export function AdminRoomPage() {
                             className="bg-[#383838] rounded-lg overflow-hidden transition-all duration-200"
                           >
                             {/* Header */}
-                            <button
-                              onClick={() => toggleZoneExpand(z.id)}
-                              className="w-full px-3 py-2.5 flex justify-between items-center hover:bg-[#323232] transition-colors focus:outline-none"
-                            >
-                              <span className="font-bold text-white">{z.name}</span>
-                              <div className="flex items-center gap-2 text-white text-[12px]">
-                                <span className="font-bold">{totalSeats} ghế</span>
-                                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                              <div
+                                className="w-full px-3 py-2.5 flex justify-between items-center hover:bg-[#323232] transition-colors focus:outline-none group"
+                              >
+                                <button
+                                  className="flex-1 flex justify-between items-center text-left focus:outline-none"
+                                  onClick={() => toggleZoneExpand(z.id)}
+                                >
+                                  <span className="font-bold text-white pr-2">{z.name}</span>
+                                  <div className="flex items-center gap-2 text-white text-[12px]">
+                                    <span className="font-bold">{totalSeats} ghế</span>
+                                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                  </div>
+                                </button>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (window.confirm('Bạn có chắc chắn muốn xóa khu vực này?')) {
+                                      saveHistory(zones);
+                                      setZones(prev => prev.filter(zone => zone.id !== z.id));
+                                    }
+                                  }}
+                                  className="ml-3 text-red-500 hover:text-red-400 p-1 hidden group-hover:block"
+                                  title="Xóa khu vực"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
                               </div>
-                            </button>
 
                             {/* Collapsible Content */}
                             {isExpanded && (
@@ -657,6 +687,8 @@ export function AdminRoomPage() {
                   <label className="block text-[20px] font-bold text-white mb-1">Số hàng</label>
                   <input 
                     type="number" 
+                    min={1}
+                    max={50}
                     value={newZoneRows}
                     onChange={e => setNewZoneRows(e.target.value)}
                     placeholder="Nhập số hàng"
@@ -667,6 +699,8 @@ export function AdminRoomPage() {
                   <label className="block text-[20px] font-bold text-white mb-1">Số cột</label>
                   <input 
                     type="number" 
+                    min={1}
+                    max={50}
                     value={newZoneCols}
                     onChange={e => setNewZoneCols(e.target.value)}
                     placeholder="Nhập số cột"
