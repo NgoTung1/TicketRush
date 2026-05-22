@@ -16,8 +16,8 @@ export const EventItem: React.FC<EventItemProps> = ({
     price = "200.000đ",
     date = "20:30 - 30/04/2026",
     status = "Sắp diễn ra",
-    statusColor = "text-[#F7FF55]", // Default yellow
-    imageUrl = "https://ticketbox.vn/images/default-event-cover.jpg", // Fallback placeholder
+    statusColor = "text-[#F7FF55]", 
+    imageUrl = "https://ticketbox.vn/images/default-event-cover.jpg", 
     onClick
 }) => {
     return (
@@ -26,7 +26,6 @@ export const EventItem: React.FC<EventItemProps> = ({
             className="w-full h-[330px] max-w-[340px] rounded-xl overflow-hidden flex flex-col cursor-pointer transition-transform duration-300 hover:-translate-y-1"
         >
 
-            {/* Image Container: Đã fix cứng chiều cao h-[190px] và thêm shrink-0 */}
             <div className="relative w-full h-[190px] shrink-0">
                 <img
                     src={imageUrl}

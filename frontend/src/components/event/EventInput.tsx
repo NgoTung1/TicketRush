@@ -21,7 +21,6 @@ const EventInput: React.FC<EventInputProps> = ({ label, type = 'text', options, 
 
       ) : type === 'select' ? (
         <div className="relative w-full sm:w-1/3 lg:w-1/4">
-          {/* Filter icon bên trái */}
           <img
             src={FilterIcon}
             alt=""
@@ -39,7 +38,6 @@ const EventInput: React.FC<EventInputProps> = ({ label, type = 'text', options, 
               return <option key={val} value={val} className="text-white bg-[#383838]">{lbl}</option>;
             })}
           </select>
-          {/* Chevron bên phải */}
           <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
             <svg className="w-3.5 h-3.5 text-[#868686]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -49,7 +47,6 @@ const EventInput: React.FC<EventInputProps> = ({ label, type = 'text', options, 
 
       ) : type === 'date' || type === 'datetime-local' ? (
         <div className="relative w-full sm:w-1/2 lg:w-1/3">
-          {/* Date icon bên trái */}
           <img
             src={DateIcon}
             alt=""
@@ -65,7 +62,6 @@ const EventInput: React.FC<EventInputProps> = ({ label, type = 'text', options, 
               Chọn mốc thời gian
             </div>
           )}
-          {/* Chevron bên phải */}
           <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none z-10">
             <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

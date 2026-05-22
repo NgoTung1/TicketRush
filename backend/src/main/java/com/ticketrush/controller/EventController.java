@@ -54,17 +54,26 @@ public class EventController {
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "20") int size) {
+            @RequestParam(name = "size", defaultValue = "20") int size,
+            org.springframework.security.core.Authentication authentication) {
 
-        Page<EventCreateResponse> eventPage = eventService.searchEvents(categoryId, status, keyword, date, page, size);
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        Page<EventCreateResponse> eventPage = eventService.searchEvents(categoryId, status, keyword, date, page, size, isAdmin);
 
         return ResponseEntity.ok(eventPage.getContent());
     }
 
     @GetMapping("/suggestions")
     public ResponseEntity<List<EventCreateResponse>> getHotSuggestions(
-            @RequestParam(name = "keyword") String keyword) {
-        List<EventCreateResponse> suggestions = eventService.getHotSuggestions(keyword);
+            @RequestParam(name = "keyword") String keyword,
+            org.springframework.security.core.Authentication authentication) {
+        
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        List<EventCreateResponse> suggestions = eventService.getHotSuggestions(keyword, isAdmin);
         return ResponseEntity.ok(suggestions);
     }
 

@@ -71,31 +71,27 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public Page<EventCreateResponse> searchEvents(UUID categoryId, EventStatus status, String keyword, LocalDate date,
-            int page, int size) {
+            int page, int size, boolean isAdmin) {
         LocalDateTime startDate = null;
         LocalDateTime endDate = null;
 
-        // Xử lý mốc thời gian nếu có truyền param date
         if (date != null) {
-            startDate = date.atStartOfDay(); // 00:00:00
-            endDate = date.atTime(LocalTime.MAX); // 23:59:59.999999999
+            startDate = date.atStartOfDay(); 
+            endDate = date.atTime(LocalTime.MAX); 
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "startTime"));
-        Page<Event> eventPage = eventRepository.searchEvents(categoryId, status, keyword, startDate, endDate, pageable);
+        Page<Event> eventPage = eventRepository.searchEvents(categoryId, status, keyword, startDate, endDate, isAdmin, pageable);
         return eventPage.map(this::mapToResponse);
     }
 
     @Transactional(readOnly = true)
-    public List<EventCreateResponse> getHotSuggestions(String keyword) {
-        // Giới hạn lấy 4 sự kiện
+    public List<EventCreateResponse> getHotSuggestions(String keyword, boolean isAdmin) {
         Pageable limit = PageRequest.of(0, 4);
 
-        // Liệt kê các trạng thái hợp lệ
         List<EventStatus> validStatuses = List.of(EventStatus.ONCOMING, EventStatus.ONGOING);
 
-        // Truyền cả keyword và danh sách trạng thái xuống Repo
-        List<Event> list = eventRepository.findHotSuggestions(keyword, validStatuses, limit);
+        List<Event> list = eventRepository.findHotSuggestions(keyword, validStatuses, isAdmin, limit);
 
         return list.stream().map(this::mapToResponse).toList();
     }
@@ -151,8 +147,7 @@ public class EventService {
         eventRepository.delete(existingEvent);
     }
 
-    // Hàm này để tự động chạy để chuyển status event từ oncoming sang ongoing sau 3
-    // ngày
+    // Hàm này để tự động chạy để chuyển status event từ oncoming sang ongoing sau 3 ngày
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void autoUpdateEventStatus() {
@@ -168,8 +163,7 @@ public class EventService {
         }
     }
 
-    // Hàm tự động đổi trạng thái sang COMPLETED dựa vào suất diễn cuối cùng đã kết
-    // thúc
+    // Hàm tự động đổi trạng thái sang COMPLETED dựa vào suất diễn cuối cùng đã kết thúc
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void autoCompleteEvents() {

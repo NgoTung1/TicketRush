@@ -15,6 +15,7 @@ import java.util.UUID;
 public interface EventRepository extends JpaRepository<Event, UUID> {
 
     @Query("SELECT e FROM Event e WHERE " +
+            "(:isAdmin = true OR e.category.isDeleted = false) AND " +
             "(:categoryId IS NULL OR e.category.id = :categoryId) AND " +
             "(:status IS NULL OR e.status = :status) AND " +
             "(:keyword IS NULL OR " +
@@ -32,15 +33,18 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             @Param("keyword") String keyword,
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,
+            @Param("isAdmin") boolean isAdmin,
             Pageable pageable);
 
     @Query("SELECT e FROM Event e WHERE " +
+            "(:isAdmin = true OR e.category.isDeleted = false) AND " +
             "e.status IN :statuses AND " +
             "(LOWER(function('f_unaccent', e.title)) LIKE LOWER(function('f_unaccent', CONCAT('%', :keyword, '%')))) " +
             "ORDER BY e.startTime ASC")
     List<Event> findHotSuggestions(
             @Param("keyword") String keyword,
             @Param("statuses") List<EventStatus> statuses,
+            @Param("isAdmin") boolean isAdmin,
             Pageable pageable);
 
     List<Event> findByStatusAndCreatedAtBefore(EventStatus status, LocalDateTime dateTime);
