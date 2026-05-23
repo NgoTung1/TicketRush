@@ -80,8 +80,12 @@ const CreateEventPage: React.FC = () => {
   ) => {
     let value: any = e.target.value;
     if (field === 'maxTicketPerUser') {
-      value = parseInt(value, 10);
-      if (isNaN(value) || value <= 0) value = 8;
+      if (value === '') {
+        value = '';
+      } else {
+        value = parseInt(value, 10);
+        if (isNaN(value) || value <= 0) value = 8;
+      }
     }
     setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -191,7 +195,7 @@ const CreateEventPage: React.FC = () => {
         description: form.description.trim(),
         address: form.address.trim(),
         startTime: form.startTime.length === 16 ? `${form.startTime}:00` : form.startTime,
-        maxTicketPerUser: form.maxTicketPerUser,
+        maxTicketPerUser: form.maxTicketPerUser || 8,
       };
 
       // 1. Tạo event (gửi kèm banner file nếu có)

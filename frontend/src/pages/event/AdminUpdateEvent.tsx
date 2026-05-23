@@ -137,8 +137,12 @@ const AdminUpdateEvent: React.FC = () => {
   ) => {
     let value: any = e.target.value;
     if (field === 'maxTicketPerUser') {
-      value = parseInt(value, 10);
-      if (isNaN(value) || value <= 0) value = 8;
+      if (value === '') {
+        value = '';
+      } else {
+        value = parseInt(value, 10);
+        if (isNaN(value) || value <= 0) value = 8;
+      }
     }
     setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -255,7 +259,7 @@ const AdminUpdateEvent: React.FC = () => {
         address: form.address.trim(),
         startTime: form.startTime ? (form.startTime.length === 16 ? `${form.startTime}:00` : form.startTime) : undefined,
         status: form.status as any,
-        maxTicketPerUser: form.maxTicketPerUser,
+        maxTicketPerUser: form.maxTicketPerUser || 8,
       };
 
       // 1. Update Event Info

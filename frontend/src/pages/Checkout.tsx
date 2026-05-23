@@ -43,12 +43,19 @@ const Checkout: React.FC = () => {
             console.error('Lỗi khi nhả ghế do hết giờ:', err);
           }
         }
+        if (eventId) {
+          try {
+            await roomApi.leaveRoom(eventId);
+          } catch (err) {
+            console.error('Lỗi khi leave room:', err);
+          }
+        }
         navigate('/', { replace: true, state: { message: 'Thời gian thanh toán đã hết.' } });
       }
     };
 
     handleTimeout();
-  }, [activeRoom, navigate, state?.seatIds]);
+  }, [activeRoom, navigate, state?.seatIds, eventId]);
 
   const handleCancel = async () => {
     if (!state?.seatIds || !eventId) return;

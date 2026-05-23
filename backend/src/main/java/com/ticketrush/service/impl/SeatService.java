@@ -144,7 +144,8 @@ public class SeatService {
 
         int maxLimit = event.getMaxTicketPerUser() != null ? event.getMaxTicketPerUser() : 8;
         if (existingCount + seatIds.size() > maxLimit) {
-            throw new RuntimeException("Bạn đã đặt " + existingCount + " ghế. Việc chọn thêm " + seatIds.size() + " ghế sẽ vượt quá giới hạn " + maxLimit + " ghế cho toàn bộ sự kiện này!");
+            throw new RuntimeException("Bạn đã đặt " + existingCount + " ghế. Việc chọn thêm " + seatIds.size()
+                    + " ghế sẽ vượt quá giới hạn " + maxLimit + " ghế cho toàn bộ sự kiện này!");
         }
 
         User user = userRepository.findById(userId)
@@ -176,6 +177,16 @@ public class SeatService {
 
         List<Seat> savedSeats = seatRepository.saveAll(seats);
         return savedSeats.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void releaseAllHeldSeatsOfUser(UUID eventId, UUID userId) {
+        List<Seat> seats = seatRepository.findOrderedSeatsByEventAndUser(eventId, userId);
+        for (Seat seat : seats) {
+            seat.setStatus(SeatStatus.AVAILABLE);
+            seat.setSelectedBy(null);
+        }
+        seatRepository.saveAll(seats);
     }
 
     @Transactional

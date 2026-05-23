@@ -10,6 +10,7 @@ import com.ticketrush.dto.JoinResultDTO;
 import java.time.Instant;
 import java.time.Duration;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class TicketQueueService {
@@ -19,6 +20,9 @@ public class TicketQueueService {
 
   @Autowired
   private BlockService blockService;
+
+  @Autowired
+  private com.ticketrush.service.impl.SeatService seatService;
 
   private static final int ACTIVE_ROOM_LIMIT = 2;
   private static final long PAYMENT_WINDOW_SECONDS = 180; // 10 phút
@@ -135,6 +139,13 @@ public class TicketQueueService {
       for (String userId : timedOutUsers) {
         // Ghi nhận vi phạm
         handleUserTimeout(userId);
+
+        // Nhả ghế đang giữ của user này cho sự kiện này
+        try {
+            seatService.releaseAllHeldSeatsOfUser(UUID.fromString(eventId), UUID.fromString(userId));
+        } catch (Exception e) {
+            System.err.println("Lỗi nhả ghế cho user timeout: " + e.getMessage());
+        }
 
         // Xóa khỏi hàng chờ & gọi người tiếp theo
         redisTemplate.opsForZSet().remove(activeKey, userId);
