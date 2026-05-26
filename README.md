@@ -51,6 +51,53 @@
 ![Thiết lập sơ đồ](frontend/src/assets/images/taomatran2.PNG)
 
 ---
+## Kiến trúc hệ thống
+
+```mermaid
+graph TD
+    subgraph Clients["Tầng Client"]
+        Customer("Khách hàng (Trình duyệt)")
+        Admin("Quản trị viên (Trình duyệt)")
+    end
+
+    subgraph Frontend["Tầng Frontend (ReactJS)"]
+        UI["Giao diện UI"]
+        State["Quản lý State (Zustand)"]
+        Customer --> UI
+        Admin --> UI
+        UI <--> State
+    end
+
+    subgraph ExternalAuth["Xác thực"]
+        SupabaseAuth["Supabase Auth"]
+        UI <--> |Đăng nhập/Đăng ký| SupabaseAuth
+    end
+
+    subgraph Backend["Tầng Backend (Spring Boot)"]
+        Security["Spring Security"]
+        REST["REST API"]
+        WS["WebSocket (Real-time)"]
+        Services["Business Logic & Queue"]
+        
+        Security --> REST
+        REST <--> Services
+        WS <--> Services
+    end
+
+    subgraph Database["Tầng Dữ liệu"]
+        PG[("PostgreSQL")]
+        Redis[("Redis (Cache & Queue)")]
+    end
+
+    UI --> |HTTP Requests (JWT)| REST
+    UI <--> |Trạng thái ghế (Real-time)| WS
+    Security -.-> |Xác thực Token| SupabaseAuth
+    
+    Services <--> |JPA/Hibernate| PG
+    Services <--> |Lock ghế / Flash Sale Queue| Redis
+```
+
+---
 ## Công nghệ sử dụng
 
 ### **Frontend**
@@ -129,7 +176,7 @@ TicketRush/
 │   ├── tailwind.config.js # Cấu hình TailwindCSS
 │   └── vite.config.ts     # Cấu hình Vite
 │
-└── load-test-queue.js     # 🧪 Kịch bản k6 Load Testing
+└── load-test-queue.js     # Kịch bản k6 Load Testing
 ```
 
 ---
