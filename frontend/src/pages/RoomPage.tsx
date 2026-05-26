@@ -41,16 +41,29 @@ export function RoomPage() {
   const [zones, setZones] = useState<ZoneData[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [eventData, setEventData] = useState<any>(null);
+  const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
 
   // Guard 1: Không có activeRoom hoặc eventId không khớp → redirect
   useEffect(() => {
-    if (!activeRoom || activeRoom.eventId !== eventId) {
-      if (fromDetail) {
-        navigate(-1);
-      } else {
-        navigate(`/event/${eventId}`, { replace: true });
+    const handleRoomGuard = async () => {
+      if (!activeRoom || activeRoom.eventId !== eventId) {
+        // Khi bị timeout
+        if (!activeRoom && eventId) {
+          try {
+            await roomApi.leaveRoom(eventId);
+          } catch (err) {
+            console.error('Lỗi leave room:', err);
+          }
+        }
+
+        if (fromDetail) {
+          navigate(-1);
+        } else {
+          navigate(`/event/${eventId}`, { replace: true });
+        }
       }
-    }
+    };
+    handleRoomGuard();
   }, [activeRoom, eventId, navigate, fromDetail]);
 
   // Guard 2: Event đã COMPLETED → redirect về trang trước
@@ -180,7 +193,7 @@ export function RoomPage() {
         if (status === 'SUBSCRIBED') {
           console.log(`[Supabase Realtime] Đã kết nối thành công kênh: room-${eventId}-seats`);
         }
-        
+
         if (status === 'CHANNEL_ERROR') {
           console.error(`[Supabase Realtime] Lỗi kết nối kênh: room-${eventId}-seats`, err);
         }
@@ -226,14 +239,14 @@ export function RoomPage() {
     setIsHolding(true);
     try {
       await seatApi.holdSeats(seatIds);
-      navigate(`/checkout/${eventId}`, { 
-        state: { 
-          sessionId, 
-          seatIds, 
+      navigate(`/checkout/${eventId}`, {
+        state: {
+          sessionId,
+          seatIds,
           invoiceData,
           totalAmount: totalPrice,
           eventId,
-        } 
+        }
       });
     } catch (err: any) {
       const message = err?.response?.data?.message || err?.message || 'Không thể giữ ghế. Vui lòng thử lại.';
@@ -247,7 +260,7 @@ export function RoomPage() {
     }
   };
 
-  const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
+
   const [isRulesOpen, setIsRulesOpen] = useState(false);
 
   // Calculate grouped selected seats

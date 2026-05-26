@@ -44,4 +44,9 @@ public interface SeatRepository extends JpaRepository<Seat, UUID> {
                "WHERE es.event.id = :eventId AND s.selectedBy.id = :userId " +
                "AND s.status IN ('ORDERED', 'SOLD')")
         long countSeatsByEventAndUser(@Param("eventId") UUID eventId, @Param("userId") UUID userId);
+
+        @Query("SELECT s FROM Seat s JOIN s.zone z JOIN z.eventSession es " +
+               "WHERE es.event.id = :eventId AND s.selectedBy.id = :userId " +
+               "AND s.status = 'ORDERED'")
+        List<Seat> findOrderedSeatsByEventAndUser(@Param("eventId") UUID eventId, @Param("userId") UUID userId);
 }
