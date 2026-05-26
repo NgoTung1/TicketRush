@@ -74,9 +74,9 @@ Dự án sử dụng Supabase làm CSDL chính. Để hệ thống hoạt độn
 - `backend/`: Chứa mã nguồn API Java Spring Boot, chia theo kiến trúc Controller-Service-Repository. Có tách biệt rõ ràng APIs cho `admin` và `customer`.
 - `frontend/`: Chứa mã nguồn UI ReactJS, tái sử dụng các components chung và sử dụng Zustand để quản lý State (VD: hàng chờ, giỏ hàng).
 
-FLUSHALL
+<!-- FLUSHALL
 
 & "C:\Program Files\k6\k6.exe" run load-test-queue.js
 
 Để thêm số lượng người dùng ảo (VUs) hay thời gian test, bạn cũng có thể gắn thêm cờ như bình thường:
-& "C:\Program Files\k6\k6.exe" run --vus 300 --duration 30s load-test-queue.js
+& "C:\Program Files\k6\k6.exe" run --vus 300 --duration 30s load-test-queue.js -->
