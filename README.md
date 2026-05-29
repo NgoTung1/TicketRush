@@ -1,5 +1,7 @@
 # TicketRush
 
+> **Live Demo / Deploy Link:** [http://20.191.147.59/](http://20.191.147.59/)
+
 **TicketRush** là nền tảng phân phối vé sự kiện (âm nhạc, giải trí, thể thao) được thiết kế đặc biệt để có thể xử lý **lưu lượng truy cập khổng lồ** trong thời gian ngắn. Hệ thống đảm bảo trải nghiệm mua vé, chọn ghế mượt mà theo thời gian thực, **ngăn chặn tuyệt đối tình trạng bán trùng ghế (overbooking)**, và tích hợp **cơ chế block ngăn chặn các hành vi gian lận** khi đặt vé. Ngoài ra nền tảng còn cung cấp giao diện sự kiện, sơ đồ ghế nổi bật, đa dạng với nhiều loại hình thức vé sự kiện khác nhau.
 
 ---
