@@ -125,7 +125,6 @@ const AdminHeader: React.FC = () => {
           <nav className="hidden lg:flex items-center gap-1 mr-auto">
             {NAV_ITEMS.map((item) => {
               // Active path nếu đang đứng đúng route
-              const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
               return (
                 <Link
                   key={item.path}

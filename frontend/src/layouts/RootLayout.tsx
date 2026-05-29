@@ -7,6 +7,7 @@ import QueueMiniWidget from '@/components/ui/QueueMiniWidget';
 import { useRoomStore } from '@/store/RoomStore';
 import { useNavigate } from 'react-router-dom';
 import { roomApi } from '@/api/roomApi';
+import { baseURL } from '@/lib/axios';
 
 const RootLayout: React.FC = () => {
   const location = useLocation();
@@ -19,6 +20,8 @@ const RootLayout: React.FC = () => {
   }, [location.pathname]);
   const { activeRoom, clearActiveRoom } = useRoomStore();
   const navigate = useNavigate();
+
+  console.log("BASE URL: ", baseURL)
 
   return (
     <div

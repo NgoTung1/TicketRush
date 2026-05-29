@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getIdFromToken } from '@/helpers/jwt';
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
+export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/';
 
 let accessToken: string | null = null;
 
