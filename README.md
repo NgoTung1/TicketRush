@@ -1,6 +1,6 @@
 # TicketRush
 
-**TicketRush** là nền tảng phân phối vé sự kiện (âm nhạc, giải trí, thể thao) được thiết kế đặc biệt để xử lý **lưu lượng truy cập khổng lồ** trong thời gian ngắn (Flash Sale). Hệ thống đảm bảo trải nghiệm mua vé, chọn ghế mượt mà theo thời gian thực và **ngăn chặn tuyệt đối tình trạng bán trùng ghế (overbooking)**. Ngoài ra nền tảng còn cung cấp giao diện sự kiện, sơ đồ ghế nổi bật, đa dạng với nhiều loại hình thức vé sự kiện khác nhau.
+**TicketRush** là nền tảng phân phối vé sự kiện (âm nhạc, giải trí, thể thao) được thiết kế đặc biệt để có thể xử lý **lưu lượng truy cập khổng lồ** trong thời gian ngắn. Hệ thống đảm bảo trải nghiệm mua vé, chọn ghế mượt mà theo thời gian thực, **ngăn chặn tuyệt đối tình trạng bán trùng ghế (overbooking)**, và tích hợp **cơ chế block ngăn chặn các hành vi gian lận** khi đặt vé. Ngoài ra nền tảng còn cung cấp giao diện sự kiện, sơ đồ ghế nổi bật, đa dạng với nhiều loại hình thức vé sự kiện khác nhau.
 
 ---
 
@@ -9,7 +9,7 @@
 ### Người dùng
 - **Xử lý Flash Sale:** Hàng chờ (Queue) công bằng, chịu tải cao trong các đợt mở bán vé quy mô lớn.
 - **Chọn ghế Real-time:** Hiển thị trạng thái ghế theo thời gian thực, khóa ghế tạm thời (Lock) khi đang thanh toán.
-- **Bảo mật & Chống trùng ghế:** Quản lý giao dịch an toàn (Transaction), đảm bảo tính nhất quán dữ liệu (ACID).
+- **Bảo mật, Chống trùng & Chống gian lận:** Quản lý giao dịch an toàn (Transaction), đảm bảo tính nhất quán dữ liệu (ACID), cùng **cơ chế block tự động** ngăn chặn các hành vi gian lận, spam khi đặt vé.
 - **Giao diện hiện đại:** Responsive trên mọi thiết bị, thao tác chọn ghế trực quan.
 - **Vé điện tử (E-Ticket):** Tích hợp QR Code để check-in tại sự kiện nhanh chóng.
 
@@ -58,15 +58,15 @@
 - **Styling:** Tailwind CSS
 - **State Management:** Zustand
 - **Routing:** React Router DOM
-- **Khác:** Axios, Recharts, Lucide React, Supabase Auth
+- **Khác:** Axios, Recharts, Lucide React
 
 ### **Backend**
 - **Core:** Java 17, Spring Boot 3
 - **Database (RDBMS):** PostgreSQL (thông qua Supabase)
 - **ORM:** Hibernate (Spring Data JPA)
-- **Caching & Queue:** Redis
-- **Security:** Spring Security, OAuth2 Resource Server
-- **Real-time:** WebSockets
+- **Caching & Queue:** Redis (Upstair)
+- **Security:** Spring Security, OAuth2 Resource Server, Supabase Auth, JWT (JSON Web Token), HttpOnly Cookies
+- **Real-time & Tài nguyên:** WebSockets (thông qua Supabase), Supabase Storage (lưu trữ ảnh, tài nguyên tĩnh)
 - **Tiện ích:** Lombok, ZXing (Tạo QR Code), Springdoc OpenAPI (Swagger UI)
 
 ---
