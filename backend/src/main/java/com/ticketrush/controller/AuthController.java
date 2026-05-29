@@ -124,10 +124,10 @@ public class AuthController {
   private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
     ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
         .httpOnly(true)
-        .secure(true)
+        .secure(false)
         .path("/")
         .maxAge(30 * 24 * 60 * 60)
-        .sameSite("None")
+        .sameSite("Lax")
         .build();
 
     response.addHeader("Set-Cookie", cookie.toString());
@@ -136,10 +136,10 @@ public class AuthController {
   private void clearRefreshTokenCookie(HttpServletResponse response) {
     ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
         .httpOnly(true)
-        .secure(true)
+        .secure(false)
         .path("/")
         .maxAge(0) // Set về 0 để xóa
-        .sameSite("None")
+        .sameSite("Lax")
         .build();
 
     response.addHeader("Set-Cookie", cookie.toString());
