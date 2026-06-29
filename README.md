@@ -14,7 +14,7 @@
 - **Bảo mật, Chống trùng & Chống gian lận:** Quản lý giao dịch an toàn (Transaction), đảm bảo tính nhất quán dữ liệu (ACID), cùng **cơ chế block tự động** ngăn chặn các hành vi gian lận, spam khi đặt vé.
 - **Giao diện hiện đại:** Responsive trên mọi thiết bị, thao tác chọn ghế trực quan.
 - **Vé điện tử (E-Ticket):** Tích hợp QR Code để check-in tại sự kiện nhanh chóng.
-
+ 
 ### Admin
 - **Tạo và quản lý sự kiện:** Đăng tải thông tin sự kiện, bao gồm poster, mô tả và thông tin thời gian.
 - **Thiết kế sơ đồ ghế:** Tùy chỉnh layout và cấu trúc khu vực chỗ ngồi cho từng sự kiện. Hỗ trợ kéo, thả, thu phóng, cắt ghép sơ đồ ghế một cách đa dạng.
